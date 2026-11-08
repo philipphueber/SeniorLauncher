@@ -8,14 +8,16 @@ import java.util.List;
 import java.util.function.Predicate;
 
 /**
- * All persistent state: the ordered list of home items, the lock flag, the
- * colour theme, and whether the first-run default tiles were added. Every change is written at
+ * All persistent state: the ordered list of home items, the lock flag and its
+ * PIN hash, the colour theme, and whether the first-run default tiles were added. Every change is written at
  * once (commit), so a killed process never loses a tile.
  */
 public final class Store {
     private static final String FILE = "seniorlauncher";
     private static final String K_ITEMS = "items";
     private static final String K_LOCKED = "locked";
+    private static final String K_SALT = "pin_salt";
+    private static final String K_HASH = "pin_hash";
     private static final String K_SEEDED = "seeded";
     private static final String K_THEME = "theme";
 
@@ -91,9 +93,25 @@ public final class Store {
         return prefs.getBoolean(K_LOCKED, false);
     }
 
-    public synchronized void setLocked(boolean locked) {
-        prefs.edit().putBoolean(K_LOCKED, locked).commit();
-        LockProvider.notifyChanged(app); // SeniorPhone locks and unlocks with us
+    /** Locks with a new PIN. Caller has checked Pin.isValid(pin). */
+    public synchronized void lock(String pin) {
+        String salt = Pin.newSalt();
+        prefs.edit().putString(K_SALT, salt).putString(K_HASH, Pin.hash(salt, pin))
+                .putBoolean(K_LOCKED, true).commit();
+        LockProvider.notifyChanged(app); // SeniorPhone and SeniorAlert lock with us
+    }
+
+    /**
+     * Unlocks if the PIN is right; returns whether it was. A lock from before
+     * PINs existed has no hash; any PIN lifts it, so nobody is locked out.
+     */
+    public synchronized boolean unlock(String pin) {
+        if (!prefs.getBoolean(K_LOCKED, false)) return true;
+        String hash = prefs.getString(K_HASH, null);
+        if (hash != null && !Pin.matches(prefs.getString(K_SALT, null), hash, pin)) return false;
+        prefs.edit().putBoolean(K_LOCKED, false).remove(K_SALT).remove(K_HASH).commit();
+        LockProvider.notifyChanged(app);
+        return true;
     }
 
     public synchronized Palette.Theme theme() {

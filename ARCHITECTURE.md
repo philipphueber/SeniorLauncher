@@ -27,14 +27,16 @@ separate app, not part of this one.
 | `AppsActivity` | Every launchable app with an "Add" / "On home ✓" toggle. The only way to put an app on the home screen. |
 | `WidgetsActivity` | Places widgets (bind, optional configure, store) and removes them. Lists them grouped by app with previews, a size badge (small/wide) and a search over widget and app names. |
 | `IconColor` | Pure: an icon's main colour for Colourful tiles, made readable under white text. Unit tested. |
-| `SettingsActivity` | Lock (long press), colours, arrange home screen, choose home app, phone settings. |
+| `SettingsActivity` | Lock (choose a PIN), colours, arrange home screen, choose home app, phone settings. |
 | `ArrangeActivity` | The home items in order, with "Page 1", "Page 2" headings from `Pages.layout`; ▲ Earlier / ▼ Later on each. From Settings, or from the long press on a tile (that tile marked). Never while locked. |
 | `Widgets` | The one `AppWidgetHost`: creates, sizes and deletes widget views. |
 | `AppInfo` | Label, icon, launchability and launch of an app tile, via `LauncherApps`. |
 | `DefaultApps` | On first run, adds tiles for the default phone, messages, camera, photos, contacts and browser apps. |
 | `Order` | Pure: moves one item earlier or later in a list, stepping over hidden items; clamps at the ends. Unit tested. |
-| `LockProvider` | Read-only: tells SeniorPhone and SeniorAlert whether the home screen is locked. |
-| `Store` | The ordered home items, the lock flag and the first-run flag, in SharedPreferences. |
+| `LockProvider` | Tells SeniorPhone and SeniorAlert whether the home screen is locked, and lifts the lock for them when given the PIN. |
+| `Store` | The ordered home items, the lock flag with its PIN salt/hash, and the first-run flag, in SharedPreferences. |
+| `Pin` | PIN validation (4-8 digits), salted SHA-256 hash, constant-time compare. Same as SeniorAlert's. Pure. |
+| `PinDialog` | Choose a PIN (twice) when locking; enter it when unlocking. The unlock prompt closes after 10 s without typing. |
 | `Ui` | Shared buttons, helper-screen frame and dialogs (`confirm`, and `choose` for more than one action), so every screen looks alike. Resolves every colour through the chosen theme (`Ui.color`, `Ui.applyTheme`). |
 | `Palette` | Pure: the four colour themes (Light, Dark, High contrast, Colourful) as roles, the Colourful tile colours, and the WCAG contrast check. Unit tested for readability. |
 | `HomeItem` | Pure: an app tile or a widget (id and rows). |
@@ -122,22 +124,26 @@ changed.
 
 ## Lock
 
-The helper locks the home screen in Settings with a long press. Locked, the
-Apps, Widgets and Settings buttons are replaced by a padlock and long-press on
-tiles does nothing (no Move, no Remove; the Arrange screen closes itself if it
-is ever opened locked), so the senior can only open things. Holding the padlock
-asks "Unlock settings?". There is no PIN, on purpose: the long press is the
-protection against accidents, not against a determined person.
+The helper locks the home screen in Settings by choosing a PIN, like
+SeniorAlert's lock. Locked, the Apps, Widgets and Settings buttons are replaced
+by a padlock and long-press on tiles does nothing (no Move, no Remove; the
+Arrange screen closes itself if it is ever opened locked), so the senior can
+only open things. Holding the padlock asks for the PIN. The prompt never stays
+up: it closes after 10 s without typing and when the screen is left, so the
+senior is not left facing a code request. The PIN keeps a curious senior out,
+not a determined person; clearing the app's data is the reset. A lock from
+before PINs existed has no hash and opens with any PIN.
 
 The lock is shared with the other Senior apps: `LockProvider` answers
 `content://app.phueber.seniorlauncher.lock/state` with one row, `locked` 0/1,
 and every change notifies that uri. SeniorPhone and SeniorAlert lock with the
-home screen (no new contacts, no changes to favourites or alarms) and point to
-the padlock here for unlocking. The provider is read-only, so another app can
-see the lock but never lift it. No permission guards the read: the state is
-visible on screen anyway, and the apps have separate signing keys, which rules
-out a signature permission. Installed without the launcher, each app keeps its
-own lock.
+home screen (no new contacts, no changes to favourites or alarms) and can
+unlock it in place with the PIN, through `call(STATE, "unlock", pin)`, which
+answers `unlocked` true/false; the helper never has to go back to the home
+screen. Nothing else can be written: no app can lock, or unlock without the
+PIN. No permission guards the provider: the state is visible on screen anyway,
+and the apps have separate signing keys, which rules out a signature
+permission. Installed without the launcher, each app keeps its own lock.
 
 ## Permissions
 

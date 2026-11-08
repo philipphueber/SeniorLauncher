@@ -18,6 +18,7 @@ import android.widget.TextView;
  */
 public final class SettingsActivity extends Activity {
     private Store store;
+    private android.app.Dialog dialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,23 +27,17 @@ public final class SettingsActivity extends Activity {
         store = new Store(this);
         LinearLayout content = Ui.screen(this, getString(R.string.settings_title));
 
-        // Lock: long press only, like the unlock on the home screen, so a senior
-        // tapping around cannot lock by accident. A short tap says what to do.
+        // Lock: asks for a new PIN (twice), like SeniorAlert. Typing a PIN is
+        // the guard against locking by accident, so a plain tap opens it.
         Button lock = Ui.button(this, getString(R.string.settings_lock), R.color.green);
-        TextView hint = Ui.bold(this, getString(R.string.settings_lock_hint), Ui.TEXT_BODY);
-        hint.setTextColor(Ui.color(this, R.color.red));
-        hint.setVisibility(View.GONE);
         lock.setOnClickListener(v -> {
-            hint.setVisibility(View.VISIBLE);
-            hint.announceForAccessibility(hint.getText());
-        });
-        lock.setOnLongClickListener(v -> {
-            store.setLocked(true);
-            finish(); // back to the home screen, which now shows only the padlock
-            return true;
+            dismissDialog();
+            dialog = PinDialog.choose(this, pin -> {
+                store.lock(pin);
+                finish(); // back to the home screen, which now shows only the padlock
+            });
         });
         content.addView(lock, Ui.fullWidth(this, 8));
-        content.addView(hint, Ui.fullWidth(this, 8));
         content.addView(explanation(getString(R.string.settings_lock_explain)), Ui.fullWidth(this, 8));
 
         // Colours: a few fixed, tested themes, no free picker (see Palette).
@@ -114,6 +109,19 @@ public final class SettingsActivity extends Activity {
             } catch (RuntimeException ignored) {
                 // Nothing left to open.
             }
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        dismissDialog(); // a half-typed PIN does not wait for the next visit
+    }
+
+    private void dismissDialog() {
+        if (dialog != null) {
+            dialog.dismiss();
+            dialog = null;
         }
     }
 }

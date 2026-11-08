@@ -47,9 +47,11 @@ Needs Android 8.0 or newer.
   screen; Android asks once whether to allow it. Widgets are removed there too.
 - **Settings → Colours**: Light, Dark, High contrast (white on black), or
   Colourful (each tile in its app's colour). Pick whatever is easiest to read.
-- **Settings → Lock**: press and hold. Afterwards only the tiles are left, so
-  nothing can be changed by accident. To unlock, press and hold the padlock at
-  the top.
+- **Settings → Lock**: choose a PIN (4 to 8 digits). Afterwards only the
+  tiles are left, so nothing can be changed by accident. To unlock, press and
+  hold the padlock at the top and enter the PIN; the Phone and Alarm apps
+  unlock with the same PIN. Forgotten PIN: Android Settings → Apps →
+  SeniorLauncher → Storage → Clear data (the tiles go too).
 - To move a tile or take it off, press and hold it (only when unlocked) and
   choose **Move** or **Remove**.
 
@@ -101,9 +103,12 @@ Benötigt Android 8.0 oder neuer.
 - **Einstellungen → Farben**: Hell, Dunkel, Hoher Kontrast (weiß auf schwarz)
   oder Bunt (jede Kachel in der Farbe ihrer App). Wählen Sie, was am besten zu lesen
   ist.
-- **Einstellungen → Sperren**: gedrückt halten. Danach sind nur noch die
-  Kacheln da, sodass nichts aus Versehen geändert wird. Zum Entsperren das
-  Schloss oben gedrückt halten.
+- **Einstellungen → Sperren**: eine PIN wählen (4 bis 8 Ziffern). Danach sind
+  nur noch die Kacheln da, sodass nichts aus Versehen geändert wird. Zum
+  Entsperren das Schloss oben gedrückt halten und die PIN eingeben; die
+  Telefon- und die Wecker-App entsperren mit derselben PIN. PIN vergessen:
+  Android-Einstellungen → Apps → SeniorLauncher → Speicher → Daten löschen
+  (die Kacheln sind dann auch weg).
 - Um eine Kachel zu verschieben oder herunterzunehmen, halten Sie sie gedrückt
   (nur entsperrt) und wählen **Verschieben** oder **Entfernen**.
 

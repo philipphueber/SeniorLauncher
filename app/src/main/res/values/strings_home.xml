@@ -14,8 +14,7 @@
     <string name="home_tile_question">What do you want to do with “%1$s”?</string>
     <string name="home_move">Move</string>
     <string name="home_tile_action">Move or remove</string>
-    <string name="home_locked_desc">Settings are locked. Press and hold to unlock.</string>
-    <string name="home_unlock_question">Unlock settings?</string>
+    <string name="home_locked_desc">Settings are locked. Press and hold to unlock with the PIN.</string>
     <string name="home_unlock">Unlock</string>
 
     <!-- Battery box in the header. -->

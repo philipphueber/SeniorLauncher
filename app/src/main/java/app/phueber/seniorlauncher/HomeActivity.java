@@ -364,7 +364,7 @@ public class HomeActivity extends Activity {
 
     /**
      * Small and muted on purpose: it is for the helper, not the senior. A short
-     * tap does nothing; only a long press offers to unlock.
+     * tap does nothing; only a long press asks for the PIN (see PinDialog).
      */
     private View padlock() {
         ImageView lock = new ImageView(this);
@@ -379,11 +379,7 @@ public class HomeActivity extends Activity {
         lock.setLongClickable(true);
         lock.setOnLongClickListener(v -> {
             dismissDialog();
-            dialog = Ui.confirm(this, getString(R.string.home_unlock_question),
-                    getString(R.string.home_unlock), R.color.green, () -> {
-                        store.setLocked(false);
-                        rebuild(false);
-                    });
+            dialog = PinDialog.unlock(this, store::unlock, () -> rebuild(false));
             return true;
         });
         lock.setAccessibilityDelegate(new View.AccessibilityDelegate() {

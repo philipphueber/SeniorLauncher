@@ -14,8 +14,7 @@
     <string name="home_tile_question">Was möchten Sie mit „%1$s“ tun?</string>
     <string name="home_move">Verschieben</string>
     <string name="home_tile_action">Verschieben oder entfernen</string>
-    <string name="home_locked_desc">Die Einstellungen sind gesperrt. Zum Entsperren gedrückt halten.</string>
-    <string name="home_unlock_question">Einstellungen entsperren?</string>
+    <string name="home_locked_desc">Die Einstellungen sind gesperrt. Zum Entsperren mit der PIN gedrückt halten.</string>
     <string name="home_unlock">Entsperren</string>
 
     <!-- Akku-Anzeige oben rechts. -->
