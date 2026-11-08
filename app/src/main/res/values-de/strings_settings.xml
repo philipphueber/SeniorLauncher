@@ -10,7 +10,7 @@
     <string name="settings_colour_high_contrast">Hoher Kontrast</string>
     <string name="settings_colour_colourful">Bunt</string>
     <string name="settings_colour_chosen">%1$s ✓</string>
-    <string name="settings_colours_explain">Wählen Sie, was am besten zu lesen ist: Hell, Dunkel, Hoher Kontrast (weiß auf schwarz) oder Bunt (jede Kachel in eigener Farbe).</string>
+    <string name="settings_colours_explain">Wählen Sie, was am besten zu lesen ist: Hell, Dunkel, Hoher Kontrast (weiß auf schwarz) oder Bunt (jede Kachel in der Farbe ihrer App).</string>
     <string name="settings_home_app">Startbildschirm wählen</string>
     <string name="settings_home_app_explain">Wählen Sie, welchen Startbildschirm das Telefon zeigt, wenn Sie die Home-Taste drücken. Wählen Sie „%1$s“, um diesen zu behalten.</string>
     <string name="settings_phone">Telefon-Einstellungen</string>

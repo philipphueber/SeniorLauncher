@@ -110,6 +110,28 @@ public final class Widgets {
         for (int id : h.getAppWidgetIds()) if (!used.contains(id)) h.deleteAppWidgetId(id);
     }
 
+    /** Whether this provider's widgets are 1x1 and go into one tile like an app. */
+    static boolean isSmall(Context c, AppWidgetProviderInfo info) {
+        float density = c.getResources().getDisplayMetrics().density;
+        int w = Math.round(info.minWidth / density), h = Math.round(info.minHeight / density);
+        int tw = 0, th = 0;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            tw = info.targetCellWidth;
+            th = info.targetCellHeight;
+        }
+        return WidgetRows.isOneByOne(w, h, tw, th);
+    }
+
+    /**
+     * Puts a bound (and configured) widget on the home screen: a 1x1 widget in
+     * one cell like an app, any other across the full width with the rows it needs.
+     */
+    static void place(Context c, int widgetId, AppWidgetProviderInfo info) {
+        Store s = new Store(c);
+        if (isSmall(c, info)) s.addSmallWidget(widgetId);
+        else s.addWidget(widgetId, rowsFor(c, info));
+    }
+
     /** Grid rows a new widget of this provider should span on the home screen. */
     static int rowsFor(Context c, AppWidgetProviderInfo info) {
         float density = c.getResources().getDisplayMetrics().density;

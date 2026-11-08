@@ -10,4 +10,9 @@
     <string name="widgets_add_hint">Tippen Sie auf ein Widget, um es auf die Startseite zu legen.</string>
     <string name="widgets_none_installed">Auf diesem Telefon sind keine Widgets installiert.</string>
     <string name="widgets_add_failed">Das Widget konnte nicht hinzugefügt werden.</string>
+    <string name="widgets_search_hint">Widget oder App suchen</string>
+    <string name="widgets_none_found">Kein Widget gefunden.</string>
+    <string name="widgets_size_small">Klein, wie eine App</string>
+    <string name="widgets_size_wide">Breit</string>
+    <string name="widgets_card_cd">%1$s, von %2$s. %3$s. Tippen Sie, um es auf die Startseite zu legen.</string>
 </resources>

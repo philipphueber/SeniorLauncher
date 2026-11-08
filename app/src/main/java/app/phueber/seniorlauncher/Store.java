@@ -58,6 +58,13 @@ public final class Store {
         setItems(list);
     }
 
+    /** A 1x1 widget, appended; it takes one cell like an app. */
+    public synchronized void addSmallWidget(int widgetId) {
+        List<HomeItem> list = items();
+        list.add(HomeItem.smallWidget(widgetId));
+        setItems(list);
+    }
+
     /** Only forgets the item; the caller frees the id with AppWidgetHost.deleteAppWidgetId. */
     public synchronized void removeWidget(int widgetId) {
         List<HomeItem> list = new ArrayList<>();

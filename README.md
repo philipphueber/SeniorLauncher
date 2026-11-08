@@ -21,7 +21,7 @@ English and German. The app follows the phone's language.
   - green box with a lightning bolt, "Charging" or "Full": plugged in
 - **Tiles**, two side by side, three rows per page. A tap opens the app.
 - **Widgets** from other apps (a clock, the weather…) can sit between the
-  tiles, across the full width.
+  tiles: small ones in a tile like an app, bigger ones across the full width.
 - **Page 1 of 3** with **Previous** and **Next**, only when there is more
   than one page. Pressing Home always goes back to page 1.
 
@@ -43,7 +43,7 @@ Needs Android 8.0 or newer.
 - **Widgets** lists the widgets your apps offer. Tap one to put it on the home
   screen; Android asks once whether to allow it. Widgets are removed there too.
 - **Settings → Colours**: Light, Dark, High contrast (white on black), or
-  Colourful (each tile its own colour). Pick whatever is easiest to read.
+  Colourful (each tile in its app's colour). Pick whatever is easiest to read.
 - **Settings → Lock**: press and hold. Afterwards only the tiles are left, so
   nothing can be changed by accident. To unlock, press and hold the padlock at
   the top.
@@ -68,8 +68,8 @@ während das Telefon lädt, steht dort deutlich **Lädt**.
   - grünes Feld mit Blitz, „Lädt“ oder „Voll“: am Ladegerät
 - **Kacheln**, zwei nebeneinander, drei Reihen pro Seite. Ein Tipp öffnet die
   App.
-- **Widgets** anderer Apps (eine Uhr, das Wetter …) können über die ganze Breite
-  zwischen den Kacheln stehen.
+- **Widgets** anderer Apps (eine Uhr, das Wetter …) können zwischen den Kacheln
+  stehen: kleine in einer Kachel wie eine App, größere über die ganze Breite.
 - **Seite 1 von 3** mit **Vorige** und **Weiter**, nur wenn es mehr als eine
   Seite gibt. Die Home-Taste führt immer zu Seite 1 zurück.
 
@@ -92,7 +92,7 @@ Benötigt Android 8.0 oder neuer.
   Startseite zu legen; Android fragt einmal, ob das erlaubt ist. Entfernt werden
   Widgets ebenfalls dort.
 - **Einstellungen → Farben**: Hell, Dunkel, Hoher Kontrast (weiß auf schwarz)
-  oder Bunt (jede Kachel in eigener Farbe). Wählen Sie, was am besten zu lesen
+  oder Bunt (jede Kachel in der Farbe ihrer App). Wählen Sie, was am besten zu lesen
   ist.
 - **Einstellungen → Sperren**: gedrückt halten. Danach sind nur noch die
   Kacheln da, sodass nichts aus Versehen geändert wird. Zum Entsperren das

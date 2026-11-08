@@ -11,4 +11,10 @@
     <string name="widgets_add_hint">Tap a widget to put it on the home screen.</string>
     <string name="widgets_none_installed">No widgets are installed on this phone.</string>
     <string name="widgets_add_failed">The widget could not be added.</string>
+    <string name="widgets_search_hint">Search widget or app</string>
+    <string name="widgets_none_found">No widget found.</string>
+    <string name="widgets_size_small">Small, like an app</string>
+    <string name="widgets_size_wide">Wide</string>
+    <!-- Spoken for a widget card: widget name, app name, size badge. -->
+    <string name="widgets_card_cd">%1$s, from %2$s. %3$s. Tap to add it to the home screen.</string>
 </resources>

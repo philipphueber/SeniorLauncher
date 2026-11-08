@@ -8,7 +8,8 @@ import java.util.List;
  * has no swipe, so every item must land at an exact grid cell on exactly one
  * page. Pure Java, unit tested.
  *
- * Rules: order is kept. An app takes one cell, filled row by row. A widget spans
+ * Rules: order is kept. An app, or a small (1x1) widget, takes one cell, filled
+ * row by row. A wide widget spans
  * all columns and min(item.rows, rows) rows, so a widget taller than a page is
  * shrunk to a full page instead of never fitting. A widget always starts at the
  * beginning of a row: if the current row is half filled it moves to the next row,
@@ -43,7 +44,7 @@ final class Pages {
         List<Placement> page = null;
         int row = 0, col = 0;
         for (HomeItem item : items) {
-            if (item.isApp()) {
+            if (item.isOneCell()) {
                 if (page == null || row >= rows) {
                     page = new ArrayList<>();
                     pages.add(page);

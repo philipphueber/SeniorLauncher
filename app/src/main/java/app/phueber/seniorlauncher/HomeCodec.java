@@ -8,8 +8,10 @@ import java.util.Set;
 /**
  * Serialises the home-screen item list to one SharedPreferences string, so the
  * app needs no database and no JSON library. Entries are joined by ';':
- * "a:&lt;component&gt;" for an app and "w:&lt;id&gt;:&lt;rows&gt;" for a widget,
- * e.g. "a:com.x/.Main;w:12:2". Pure Java, unit tested.
+ * "a:&lt;component&gt;" for an app, "w:&lt;id&gt;:&lt;rows&gt;" for a wide widget and
+ * "s:&lt;id&gt;" for a small (one-cell) widget, e.g. "a:com.x/.Main;w:12:2;s:13".
+ * "s:" is a separate prefix, not a third "w:" field, so lists written before
+ * small widgets existed still decode unchanged. Pure Java, unit tested.
  *
  * A component name may in theory contain any character, so ';' and '%' inside it
  * are percent-escaped (%3B, %25). Everything else, including '/', '.', '$' and
@@ -37,6 +39,8 @@ final class HomeCodec {
                     else if (c == ';') sb.append("%3B");
                     else sb.append(c);
                 }
+            } else if (item.small) {
+                sb.append("s:").append(item.widgetId);
             } else {
                 sb.append("w:").append(item.widgetId).append(':').append(item.rows);
             }
@@ -63,6 +67,13 @@ final class HomeCodec {
                     int rows = Integer.parseInt(f[1]);
                     if (rows < 1) continue;
                     if (widgets.add(id)) out.add(HomeItem.widget(id, rows));
+                } catch (NumberFormatException e) {
+                    // malformed entry: skip it
+                }
+            } else if (part.startsWith("s:")) {
+                try {
+                    int id = Integer.parseInt(part.substring(2));
+                    if (widgets.add(id)) out.add(HomeItem.smallWidget(id));
                 } catch (NumberFormatException e) {
                     // malformed entry: skip it
                 }

@@ -8,9 +8,12 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -87,6 +90,8 @@ public class HomeActivity extends Activity {
     // Widget views live across rebuilds and pages: recreating them would reload
     // every widget each time the home screen comes back.
     private final Map<Integer, View> widgetViews = new HashMap<>();
+    /** Colourful: icon main colour per app (0 = none), cleared when apps change. */
+    private final Map<String, Integer> iconColors = new HashMap<>();
     private Dialog dialog;
     private boolean receiving;
 
@@ -110,7 +115,7 @@ public class HomeActivity extends Activity {
             handler.postDelayed(forcedRebuild, 500);
         }
     };
-    private final Runnable forcedRebuild = () -> rebuild(true);
+    private final Runnable forcedRebuild = () -> { iconColors.clear(); rebuild(true); };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -516,6 +521,7 @@ public class HomeActivity extends Activity {
             View v = pl.item.isApp() ? tile(pl.item.component, at) : widgetViews.get(pl.item.widgetId);
             if (v == null) continue;
             if (v.getParent() instanceof ViewGroup) ((ViewGroup) v.getParent()).removeView(v);
+            if (pl.item.isWidget() && pl.item.small) v = smallWidgetTile(v, pl.item.widgetId);
             grid.addCell(v, pl.row, pl.col, pl.rowSpan, pl.colSpan);
         }
         if (placements.isEmpty()) {
@@ -531,6 +537,75 @@ public class HomeActivity extends Activity {
         pageLabel.setText(getString(R.string.home_page, page + 1, count));
         setPageButtonEnabled(prevButton, page > 0);
         setPageButtonEnabled(nextButton, page < count - 1);
+    }
+
+    /**
+     * A 1x1 widget dressed as an app tile: the same card, the widget where the
+     * icon would be, and its name below, so it reads as one more tile. Touches go
+     * to the widget itself (it decides what a tap does); the card is not a button.
+     * In Colourful the card takes the cycle colour, as there is no icon to sample.
+     */
+    private View smallWidgetTile(View hostView, int widgetId) {
+        LinearLayout t = new LinearLayout(this);
+        t.setOrientation(LinearLayout.VERTICAL);
+        t.setGravity(Gravity.CENTER_HORIZONTAL);
+        int p = Ui.dp(this, 10);
+        t.setPadding(p, p, p, Ui.dp(this, 8));
+        boolean coloured = Palette.colouredTiles(shownTheme);
+        GradientDrawable bg = new GradientDrawable();
+        bg.setCornerRadius(Ui.dp(this, 24));
+        if (coloured) {
+            bg.setColor(Palette.tileColor(widgetId));
+        } else {
+            bg.setColor(Ui.color(this, R.color.card));
+            bg.setStroke(Ui.dp(this, 2), Ui.color(this, R.color.card_border));
+        }
+        t.setBackground(bg);
+        t.addView(hostView, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));
+
+        String name = Widgets.label(this, widgetId);
+        TextView text = Ui.text(this, name != null ? name : "", Ui.TEXT_BUTTON);
+        if (coloured) {
+            text.setTextColor(Palette.ON_COLOR);
+            text.setTypeface(Typeface.DEFAULT_BOLD);
+        }
+        text.setGravity(Gravity.CENTER);
+        text.setMaxLines(2);
+        text.setEllipsize(TextUtils.TruncateAt.END);
+        text.setHyphenationFrequency(Layout.HYPHENATION_FREQUENCY_NORMAL);
+        text.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        LinearLayout.LayoutParams tlp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        tlp.topMargin = Ui.dp(this, 4);
+        t.addView(text, tlp);
+        return t;
+    }
+
+    /**
+     * The tile colour in Colourful: the icon's main colour, darkened until the
+     * white label reads (IconColor), or the cycle colour for icons without a
+     * clear colour. Sampled from a 48x48 rendering and cached per app.
+     */
+    private int iconTileColor(String component, Drawable icon, int index) {
+        Integer cached = iconColors.get(component);
+        if (cached == null) {
+            int c = 0;
+            if (icon != null) {
+                int s = 48;
+                Bitmap bm = Bitmap.createBitmap(s, s, Bitmap.Config.ARGB_8888);
+                Drawable d = icon.getConstantState() != null
+                        ? icon.getConstantState().newDrawable().mutate() : icon;
+                d.setBounds(0, 0, s, s);
+                d.draw(new Canvas(bm));
+                int[] px = new int[s * s];
+                bm.getPixels(px, 0, s, 0, 0, s, s);
+                bm.recycle();
+                c = IconColor.tileColor(px);
+            }
+            cached = c;
+            iconColors.put(component, cached);
+        }
+        return cached != 0 ? cached : Palette.tileColor(index);
     }
 
     /**
@@ -552,9 +627,11 @@ public class HomeActivity extends Activity {
         t.setGravity(Gravity.CENTER_HORIZONTAL);
         int p = Ui.dp(this, 10);
         t.setPadding(p, p, p, Ui.dp(this, 8));
+        Drawable d = AppInfo.icon(this, component);
         boolean coloured = Palette.colouredTiles(shownTheme);
         if (coloured) {
-            t.setBackground(Ui.ripple(this, R.color.press_light, Palette.tileColor(index), 0, 24));
+            t.setBackground(Ui.ripple(this, R.color.press_light,
+                    iconTileColor(component, d, index), 0, 24));
         } else {
             t.setBackground(Ui.ripple(this, R.color.press_dark, Ui.color(this, R.color.card),
                     Ui.color(this, R.color.card_border), 24));
@@ -578,7 +655,6 @@ public class HomeActivity extends Activity {
         asButton(t, locked ? null : getString(R.string.home_remove_action));
 
         ImageView icon = new ImageView(this);
-        Drawable d = AppInfo.icon(this, component);
         icon.setImageDrawable(d != null ? d : getDrawable(android.R.drawable.sym_def_app_icon));
         icon.setScaleType(ImageView.ScaleType.FIT_CENTER);
         icon.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
@@ -618,7 +694,7 @@ public class HomeActivity extends Activity {
             }
         }
         for (View v : widgetViews.values()) {
-            if (v.getParent() != g) continue;
+            if (v.getParent() == null) continue; // not on the shown page
             int w = v.getWidth(), h = v.getHeight();
             if (w > 0 && h > 0) handler.post(() -> Widgets.updateSize(v, w, h));
         }
