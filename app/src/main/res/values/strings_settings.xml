@@ -3,7 +3,7 @@
     <string name="settings_title">Settings</string>
     <string name="settings_lock">Lock</string>
     <string name="settings_lock_hint">Press and hold the button to lock.</string>
-    <string name="settings_lock_explain">When locked, only the home screen is left: the Apps, Widgets and Settings buttons disappear and tiles cannot be moved or removed. The Phone app locks too: no new contacts, no changes to favourites. To unlock, press and hold the padlock on the home screen.</string>
+    <string name="settings_lock_explain">When locked, only the home screen is left: the Apps, Widgets and Settings buttons disappear and tiles cannot be moved or removed. The Phone and Alarm apps lock too: no new contacts, no changes to favourites or alarms. To unlock, press and hold the padlock on the home screen.</string>
     <string name="settings_colours">Colours</string>
     <string name="settings_colour_light">Light</string>
     <string name="settings_colour_dark">Dark</string>

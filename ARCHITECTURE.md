@@ -33,6 +33,7 @@ separate app, not part of this one.
 | `AppInfo` | Label, icon, launchability and launch of an app tile, via `LauncherApps`. |
 | `DefaultApps` | On first run, adds tiles for the default phone, messages, camera, photos, contacts and browser apps. |
 | `Order` | Pure: moves one item earlier or later in a list, stepping over hidden items; clamps at the ends. Unit tested. |
+| `LockProvider` | Read-only: tells SeniorPhone and SeniorAlert whether the home screen is locked. |
 | `Store` | The ordered home items, the lock flag and the first-run flag, in SharedPreferences. |
 | `Ui` | Shared buttons, helper-screen frame and dialogs (`confirm`, and `choose` for more than one action), so every screen looks alike. Resolves every colour through the chosen theme (`Ui.color`, `Ui.applyTheme`). |
 | `Palette` | Pure: the four colour themes (Light, Dark, High contrast, Colourful) as roles, the Colourful tile colours, and the WCAG contrast check. Unit tested for readability. |
@@ -127,6 +128,16 @@ tiles does nothing (no Move, no Remove; the Arrange screen closes itself if it
 is ever opened locked), so the senior can only open things. Holding the padlock
 asks "Unlock settings?". There is no PIN, on purpose: the long press is the
 protection against accidents, not against a determined person.
+
+The lock is shared with the other Senior apps: `LockProvider` answers
+`content://app.phueber.seniorlauncher.lock/state` with one row, `locked` 0/1,
+and every change notifies that uri. SeniorPhone and SeniorAlert lock with the
+home screen (no new contacts, no changes to favourites or alarms) and point to
+the padlock here for unlocking. The provider is read-only, so another app can
+see the lock but never lift it. No permission guards the read: the state is
+visible on screen anyway, and the apps have separate signing keys, which rules
+out a signature permission. Installed without the launcher, each app keeps its
+own lock.
 
 ## Permissions
 
