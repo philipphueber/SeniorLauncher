@@ -20,9 +20,11 @@ public final class Store {
     private static final String K_THEME = "theme";
 
     private final SharedPreferences prefs;
+    private final Context app;
 
     public Store(Context context) {
-        prefs = context.getApplicationContext().getSharedPreferences(FILE, Context.MODE_PRIVATE);
+        app = context.getApplicationContext();
+        prefs = app.getSharedPreferences(FILE, Context.MODE_PRIVATE);
     }
 
     /** In home-screen order. A fresh, modifiable list on every call. */
@@ -91,6 +93,7 @@ public final class Store {
 
     public synchronized void setLocked(boolean locked) {
         prefs.edit().putBoolean(K_LOCKED, locked).commit();
+        LockProvider.notifyChanged(app); // SeniorPhone locks and unlocks with us
     }
 
     public synchronized Palette.Theme theme() {
