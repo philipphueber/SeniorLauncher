@@ -5,9 +5,12 @@ together is in [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## Ground rules
 
-- **Simplicity is the product.** TODO: say in one or two sentences what the
-  launcher does and what it deliberately leaves out. A pull request that adds a
-  feature will most likely be declined; one that removes complexity is welcome.
+- **Simplicity is the product.** SeniorLauncher only launches: it is the home
+  screen: its tiles open other apps, and it can also show other apps'
+  home-screen widgets. It does not make calls, keep contacts,
+  show photos or replace any other app; phone and contacts belong in a separate
+  Senior app. A pull request that adds a feature will most likely be declined;
+  one that removes complexity is welcome.
 - **No dependencies.** Plain Java against the Android platform APIs. No
   AndroidX, Kotlin, Compose or third-party libraries. `testImplementation` of
   JUnit is the only exception.
