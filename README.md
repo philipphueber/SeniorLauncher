@@ -15,7 +15,8 @@ English and German. The app follows the phone's language.
 
 - **Time and date** in large letters.
 - **Battery** with the percent, in words:
-  - white box, "Battery": on battery
+  - green-bordered box that fills with light green as far as the charge goes,
+    "Battery": on battery
   - red box, "Battery low – Please charge": 20 % or less
   - green box with a lightning bolt, "Charging" or "Full": plugged in
 - **Tiles**, two side by side, three rows per page. A tap opens the app.
@@ -59,7 +60,8 @@ während das Telefon lädt, steht dort deutlich **Lädt**.
 
 - **Uhrzeit und Datum** in großer Schrift.
 - **Akku** mit Prozent, in Worten:
-  - weißes Feld, „Akku“: läuft mit Akku
+  - grün umrandetes Feld, das sich so weit hellgrün füllt, wie der Akku
+    geladen ist, „Akku“: läuft mit Akku
   - rotes Feld, „Akku schwach – Bitte aufladen“: 20 % oder weniger
   - grünes Feld mit Blitz, „Lädt“ oder „Voll“: am Ladegerät
 - **Kacheln**, zwei nebeneinander, drei Reihen pro Seite. Ein Tipp öffnet die

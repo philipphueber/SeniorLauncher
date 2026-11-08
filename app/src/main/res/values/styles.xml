@@ -30,6 +30,8 @@
     <!-- Primary / positive action, and "charging". -->
     <color name="green">#2E7D32</color>
     <color name="green_light">#DCEFD9</color>
+    <!-- Battery level gauge on battery: light enough for dark text on top. -->
+    <color name="battery_fill">#A5D6A7</color>
     <!-- Secondary / neutral action (Cancel, page buttons). -->
     <color name="blue">#1F5F8B</color>
     <!-- Remove, and "battery low". -->

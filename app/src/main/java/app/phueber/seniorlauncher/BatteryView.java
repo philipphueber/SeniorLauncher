@@ -4,7 +4,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
+import android.graphics.drawable.ClipDrawable;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.LayerDrawable;
 import android.os.BatteryManager;
 import android.view.Gravity;
 import android.view.View;
@@ -21,7 +24,8 @@ import android.widget.TextView;
  * (the whole box turns solid green) and a lightning bolt in front of the number.
  * Bleta only swapped the "%" for a small bolt, which is easy to miss.
  *
- *   NORMAL    white box, dark text        "35 %"  / "Battery"
+ *   NORMAL    green-bordered box, light green fill up to the level, dark text
+ *                                         "35 %"  / "Battery"
  *   LOW       solid red, white text       "12 %"  / "Battery low" / "Please charge"
  *   CHARGING  solid green, white text, bolt "35 %" / "Charging"
  *   FULL      solid green, white text, bolt "100 %" / "Full"
@@ -110,7 +114,7 @@ final class BatteryView extends LinearLayout {
                 break;
             default:
                 fill = c.getColor(R.color.card); fg = c.getColor(R.color.text_black);
-                stroke = c.getColor(R.color.card_border);
+                stroke = c.getColor(R.color.green);
                 wordRes = R.string.home_battery;
                 break;
         }
@@ -118,7 +122,23 @@ final class BatteryView extends LinearLayout {
         bg.setColor(fill);
         bg.setCornerRadius(Ui.dp(c, 20));
         if (stroke != 0) bg.setStroke(Ui.dp(c, 2), stroke);
-        setBackground(bg);
+        if (kind == BatteryState.Kind.NORMAL && pct >= 0) {
+            // On battery the box is a gauge: green fills it from the left as far as
+            // the charge goes, so the level reads as colour too, not only as digits.
+            // Light green keeps the dark text readable; solid green means "on the cable".
+            GradientDrawable level = new GradientDrawable();
+            level.setColor(c.getColor(R.color.battery_fill));
+            level.setCornerRadius(Ui.dp(c, 20));
+            ClipDrawable clip = new ClipDrawable(level, Gravity.START, ClipDrawable.HORIZONTAL);
+            clip.setLevel(pct * 100); // ClipDrawable levels run 0..10000
+            GradientDrawable border = new GradientDrawable();
+            border.setCornerRadius(Ui.dp(c, 20));
+            border.setStroke(Ui.dp(c, 2), stroke);
+            bg.setStroke(0, 0);
+            setBackground(new LayerDrawable(new Drawable[] {bg, clip, border}));
+        } else {
+            setBackground(bg);
+        }
 
         boolean onCable = kind == BatteryState.Kind.CHARGING || kind == BatteryState.Kind.FULL;
         bolt.setVisibility(onCable ? VISIBLE : GONE);
