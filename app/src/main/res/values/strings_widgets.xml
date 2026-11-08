@@ -17,4 +17,5 @@
     <string name="widgets_size_wide">Wide</string>
     <!-- Spoken for a widget card: widget name, app name, size badge. -->
     <string name="widgets_card_cd">%1$s, from %2$s. %3$s. Tap to add it to the home screen.</string>
+    <string name="widgets_loading">Loading widgets …</string>
 </resources>

@@ -48,6 +48,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -86,6 +87,7 @@ public class WidgetsActivity extends Activity {
 
     private final Handler handler = new Handler(Looper.getMainLooper());
     private ExecutorService previews;
+    private ExecutorService loader; // the provider query; apart from previews so they are not queued behind it
     private Store store;
     private AppWidgetManager manager;
     private AppWidgetHost host;
@@ -94,7 +96,8 @@ public class WidgetsActivity extends Activity {
     private EditText search;
     private TextView noMatch;
     private final List<Group> groups = new ArrayList<>();
-    private final Map<String, String> appNames = new HashMap<>(); // package -> app name
+    // package -> app name; read on the UI thread and filled by the loader thread
+    private final Map<String, String> appNames = new ConcurrentHashMap<>();
 
     // The add in progress: AppWidgetManager.INVALID_APPWIDGET_ID when none.
     private int pendingId = AppWidgetManager.INVALID_APPWIDGET_ID;
@@ -122,6 +125,7 @@ public class WidgetsActivity extends Activity {
             Widgets.deleteOrphans(this);
         }
         previews = Executors.newSingleThreadExecutor();
+        loader = Executors.newSingleThreadExecutor();
 
         LinearLayout content = Ui.screen(this, getString(R.string.widgets_title));
         content.addView(heading(R.string.widgets_on_home), Ui.fullWidth(this, 8));
@@ -136,6 +140,7 @@ public class WidgetsActivity extends Activity {
         content.addView(hint, Ui.fullWidth(this, 4));
 
         search = searchField();
+        search.setVisibility(View.GONE); // until the list is there
         content.addView(search, Ui.fullWidth(this, 16));
         noMatch = Ui.text(this, getString(R.string.widgets_none_found), Ui.TEXT_BODY);
         noMatch.setTextColor(Ui.color(this, R.color.text_muted));
@@ -158,6 +163,7 @@ public class WidgetsActivity extends Activity {
     protected void onDestroy() {
         if (dialog != null) dialog.dismiss();
         previews.shutdownNow();
+        loader.shutdownNow();
         handler.removeCallbacksAndMessages(null);
         // Leaving for good in the middle of an add (not a recreation): free the id.
         if (isFinishing()) cancelPending();
@@ -287,7 +293,28 @@ public class WidgetsActivity extends Activity {
         }
     }
 
+    /**
+     * Querying and labelling every provider touches the package manager (binder,
+     * disk, resources) and can take seconds on a phone with many widgets, so it
+     * runs off the main thread; the views are built here once it is done.
+     */
     private void showProviders(LinearLayout content) {
+        TextView loading = Ui.text(this, getString(R.string.widgets_loading), Ui.TEXT_BODY);
+        loading.setTextColor(Ui.color(this, R.color.text_muted));
+        loading.setGravity(Gravity.CENTER_HORIZONTAL);
+        content.addView(loading, Ui.fullWidth(this, 24));
+        loader.execute(() -> {
+            List<Entry> entries = queryProviders();
+            runOnUiThread(() -> {
+                if (isFinishing() || isDestroyed()) return;
+                content.removeView(loading);
+                showEntries(content, entries);
+            });
+        });
+    }
+
+    /** The sorted widgets of all apps; slow, so not on the main thread. */
+    private List<Entry> queryProviders() {
         PackageManager pm = getPackageManager();
         List<Entry> entries = new ArrayList<>();
         for (AppWidgetProviderInfo p : manager.getInstalledProviders()) {
@@ -307,15 +334,19 @@ public class WidgetsActivity extends Activity {
                     Objects.hashCode(b.info.getProfile()));
             return r != 0 ? r : collator.compare(a.label, b.label);
         });
+        return entries;
+    }
 
+    private void showEntries(LinearLayout content, List<Entry> entries) {
         if (entries.isEmpty()) {
-            search.setVisibility(View.GONE); // nothing to search
+            // search stays hidden: nothing to search
             TextView none = Ui.text(this, getString(R.string.widgets_none_installed), Ui.TEXT_BODY);
             none.setTextColor(Ui.color(this, R.color.text_muted));
             content.addView(none, Ui.fullWidth(this, 12));
             return;
         }
 
+        search.setVisibility(View.VISIBLE);
         // The widest a preview can be drawn: the screen minus the page, card and
         // preview-area padding on both sides.
         int maxW = getResources().getDisplayMetrics().widthPixels

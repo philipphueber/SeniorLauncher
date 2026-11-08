@@ -88,6 +88,7 @@ public class HomeActivity extends Activity {
     private int shownPage = -1;
     /** Show this item's page at the next rebuild (the one the helper last moved). */
     private HomeItem showItem;
+    private boolean stopped; // packages may have changed unseen, see onResume
     private String shownKey; // what the grid shows, to skip needless rebuilds
     private boolean locked;
     private int savedCellDp = -1;
@@ -207,6 +208,14 @@ public class HomeActivity extends Activity {
             return;
         }
         showItem = ArrangeActivity.takeLastMoved();
+        if (stopped) {
+            // Apps may have been updated, disabled or enabled while the package
+            // receiver was not registered; only the forced path redraws icons and labels.
+            stopped = false;
+            iconColors.clear();
+            rebuild(true);
+            return;
+        }
         rebuild(false);
     }
 
@@ -219,6 +228,7 @@ public class HomeActivity extends Activity {
             receiving = false;
         }
         handler.removeCallbacks(forcedRebuild);
+        stopped = true;
         try {
             Widgets.host(this).stopListening();
         } catch (RuntimeException e) {
@@ -479,7 +489,7 @@ public class HomeActivity extends Activity {
                 if (AppInfo.exists(this, i.component)) visible.add(i);
             } else {
                 widgetIds.add(i.widgetId);
-                if (widgetView(i.widgetId, force) != null) visible.add(i);
+                if (widgetView(i.widgetId) != null) visible.add(i);
             }
         }
         widgetViews.keySet().retainAll(widgetIds); // removed in WidgetsActivity
@@ -514,9 +524,12 @@ public class HomeActivity extends Activity {
     }
 
     /** The cached host view, or a new one; null if the widget's app is gone. */
-    private View widgetView(int id, boolean recheck) {
+    private View widgetView(int id) {
         View v = widgetViews.get(id);
-        if (v != null && recheck && Widgets.label(this, id) == null) {
+        // Always re-checked: the package receiver only runs between onStart and
+        // onStop, so a provider removed while Home was stopped would otherwise
+        // keep its dead "Problem loading widget" tile. The lookup is cheap.
+        if (v != null && Widgets.label(this, id) == null) {
             widgetViews.remove(id); // its app was uninstalled
             v = null;
         }
