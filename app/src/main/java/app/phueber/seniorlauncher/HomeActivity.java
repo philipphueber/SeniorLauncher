@@ -1,0 +1,621 @@
+package app.phueber.seniorlauncher;
+
+import android.app.Activity;
+import android.app.Dialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.SharedPreferences;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
+import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.text.Layout;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.TextUtils;
+import android.text.format.DateFormat;
+import android.text.style.StyleSpan;
+import android.util.TypedValue;
+import android.view.Gravity;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.accessibility.AccessibilityNodeInfo;
+import android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction;
+import android.widget.Button;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.window.OnBackInvokedDispatcher;
+
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+
+/**
+ * The home screen, top to bottom, never scrolling:
+ * 1. Header: time, date with weekday, and the battery in words.
+ * 2. Helper bar: Apps, Widgets, Settings; when locked only a small padlock that
+ *    needs a long press.
+ * 3. One page of a fixed 2 x 3 grid of app tiles and widgets.
+ * 4. Previous / "Page 2 of 3" / Next, only when there is more than one page.
+ *    There is no swipe: paging is done with the two big buttons.
+ *
+ * The grid is rebuilt in onResume (an app may have been added, removed or
+ * uninstalled meanwhile), but only when something visible changed, so coming
+ * back to the home screen does not make the tiles flicker or the widgets reload.
+ */
+public class HomeActivity extends Activity {
+    // Read by WidgetsActivity (Widgets.rowsFor) to size a new widget in grid rows.
+    private static final String PREFS = "seniorlauncher";
+    private static final String K_CELL_HEIGHT_DP = "cell_height_dp";
+    private static final int GAP_DP = 12;
+
+    private final Handler handler = new Handler(Looper.getMainLooper());
+    private Store store;
+    private SharedPreferences prefs;
+
+    private TextView clock;
+    private TextView date;
+    private BatteryView battery;
+    private LinearLayout helperBar;
+    private PageLayout grid;
+    private LinearLayout pager;
+    private LinearLayout prevButton;
+    private LinearLayout nextButton;
+    private TextView pageLabel;
+
+    private List<List<Pages.Placement>> pages = Collections.emptyList();
+    private int page;
+    private int shownPage = -1;
+    private String shownKey; // what the grid shows, to skip needless rebuilds
+    private boolean locked;
+    private int savedCellDp = -1;
+    // Widget views live across rebuilds and pages: recreating them would reload
+    // every widget each time the home screen comes back.
+    private final Map<Integer, View> widgetViews = new HashMap<>();
+    private Dialog dialog;
+    private boolean receiving;
+
+    private final BroadcastReceiver timeReceiver = new BroadcastReceiver() {
+        @Override public void onReceive(Context c, Intent i) {
+            updateClock();
+        }
+    };
+
+    private final BroadcastReceiver batteryReceiver = new BroadcastReceiver() {
+        @Override public void onReceive(Context c, Intent i) {
+            battery.update(i);
+        }
+    };
+
+    // An app was installed, removed, updated or disabled while the home screen is
+    // visible. Installs come in bursts, so one rebuild runs after they settle.
+    private final BroadcastReceiver packageReceiver = new BroadcastReceiver() {
+        @Override public void onReceive(Context c, Intent i) {
+            handler.removeCallbacks(forcedRebuild);
+            handler.postDelayed(forcedRebuild, 500);
+        }
+    };
+    private final Runnable forcedRebuild = () -> rebuild(true);
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        store = new Store(this);
+        prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
+        DefaultApps.seedIfNeeded(this, store);
+
+        int p = Ui.dp(this, 16);
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setPadding(p, Ui.dp(this, 8), p, Ui.dp(this, 12));
+
+        root.addView(header(), new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+        helperBar = new LinearLayout(this);
+        helperBar.setOrientation(LinearLayout.HORIZONTAL);
+        helperBar.setGravity(Gravity.CENTER);
+        root.addView(helperBar, Ui.fullWidth(this, 12));
+
+        grid = new PageLayout(this, Pages.ROWS, Pages.COLUMNS, Ui.dp(this, GAP_DP));
+        grid.setOnLaidOut(this::onGridLaidOut);
+        LinearLayout.LayoutParams glp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, 0, 1);
+        glp.topMargin = Ui.dp(this, 12);
+        root.addView(grid, glp);
+
+        root.addView(pagerBar(), Ui.fullWidth(this, 12));
+        // Clear of the status bar and the gesture bar (Android 15 is edge to edge).
+        // On its own frame: fitsSystemWindows replaces a view's padding with the
+        // insets, which would drop root's side margins.
+        FrameLayout frame = new FrameLayout(this);
+        frame.setFitsSystemWindows(true);
+        frame.addView(root);
+        setContentView(frame);
+
+        // Back does nothing on the home screen: there is nowhere further back to go,
+        // and a senior pressing it by mistake must not end up somewhere strange.
+        if (Build.VERSION.SDK_INT >= 33) {
+            getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
+                    OnBackInvokedDispatcher.PRIORITY_DEFAULT, () -> {});
+        }
+    }
+
+    @SuppressWarnings({"deprecation", "MissingSuperCall"})
+    @Override
+    public void onBackPressed() {
+        // Deliberately empty, see onCreate.
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        try {
+            Widgets.host(this).startListening();
+        } catch (RuntimeException e) {
+            // The widget service can be unavailable early after boot; widgets then
+            // show their last state and catch up on the next start.
+        }
+        IntentFilter time = new IntentFilter(Intent.ACTION_TIME_TICK);
+        time.addAction(Intent.ACTION_TIME_CHANGED);
+        time.addAction(Intent.ACTION_TIMEZONE_CHANGED);
+        register(timeReceiver, time);
+        // Sticky: the current state comes back at once.
+        battery.update(register(batteryReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED)));
+        IntentFilter pkg = new IntentFilter(Intent.ACTION_PACKAGE_ADDED);
+        pkg.addAction(Intent.ACTION_PACKAGE_REMOVED);
+        pkg.addAction(Intent.ACTION_PACKAGE_CHANGED);
+        pkg.addAction(Intent.ACTION_PACKAGE_REPLACED);
+        pkg.addDataScheme("package");
+        register(packageReceiver, pkg);
+        receiving = true;
+        updateClock();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        rebuild(false);
+    }
+
+    @Override
+    protected void onStop() {
+        if (receiving) {
+            unregisterReceiver(timeReceiver);
+            unregisterReceiver(batteryReceiver);
+            unregisterReceiver(packageReceiver);
+            receiving = false;
+        }
+        handler.removeCallbacks(forcedRebuild);
+        try {
+            Widgets.host(this).stopListening();
+        } catch (RuntimeException e) {
+            // see onStart
+        }
+        dismissDialog();
+        super.onStop();
+    }
+
+    @Override
+    protected void onDestroy() {
+        handler.removeCallbacksAndMessages(null);
+        dismissDialog();
+        super.onDestroy();
+    }
+
+    /** Pressing Home while the home screen is showing goes back to page 1. */
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        dismissDialog();
+        page = 0;
+        if (shownKey != null) showPage();
+    }
+
+    private Intent register(BroadcastReceiver r, IntentFilter f) {
+        // All of these are system broadcasts, which reach a not-exported receiver.
+        if (Build.VERSION.SDK_INT >= 33) return registerReceiver(r, f, Context.RECEIVER_NOT_EXPORTED);
+        return registerReceiver(r, f);
+    }
+
+    private void dismissDialog() {
+        if (dialog != null) {
+            dialog.dismiss();
+            dialog = null;
+        }
+    }
+
+    // ---------------------------------------------------------------- header
+
+    private View header() {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+
+        LinearLayout left = new LinearLayout(this);
+        left.setOrientation(LinearLayout.VERTICAL);
+        clock = Ui.bold(this, "", 44);
+        clock.setMaxLines(1);
+        left.addView(clock);
+        date = Ui.text(this, "", 22);
+        left.addView(date);
+        LinearLayout.LayoutParams llp = new LinearLayout.LayoutParams(
+                0, ViewGroup.LayoutParams.WRAP_CONTENT, 1);
+        llp.setMarginEnd(Ui.dp(this, 12));
+        row.addView(left, llp);
+
+        battery = new BatteryView(this);
+        row.addView(battery, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        return row;
+    }
+
+    private void updateClock() {
+        Locale loc = getResources().getConfiguration().getLocales().get(0);
+        Calendar now = Calendar.getInstance();
+        boolean h24 = DateFormat.is24HourFormat(this);
+        clock.setText(DateFormat.format(
+                DateFormat.getBestDateTimePattern(loc, h24 ? "Hm" : "hm"), now));
+        // "Sunday, 8 November" with the weekday bold, like Bleta: the weekday is
+        // what a senior most often wants to know.
+        String full = DateFormat.format(
+                DateFormat.getBestDateTimePattern(loc, "EEEEdMMMM"), now).toString();
+        String weekday = DateFormat.format("EEEE", now).toString();
+        SpannableString s = new SpannableString(full);
+        int at = full.indexOf(weekday);
+        if (at >= 0 && !weekday.isEmpty()) {
+            s.setSpan(new StyleSpan(Typeface.BOLD), at, at + weekday.length(),
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+        date.setText(s);
+    }
+
+    // ---------------------------------------------------------------- helper bar
+
+    private void renderHelperBar() {
+        helperBar.removeAllViews();
+        if (locked) {
+            helperBar.addView(padlock());
+            return;
+        }
+        addHelper(R.drawable.ic_home_apps, R.string.home_apps, AppsActivity.class, 0);
+        addHelper(R.drawable.ic_home_widgets, R.string.home_widgets, WidgetsActivity.class, 10);
+        addHelper(R.drawable.ic_home_settings, R.string.home_settings, SettingsActivity.class, 10);
+    }
+
+    /** Icon above a word, outlined: these are for the helper, so they stay modest. */
+    private void addHelper(int iconRes, int labelRes, Class<? extends Activity> target, int startMarginDp) {
+        int fg = getColor(R.color.text_black);
+        LinearLayout b = new LinearLayout(this);
+        b.setOrientation(LinearLayout.VERTICAL);
+        b.setGravity(Gravity.CENTER);
+        b.setMinimumHeight(Ui.dp(this, Ui.BUTTON_HEIGHT));
+        b.setPadding(Ui.dp(this, 4), Ui.dp(this, 6), Ui.dp(this, 4), Ui.dp(this, 6));
+        b.setBackground(Ui.ripple(this, R.color.press_dark, getColor(R.color.card), fg, 20));
+        String label = getString(labelRes);
+        b.setContentDescription(label);
+        b.setOnClickListener(v -> startActivity(new Intent(this, target)));
+        asButton(b, null);
+
+        TextView t = Ui.bold(this, label, 18);
+        t.setGravity(Gravity.CENTER);
+        t.setMaxLines(1);
+        // "Einstellungen" is long; shrink to fit a third of the width rather than break it.
+        t.setAutoSizeTextTypeUniformWithConfiguration(12, 18, 1, TypedValue.COMPLEX_UNIT_SP);
+        t.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        ImageView icon = new ImageView(this);
+        icon.setImageResource(iconRes);
+        icon.setImageTintList(ColorStateList.valueOf(fg));
+        icon.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        int size = Ui.dp(this, 28);
+        b.addView(icon, new LinearLayout.LayoutParams(size, size));
+        b.addView(t, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                0, ViewGroup.LayoutParams.WRAP_CONTENT, 1);
+        lp.setMarginStart(Ui.dp(this, startMarginDp));
+        helperBar.addView(b, lp);
+    }
+
+    /**
+     * Small and muted on purpose: it is for the helper, not the senior. A short
+     * tap does nothing; only a long press offers to unlock.
+     */
+    private View padlock() {
+        ImageView lock = new ImageView(this);
+        lock.setImageResource(R.drawable.ic_home_lock);
+        lock.setImageTintList(ColorStateList.valueOf(getColor(R.color.text_muted)));
+        lock.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+        int pad = Ui.dp(this, 12);
+        lock.setPadding(pad, pad, pad, pad);
+        lock.setBackground(Ui.ripple(this, R.color.press_dark, Color.TRANSPARENT, 0, 32));
+        lock.setContentDescription(getString(R.string.home_locked_desc));
+        lock.setFocusable(true);
+        lock.setLongClickable(true);
+        lock.setOnLongClickListener(v -> {
+            dismissDialog();
+            dialog = Ui.confirm(this, getString(R.string.home_unlock_question),
+                    getString(R.string.home_unlock), R.color.green, () -> {
+                        store.setLocked(false);
+                        rebuild(false);
+                    });
+            return true;
+        });
+        lock.setAccessibilityDelegate(new View.AccessibilityDelegate() {
+            @Override public void onInitializeAccessibilityNodeInfo(View host, AccessibilityNodeInfo info) {
+                super.onInitializeAccessibilityNodeInfo(host, info);
+                info.addAction(new AccessibilityAction(AccessibilityNodeInfo.ACTION_LONG_CLICK,
+                        getString(R.string.home_unlock)));
+            }
+        });
+        int size = Ui.dp(this, Ui.BUTTON_HEIGHT);
+        lock.setLayoutParams(new LinearLayout.LayoutParams(size, size));
+        return lock;
+    }
+
+    // ---------------------------------------------------------------- pager
+
+    private View pagerBar() {
+        pager = new LinearLayout(this);
+        pager.setOrientation(LinearLayout.HORIZONTAL);
+        pager.setGravity(Gravity.CENTER_VERTICAL);
+
+        prevButton = pageButton(R.drawable.ic_home_chevron_left, R.string.home_previous,
+                R.string.home_previous_desc, false);
+        prevButton.setOnClickListener(v -> { page--; showPage(); });
+        nextButton = pageButton(R.drawable.ic_home_chevron_right, R.string.home_next,
+                R.string.home_next_desc, true);
+        nextButton.setOnClickListener(v -> { page++; showPage(); });
+
+        pageLabel = Ui.bold(this, "", Ui.TEXT_BODY);
+        pageLabel.setGravity(Gravity.CENTER);
+        int m = Ui.dp(this, 8);
+        pageLabel.setPadding(m, 0, m, 0);
+        // One line: "Page 1 of" over "3" reads as two separate things.
+        pageLabel.setMaxLines(1);
+        pageLabel.setAutoSizeTextTypeUniformWithConfiguration(14, Ui.TEXT_BODY, 1,
+                TypedValue.COMPLEX_UNIT_SP);
+
+        pager.addView(prevButton, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        pager.addView(pageLabel, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.1f));
+        pager.addView(nextButton, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        pager.setVisibility(View.GONE);
+        return pager;
+    }
+
+    /** Blue button with a chevron on the side it points to, the word next to it. */
+    private LinearLayout pageButton(int iconRes, int labelRes, int descRes, boolean iconAfter) {
+        LinearLayout b = new LinearLayout(this);
+        b.setOrientation(LinearLayout.HORIZONTAL);
+        b.setGravity(Gravity.CENTER);
+        b.setMinimumHeight(Ui.dp(this, Ui.BUTTON_HEIGHT));
+        b.setPadding(Ui.dp(this, 6), Ui.dp(this, 8), Ui.dp(this, 6), Ui.dp(this, 8));
+        b.setContentDescription(getString(descRes));
+        asButton(b, null);
+
+        TextView t = Ui.bold(this, getString(labelRes), Ui.TEXT_BUTTON);
+        t.setGravity(Gravity.CENTER);
+        t.setMaxLines(1);
+        t.setAutoSizeTextTypeUniformWithConfiguration(14, Ui.TEXT_BUTTON, 1, TypedValue.COMPLEX_UNIT_SP);
+        t.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        ImageView icon = new ImageView(this);
+        icon.setImageResource(iconRes);
+        icon.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        int size = Ui.dp(this, 32);
+        LinearLayout.LayoutParams ilp = new LinearLayout.LayoutParams(size, size);
+        LinearLayout.LayoutParams tlp = new LinearLayout.LayoutParams(
+                0, ViewGroup.LayoutParams.WRAP_CONTENT, 1);
+        if (iconAfter) {
+            b.addView(t, tlp);
+            b.addView(icon, ilp);
+        } else {
+            b.addView(icon, ilp);
+            b.addView(t, tlp);
+        }
+        return b;
+    }
+
+    private void setPageButtonEnabled(LinearLayout b, boolean enabled) {
+        b.setEnabled(enabled);
+        int fg = enabled ? Color.WHITE : getColor(R.color.disabled_text);
+        b.setBackground(Ui.ripple(this, R.color.press_light,
+                getColor(enabled ? R.color.blue : R.color.disabled_bg), 0, 20));
+        for (int i = 0; i < b.getChildCount(); i++) {
+            View v = b.getChildAt(i);
+            if (v instanceof TextView) ((TextView) v).setTextColor(fg);
+            if (v instanceof ImageView) ((ImageView) v).setImageTintList(ColorStateList.valueOf(fg));
+        }
+    }
+
+    // ---------------------------------------------------------------- grid
+
+    /**
+     * Re-reads the items and redraws only if what would be shown changed (or
+     * force, after a package change: icons and labels may differ).
+     */
+    private void rebuild(boolean force) {
+        locked = store.locked();
+        List<HomeItem> visible = new ArrayList<>();
+        Set<Integer> widgetIds = new HashSet<>();
+        for (HomeItem i : store.items()) {
+            if (i.isApp()) {
+                // Uninstalled or disabled apps are hidden, not deleted: an app that is
+                // being updated is briefly missing and comes back with its tile.
+                if (AppInfo.exists(this, i.component)) visible.add(i);
+            } else {
+                widgetIds.add(i.widgetId);
+                if (widgetView(i.widgetId, force) != null) visible.add(i);
+            }
+        }
+        widgetViews.keySet().retainAll(widgetIds); // removed in WidgetsActivity
+
+        String key = locked + "|" + visible;
+        if (!force && key.equals(shownKey)) {
+            showPage(); // only the page may have changed
+            return;
+        }
+        shownKey = key;
+        pages = Pages.layout(visible, Pages.ROWS, Pages.COLUMNS);
+        renderHelperBar();
+        shownPage = -1;
+        showPage();
+    }
+
+    /** The cached host view, or a new one; null if the widget's app is gone. */
+    private View widgetView(int id, boolean recheck) {
+        View v = widgetViews.get(id);
+        if (v != null && recheck && Widgets.label(this, id) == null) {
+            widgetViews.remove(id); // its app was uninstalled
+            v = null;
+        }
+        if (v == null) {
+            v = Widgets.createView(this, id);
+            if (v != null) widgetViews.put(id, v);
+        }
+        return v;
+    }
+
+    private void showPage() {
+        if (pages.isEmpty()) return;
+        page = Math.max(0, Math.min(pages.size() - 1, page));
+        if (page == shownPage) return;
+        shownPage = page;
+
+        grid.removeAllViews();
+        List<Pages.Placement> placements = pages.get(page);
+        for (Pages.Placement pl : placements) {
+            View v = pl.item.isApp() ? tile(pl.item.component) : widgetViews.get(pl.item.widgetId);
+            if (v == null) continue;
+            if (v.getParent() instanceof ViewGroup) ((ViewGroup) v.getParent()).removeView(v);
+            grid.addCell(v, pl.row, pl.col, pl.rowSpan, pl.colSpan);
+        }
+        if (placements.isEmpty()) {
+            TextView empty = Ui.text(this, getString(locked
+                    ? R.string.home_empty_locked : R.string.home_empty), 24);
+            empty.setTextColor(getColor(R.color.text_muted));
+            empty.setGravity(Gravity.CENTER);
+            grid.addCell(empty, 0, 0, Pages.ROWS, Pages.COLUMNS);
+        }
+
+        int count = pages.size();
+        pager.setVisibility(count > 1 ? View.VISIBLE : View.GONE);
+        pageLabel.setText(getString(R.string.home_page, page + 1, count));
+        setPageButtonEnabled(prevButton, page > 0);
+        setPageButtonEnabled(nextButton, page < count - 1);
+    }
+
+    /**
+     * A big card: the app icon fills whatever the label leaves of the cell (so it
+     * scales with the screen), the label below in at least 22sp, two lines at most.
+     */
+    private View tile(String component) {
+        CharSequence label = AppInfo.label(this, component);
+        if (TextUtils.isEmpty(label)) {
+            String pkg = component.contains("/") ? component.substring(0, component.indexOf('/')) : component;
+            label = pkg;
+        }
+        final CharSequence name = label;
+
+        LinearLayout t = new LinearLayout(this);
+        t.setOrientation(LinearLayout.VERTICAL);
+        t.setGravity(Gravity.CENTER_HORIZONTAL);
+        int p = Ui.dp(this, 10);
+        t.setPadding(p, p, p, Ui.dp(this, 8));
+        t.setBackground(Ui.ripple(this, R.color.press_dark, getColor(R.color.card),
+                getColor(R.color.card_border), 24));
+        t.setContentDescription(name);
+        t.setOnClickListener(v -> AppInfo.launch(this, component));
+        if (locked) {
+            t.setLongClickable(false); // the senior can only open things
+        } else {
+            t.setOnLongClickListener(v -> {
+                if (store.locked()) return true;
+                dismissDialog();
+                dialog = Ui.confirm(this, getString(R.string.home_remove_question, name),
+                        getString(R.string.remove), R.color.red, () -> {
+                            store.removeApp(component);
+                            rebuild(false);
+                        });
+                return true;
+            });
+        }
+        asButton(t, locked ? null : getString(R.string.home_remove_action));
+
+        ImageView icon = new ImageView(this);
+        Drawable d = AppInfo.icon(this, component);
+        icon.setImageDrawable(d != null ? d : getDrawable(android.R.drawable.sym_def_app_icon));
+        icon.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        icon.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        t.addView(icon, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));
+
+        TextView text = Ui.text(this, name, Ui.TEXT_BUTTON);
+        text.setGravity(Gravity.CENTER);
+        text.setMaxLines(2);
+        text.setEllipsize(TextUtils.TruncateAt.END);
+        // Long German words ("Einstellungen", "Taschenrechner") break with a hyphen
+        // instead of being cut off at large font sizes.
+        text.setHyphenationFrequency(Layout.HYPHENATION_FREQUENCY_NORMAL);
+        text.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        LinearLayout.LayoutParams tlp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        tlp.topMargin = Ui.dp(this, 4);
+        t.addView(text, tlp);
+        return t;
+    }
+
+    /**
+     * Grid laid out: remember the cell height for WidgetsActivity, and tell each
+     * widget its real size. Posted, because a widget may re-apply its layout on a
+     * size change, which must not happen in the middle of this layout pass.
+     * Widgets.updateSize skips sizes it already sent, so relayouts stay quiet.
+     */
+    private void onGridLaidOut(PageLayout g) {
+        int cellDp = Math.round(g.cellHeight() / getResources().getDisplayMetrics().density);
+        if (cellDp > 0 && cellDp != savedCellDp) {
+            savedCellDp = cellDp;
+            if (prefs.getInt(K_CELL_HEIGHT_DP, -1) != cellDp) {
+                prefs.edit().putInt(K_CELL_HEIGHT_DP, cellDp).apply();
+            }
+        }
+        for (View v : widgetViews.values()) {
+            if (v.getParent() != g) continue;
+            int w = v.getWidth(), h = v.getHeight();
+            if (w > 0 && h > 0) handler.post(() -> Widgets.updateSize(v, w, h));
+        }
+    }
+
+    /**
+     * TalkBack announces the view as a button, and names the long press when there
+     * is one ("double-tap and hold to remove from home screen").
+     */
+    private static void asButton(View v, CharSequence longClickLabel) {
+        v.setClickable(true);
+        v.setFocusable(true);
+        v.setAccessibilityDelegate(new View.AccessibilityDelegate() {
+            @Override public void onInitializeAccessibilityNodeInfo(View host, AccessibilityNodeInfo info) {
+                super.onInitializeAccessibilityNodeInfo(host, info);
+                info.setClassName(Button.class.getName());
+                if (longClickLabel != null) {
+                    info.addAction(new AccessibilityAction(AccessibilityNodeInfo.ACTION_LONG_CLICK,
+                            longClickLabel));
+                }
+            }
+        });
+    }
+}

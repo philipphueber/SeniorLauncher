@@ -45,9 +45,9 @@ gitignored `local.properties` containing `sdk.dir=/path/to/Android/Sdk`.
 
 Unit tests carry the weight; device testing is kept minimal.
 
-    ./gradlew test        # JVM unit tests
+    ./gradlew test        # JVM unit tests (HomeCodec, Pages, WidgetRows, BatteryState)
     ./gradlew lint
-    scripts/smoke.sh      # one on-device check
+    scripts/smoke.sh      # on a device or emulator: becomes Home, shows charging, pages
 
 Logic that can be tested without a device belongs in a pure Java class (no
 `android.*` imports) with a JVM test.

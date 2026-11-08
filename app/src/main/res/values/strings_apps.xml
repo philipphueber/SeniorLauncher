@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="apps_title">Apps</string>
+    <string name="apps_intro">Tap an app to open it. Tap “Add” to put it on the home screen.</string>
+    <string name="apps_search_hint">Search app</string>
+    <string name="apps_loading">Loading apps …</string>
+    <string name="apps_none">No app found.</string>
+    <string name="apps_on_home">On home ✓</string>
+    <string name="apps_add">Add</string>
+    <string name="apps_open_cd">Open %1$s</string>
+    <string name="apps_on_home_cd">%1$s is on the home screen. Tap to remove it.</string>
+    <string name="apps_add_cd">Add %1$s to the home screen</string>
+</resources>

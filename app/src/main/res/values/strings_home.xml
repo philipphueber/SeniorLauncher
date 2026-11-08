@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Home screen. -->
+    <string name="home_apps">Apps</string>
+    <string name="home_widgets">Widgets</string>
+    <string name="home_settings">Settings</string>
+    <string name="home_page">Page %1$d of %2$d</string>
+    <string name="home_previous">Previous</string>
+    <string name="home_next">Next</string>
+    <string name="home_previous_desc">Previous page</string>
+    <string name="home_next_desc">Next page</string>
+    <string name="home_empty">No apps here yet.\nTap “Apps” to add some.</string>
+    <string name="home_empty_locked">No apps here yet.</string>
+    <string name="home_remove_question">Remove “%1$s” from the home screen?</string>
+    <string name="home_remove_action">Remove from home screen</string>
+    <string name="home_locked_desc">Settings are locked. Press and hold to unlock.</string>
+    <string name="home_unlock_question">Unlock settings?</string>
+    <string name="home_unlock">Unlock</string>
+
+    <!-- Battery box in the header. -->
+    <string name="home_battery">Battery</string>
+    <string name="home_battery_low">Battery low</string>
+    <string name="home_battery_charge_hint">Please charge</string>
+    <string name="home_battery_charging">Charging</string>
+    <string name="home_battery_full">Full</string>
+    <string name="home_battery_percent">%1$d%%</string>
+    <!-- Read aloud by TalkBack, e.g. "Charging, 35%". -->
+    <string name="home_battery_desc">%1$s, %2$s</string>
+</resources>

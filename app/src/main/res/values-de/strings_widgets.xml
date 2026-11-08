@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widgets_title">Widgets</string>
+    <string name="widgets_on_home">Auf der Startseite</string>
+    <string name="widgets_none_placed">Auf der Startseite sind noch keine Widgets.</string>
+    <string name="widgets_missing">Widget nicht mehr verfügbar</string>
+    <string name="widgets_remove_question">Dieses Widget von der Startseite entfernen?</string>
+    <string name="widgets_remove_named">%1$s entfernen</string>
+    <string name="widgets_add">Widget hinzufügen</string>
+    <string name="widgets_add_hint">Tippen Sie auf ein Widget, um es auf die Startseite zu legen.</string>
+    <string name="widgets_none_installed">Auf diesem Telefon sind keine Widgets installiert.</string>
+    <string name="widgets_add_failed">Das Widget konnte nicht hinzugefügt werden.</string>
+</resources>

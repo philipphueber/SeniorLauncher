@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Startbildschirm. -->
+    <string name="home_apps">Apps</string>
+    <string name="home_widgets">Widgets</string>
+    <string name="home_settings">Einstellungen</string>
+    <string name="home_page">Seite %1$d von %2$d</string>
+    <string name="home_previous">Vorige</string>
+    <string name="home_next">Weiter</string>
+    <string name="home_previous_desc">Vorige Seite</string>
+    <string name="home_next_desc">Nächste Seite</string>
+    <string name="home_empty">Hier sind noch keine Apps.\nTippen Sie auf „Apps“, um welche hinzuzufügen.</string>
+    <string name="home_empty_locked">Hier sind noch keine Apps.</string>
+    <string name="home_remove_question">„%1$s“ vom Startbildschirm entfernen?</string>
+    <string name="home_remove_action">Vom Startbildschirm entfernen</string>
+    <string name="home_locked_desc">Die Einstellungen sind gesperrt. Zum Entsperren gedrückt halten.</string>
+    <string name="home_unlock_question">Einstellungen entsperren?</string>
+    <string name="home_unlock">Entsperren</string>
+
+    <!-- Akku-Anzeige oben rechts. -->
+    <string name="home_battery">Akku</string>
+    <string name="home_battery_low">Akku schwach</string>
+    <string name="home_battery_charge_hint">Bitte aufladen</string>
+    <string name="home_battery_charging">Lädt</string>
+    <string name="home_battery_full">Voll</string>
+    <string name="home_battery_percent">%1$d %%</string>
+    <string name="home_battery_desc">%1$s, %2$s</string>
+</resources>

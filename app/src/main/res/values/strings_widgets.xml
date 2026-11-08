@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- WidgetsActivity: placing other apps' widgets on the home screen. -->
+    <string name="widgets_title">Widgets</string>
+    <string name="widgets_on_home">On the home screen</string>
+    <string name="widgets_none_placed">There are no widgets on the home screen yet.</string>
+    <string name="widgets_missing">Widget no longer available</string>
+    <string name="widgets_remove_question">Remove this widget from the home screen?</string>
+    <string name="widgets_remove_named">Remove %1$s</string>
+    <string name="widgets_add">Add a widget</string>
+    <string name="widgets_add_hint">Tap a widget to put it on the home screen.</string>
+    <string name="widgets_none_installed">No widgets are installed on this phone.</string>
+    <string name="widgets_add_failed">The widget could not be added.</string>
+</resources>
