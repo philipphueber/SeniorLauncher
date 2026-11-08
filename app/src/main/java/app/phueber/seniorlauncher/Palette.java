@@ -1,7 +1,7 @@
 package app.phueber.seniorlauncher;
 
 /**
- * The three colour themes the helper can choose from. Pure (no android.*
+ * The four colour themes the helper can choose from. Pure (no android.*
  * imports), so the contrast of every theme is checked by a JVM test.
  *
  * Every theme fills the same roles; code asks for a role, never for a colour.
@@ -11,7 +11,7 @@ package app.phueber.seniorlauncher;
  * easiest mistake to make.
  */
 final class Palette {
-    enum Theme { LIGHT, DARK, HIGH_CONTRAST }
+    enum Theme { LIGHT, DARK, HIGH_CONTRAST, COLOURFUL }
 
     enum Role {
         PAGE,           // screen background
@@ -52,12 +52,44 @@ final class Palette {
             0xFF3B0A0A, 0xFF2E2E2E, 0xFFC8C8C8, 0x55FFFFFF, 0x55FFFFFF,
     };
 
+    /**
+     * COLOURFUL: app tiles get these in turn, with white labels, on the DARK
+     * page. Order chosen so that tiles side by side (index +1) and on top of
+     * each other (index +2, two columns) never share a colour, and each one
+     * carries white text at 4.5:1 or better.
+     */
+    private static final int[] TILES = {
+            0xFF1565C0, // blue
+            0xFF2E7D32, // green
+            0xFFC2410C, // orange
+            0xFF6A1B9A, // purple
+            0xFF00796B, // teal
+            0xFFC62828, // red
+            0xFF4E5BA6, // indigo
+            0xFFAD1457, // pink
+    };
+
     private Palette() {}
 
     static int color(Theme theme, Role role) {
-        int[] set = theme == Theme.DARK ? DARK
+        // COLOURFUL is DARK everywhere except on the app tiles.
+        int[] set = theme == Theme.DARK || theme == Theme.COLOURFUL ? DARK
                 : theme == Theme.HIGH_CONTRAST ? HIGH_CONTRAST : LIGHT;
         return set[role.ordinal()];
+    }
+
+    /** Whether app tiles are coloured one by one instead of all CARD. */
+    static boolean colouredTiles(Theme theme) {
+        return theme == Theme.COLOURFUL;
+    }
+
+    /** The fill of the index-th tile in COLOURFUL (any index >= 0). */
+    static int tileColor(int index) {
+        return TILES[Math.floorMod(index, TILES.length)];
+    }
+
+    static int tileColorCount() {
+        return TILES.length;
     }
 
     /** Light status- and navigation-bar backgrounds need dark icons. */

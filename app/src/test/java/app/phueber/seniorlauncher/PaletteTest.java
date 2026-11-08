@@ -81,6 +81,36 @@ public class PaletteTest {
         }
     }
 
+    @Test public void everyTileColourCarriesWhiteText() {
+        for (int i = 0; i < Palette.tileColorCount(); i++) {
+            atLeast(AA, Palette.contrast(Palette.ON_COLOR, Palette.tileColor(i)), "tile " + i);
+        }
+    }
+
+    @Test public void neighbouringTilesNeverShareAColour() {
+        // Two columns: the tile to the right is index + 1, the one below index + 2.
+        for (int i = 0; i < 4 * Palette.tileColorCount(); i++) {
+            assertTrue("right of " + i, Palette.tileColor(i) != Palette.tileColor(i + 1));
+            assertTrue("below " + i, Palette.tileColor(i) != Palette.tileColor(i + Pages.COLUMNS));
+        }
+    }
+
+    @Test public void tileColoursAreDistinctAndStandOutFromThePage() {
+        java.util.Set<Integer> seen = new java.util.HashSet<>();
+        int page = Palette.color(Theme.COLOURFUL, Role.PAGE);
+        for (int i = 0; i < Palette.tileColorCount(); i++) {
+            assertTrue("duplicate tile colour " + i, seen.add(Palette.tileColor(i)));
+            atLeast(1.15, Palette.contrast(Palette.tileColor(i), page), "tile " + i + " vs page");
+        }
+    }
+
+    @Test public void onlyColourfulColoursTheTiles() {
+        for (Theme t : Theme.values()) {
+            assertEquals(t == Theme.COLOURFUL, Palette.colouredTiles(t));
+        }
+        assertEquals(Palette.tileColor(0), Palette.tileColor(Palette.tileColorCount()));
+    }
+
     @Test public void parseFallsBackToLight() {
         assertEquals(Theme.LIGHT, Palette.parse(null));
         assertEquals(Theme.LIGHT, Palette.parse("PURPLE"));
@@ -97,5 +127,6 @@ public class PaletteTest {
         assertTrue(Palette.isLight(Theme.LIGHT));
         assertTrue(!Palette.isLight(Theme.DARK));
         assertTrue(!Palette.isLight(Theme.HIGH_CONTRAST));
+        assertTrue(!Palette.isLight(Theme.COLOURFUL));
     }
 }

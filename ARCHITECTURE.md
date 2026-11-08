@@ -32,7 +32,7 @@ separate app, not part of this one.
 | `DefaultApps` | On first run, adds tiles for the default phone, messages, camera, photos, contacts and browser apps. |
 | `Store` | The ordered home items, the lock flag and the first-run flag, in SharedPreferences. |
 | `Ui` | Shared buttons, helper-screen frame and confirmation dialog, so every screen looks alike. Resolves every colour through the chosen theme (`Ui.color`, `Ui.applyTheme`). |
-| `Palette` | Pure: the three colour themes (Light, Dark, High contrast) as roles, and the WCAG contrast check. Unit tested for readability. |
+| `Palette` | Pure: the four colour themes (Light, Dark, High contrast, Colourful) as roles, the Colourful tile colours, and the WCAG contrast check. Unit tested for readability. |
 | `HomeItem` | Pure: an app tile or a widget (id and rows). |
 | `HomeCodec` | Pure: the item list to and from one string. Unit tested. |
 | `Pages` | Pure: splits the items into pages of placements. Unit tested. |
@@ -65,12 +65,19 @@ goes back to page 1.
 
 ## Colours
 
-The helper picks one of three fixed themes in Settings: Light (the family
-look of SeniorAlert), Dark (navy, like the reference launcher) and High
-contrast (white on black, thick white outlines). There is no free colour
-picker: `PaletteTest` checks every theme against WCAG contrast (7:1 for text,
-4.5:1 for white text on the green, blue and red buttons), and a picker would
-let an unreadable combination through.
+The helper picks one of four fixed themes in Settings: Light (the family
+look of SeniorAlert), Dark (navy, like the reference launcher), High
+contrast (white on black, thick white outlines) and Colourful (Dark, but
+every app tile filled with its own colour and a bold white label). There is
+no free colour picker: `PaletteTest` checks every theme against WCAG contrast
+(7:1 for text, 4.5:1 for white text on the green, blue and red buttons and
+on every tile colour), and a picker would let an unreadable combination
+through.
+
+In Colourful, a tile's colour comes from its position over all pages, from a
+cycle of eight. The test checks that the tile to the right (+1) and the tile
+below (+2, two columns) never share a colour. Tiles never move on their own,
+so a tile keeps its colour until the helper adds or removes one before it.
 
 Code names colours by role (`R.color.green`, `R.color.text_black`, ...);
 `Ui.color` maps the resource to its `Palette` role in the current theme. The

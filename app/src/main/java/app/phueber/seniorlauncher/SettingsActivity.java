@@ -85,6 +85,7 @@ public final class SettingsActivity extends Activity {
         switch (t) {
             case DARK: return R.string.settings_colour_dark;
             case HIGH_CONTRAST: return R.string.settings_colour_high_contrast;
+            case COLOURFUL: return R.string.settings_colour_colourful;
             default: return R.string.settings_colour_light;
         }
     }

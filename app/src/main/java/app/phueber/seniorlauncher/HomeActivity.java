@@ -507,8 +507,13 @@ public class HomeActivity extends Activity {
 
         grid.removeAllViews();
         List<Pages.Placement> placements = pages.get(page);
+        // Position over all pages, so a tile keeps its colour (Colourful theme)
+        // whichever page is shown.
+        int index = 0;
+        for (int i = 0; i < page; i++) index += pages.get(i).size();
         for (Pages.Placement pl : placements) {
-            View v = pl.item.isApp() ? tile(pl.item.component) : widgetViews.get(pl.item.widgetId);
+            int at = index++;
+            View v = pl.item.isApp() ? tile(pl.item.component, at) : widgetViews.get(pl.item.widgetId);
             if (v == null) continue;
             if (v.getParent() instanceof ViewGroup) ((ViewGroup) v.getParent()).removeView(v);
             grid.addCell(v, pl.row, pl.col, pl.rowSpan, pl.colSpan);
@@ -531,8 +536,10 @@ public class HomeActivity extends Activity {
     /**
      * A big card: the app icon fills whatever the label leaves of the cell (so it
      * scales with the screen), the label below in at least 22sp, two lines at most.
+     * In the Colourful theme the card is filled with the index-th tile colour and
+     * the label is white.
      */
-    private View tile(String component) {
+    private View tile(String component, int index) {
         CharSequence label = AppInfo.label(this, component);
         if (TextUtils.isEmpty(label)) {
             String pkg = component.contains("/") ? component.substring(0, component.indexOf('/')) : component;
@@ -545,8 +552,13 @@ public class HomeActivity extends Activity {
         t.setGravity(Gravity.CENTER_HORIZONTAL);
         int p = Ui.dp(this, 10);
         t.setPadding(p, p, p, Ui.dp(this, 8));
-        t.setBackground(Ui.ripple(this, R.color.press_dark, Ui.color(this, R.color.card),
-                Ui.color(this, R.color.card_border), 24));
+        boolean coloured = Palette.colouredTiles(shownTheme);
+        if (coloured) {
+            t.setBackground(Ui.ripple(this, R.color.press_light, Palette.tileColor(index), 0, 24));
+        } else {
+            t.setBackground(Ui.ripple(this, R.color.press_dark, Ui.color(this, R.color.card),
+                    Ui.color(this, R.color.card_border), 24));
+        }
         t.setContentDescription(name);
         t.setOnClickListener(v -> AppInfo.launch(this, component));
         if (locked) {
@@ -573,6 +585,10 @@ public class HomeActivity extends Activity {
         t.addView(icon, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));
 
         TextView text = Ui.text(this, name, Ui.TEXT_BUTTON);
+        if (coloured) {
+            text.setTextColor(Palette.ON_COLOR);
+            text.setTypeface(Typeface.DEFAULT_BOLD);
+        }
         text.setGravity(Gravity.CENTER);
         text.setMaxLines(2);
         text.setEllipsize(TextUtils.TruncateAt.END);
