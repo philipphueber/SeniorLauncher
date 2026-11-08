@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="arrange_title">Startseite ordnen</string>
+    <string name="arrange_intro">Tippen Sie auf „▲ Nach vorne“ oder „▼ Nach hinten“, um eine Kachel zu verschieben. Die Startseite zeigt sie in dieser Reihenfolge, je zwei nebeneinander; die Überschriften zeigen, wo jede Seite beginnt.</string>
+    <string name="arrange_empty">Auf der Startseite ist noch nichts.</string>
+    <string name="arrange_page">Seite %1$d</string>
+    <string name="arrange_earlier">▲ Nach vorne</string>
+    <string name="arrange_later">▼ Nach hinten</string>
+    <string name="arrange_earlier_cd">%1$s nach vorne verschieben</string>
+    <string name="arrange_later_cd">%1$s nach hinten verschieben</string>
+    <string name="arrange_widget_small">Kleines Widget</string>
+    <string name="arrange_widget_wide">Breites Widget, nimmt eine ganze Reihe ein</string>
+    <string name="arrange_place_cd">%1$s, Platz %2$d von %3$d, Seite %4$d</string>
+    <string name="arrange_moved">%1$s, jetzt Platz %2$d von %3$d, Seite %4$d</string>
+</resources>

@@ -59,6 +59,8 @@ import java.util.Set;
  * The grid is rebuilt in onResume (an app may have been added, removed or
  * uninstalled meanwhile), but only when something visible changed, so coming
  * back to the home screen does not make the tiles flicker or the widgets reload.
+ * Coming back from arranging, it shows the page of the item the helper moved
+ * last, so the result is the first thing seen. Home always shows page 1.
  */
 public class HomeActivity extends Activity {
     // Read by WidgetsActivity (Widgets.rowsFor) to size a new widget in grid rows.
@@ -84,6 +86,8 @@ public class HomeActivity extends Activity {
     private List<List<Pages.Placement>> pages = Collections.emptyList();
     private int page;
     private int shownPage = -1;
+    /** Show this item's page at the next rebuild (the one the helper last moved). */
+    private HomeItem showItem;
     private String shownKey; // what the grid shows, to skip needless rebuilds
     private boolean locked;
     private int savedCellDp = -1;
@@ -202,6 +206,7 @@ public class HomeActivity extends Activity {
             recreate();
             return;
         }
+        showItem = ArrangeActivity.takeLastMoved();
         rebuild(false);
     }
 
@@ -236,6 +241,7 @@ public class HomeActivity extends Activity {
         super.onNewIntent(intent);
         setIntent(intent);
         dismissDialog();
+        ArrangeActivity.takeLastMoved(); // Home means page 1, even after arranging
         page = 0;
         if (shownKey != null) showPage();
     }
@@ -480,14 +486,31 @@ public class HomeActivity extends Activity {
 
         String key = locked + "|" + visible;
         if (!force && key.equals(shownKey)) {
+            turnToShowItem();
             showPage(); // only the page may have changed
             return;
         }
         shownKey = key;
         pages = Pages.layout(visible, Pages.ROWS, Pages.COLUMNS);
+        turnToShowItem();
         renderHelperBar();
         shownPage = -1;
         showPage();
+    }
+
+    /** Turns to showItem's page, once; stays put if it is not shown. */
+    private void turnToShowItem() {
+        HomeItem item = showItem;
+        showItem = null;
+        if (item == null) return;
+        for (int p = 0; p < pages.size(); p++) {
+            for (Pages.Placement pl : pages.get(p)) {
+                if (pl.item.equals(item)) {
+                    page = p;
+                    return;
+                }
+            }
+        }
     }
 
     /** The cached host view, or a new one; null if the widget's app is gone. */
@@ -641,18 +664,26 @@ public class HomeActivity extends Activity {
         if (locked) {
             t.setLongClickable(false); // the senior can only open things
         } else {
+            // For the helper: move the tile (on the Arrange screen, with this tile
+            // marked) or take it off. Remove needs no second question: it is
+            // already the second step after the long press, as before.
             t.setOnLongClickListener(v -> {
                 if (store.locked()) return true;
                 dismissDialog();
-                dialog = Ui.confirm(this, getString(R.string.home_remove_question, name),
-                        getString(R.string.remove), R.color.red, () -> {
+                dialog = Ui.choose(this, getString(R.string.home_tile_question, name),
+                        new Ui.Choice(getString(R.string.home_move), R.color.green, () -> {
+                            if (!store.locked()) {
+                                startActivity(ArrangeActivity.intent(this, HomeItem.app(component)));
+                            }
+                        }),
+                        new Ui.Choice(getString(R.string.remove), R.color.red, () -> {
                             store.removeApp(component);
                             rebuild(false);
-                        });
+                        }));
                 return true;
             });
         }
-        asButton(t, locked ? null : getString(R.string.home_remove_action));
+        asButton(t, locked ? null : getString(R.string.home_tile_action));
 
         ImageView icon = new ImageView(this);
         icon.setImageDrawable(d != null ? d : getDrawable(android.R.drawable.sym_def_app_icon));
@@ -702,7 +733,7 @@ public class HomeActivity extends Activity {
 
     /**
      * TalkBack announces the view as a button, and names the long press when there
-     * is one ("double-tap and hold to remove from home screen").
+     * is one ("double-tap and hold to move or remove").
      */
     private static void asButton(View v, CharSequence longClickLabel) {
         v.setClickable(true);

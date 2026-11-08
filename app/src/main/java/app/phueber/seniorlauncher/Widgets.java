@@ -6,6 +6,7 @@ import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProviderInfo;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.SizeF;
@@ -96,6 +97,17 @@ public final class Widgets {
         if (info == null) return null;
         CharSequence label = info.loadLabel(c.getPackageManager());
         return label == null ? null : label.toString();
+    }
+
+    /** The widget's icon (its own, or its app's), or null if its app is gone. */
+    static Drawable icon(Context c, int widgetId) {
+        AppWidgetProviderInfo info = info(c, widgetId);
+        if (info == null) return null;
+        try {
+            return info.loadIcon(c, c.getResources().getDisplayMetrics().densityDpi);
+        } catch (RuntimeException e) {
+            return null;
+        }
     }
 
     /**

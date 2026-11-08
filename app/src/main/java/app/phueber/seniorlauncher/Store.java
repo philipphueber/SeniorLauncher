@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * All persistent state: the ordered list of home items, the lock flag, the
@@ -70,6 +71,18 @@ public final class Store {
         List<HomeItem> list = new ArrayList<>();
         for (HomeItem i : items()) if (!(i.isWidget() && i.widgetId == widgetId)) list.add(i);
         setItems(list);
+    }
+
+    /**
+     * Moves the item {@code steps} places among the shown items (negative is
+     * earlier), see {@link Order#moveAmong}. Returns false if it is not stored.
+     */
+    public synchronized boolean move(HomeItem item, int steps, Predicate<HomeItem> shown) {
+        List<HomeItem> list = items();
+        int from = list.indexOf(item);
+        if (from < 0) return false;
+        setItems(Order.moveAmong(list, from, steps, shown));
+        return true;
     }
 
     public synchronized boolean locked() {

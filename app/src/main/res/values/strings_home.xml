@@ -11,8 +11,9 @@
     <string name="home_next_desc">Next page</string>
     <string name="home_empty">No apps here yet.\nTap “Apps” to add some.</string>
     <string name="home_empty_locked">No apps here yet.</string>
-    <string name="home_remove_question">Remove “%1$s” from the home screen?</string>
-    <string name="home_remove_action">Remove from home screen</string>
+    <string name="home_tile_question">What do you want to do with “%1$s”?</string>
+    <string name="home_move">Move</string>
+    <string name="home_tile_action">Move or remove</string>
     <string name="home_locked_desc">Settings are locked. Press and hold to unlock.</string>
     <string name="home_unlock_question">Unlock settings?</string>
     <string name="home_unlock">Unlock</string>

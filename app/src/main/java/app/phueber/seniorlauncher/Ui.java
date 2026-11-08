@@ -31,7 +31,7 @@ import android.widget.TextView;
  *   red = remove. White text on all three.
  * - Every helper screen has a big Back button pinned at the bottom.
  * - Dialogs are a card with a question and stacked full-width buttons,
- *   positive on top.
+ *   positive on top, Cancel last.
  */
 public final class Ui {
     public static final int TEXT_BODY = 20;
@@ -241,6 +241,20 @@ public final class Ui {
         return content;
     }
 
+    /** One button of a {@link #choose} dialog. */
+    public static final class Choice {
+        final CharSequence label;
+        final int colorRes;
+        final Runnable action;
+
+        /** colorRes: R.color.green / blue / red; action runs after the dialog closes. */
+        public Choice(CharSequence label, int colorRes, Runnable action) {
+            this.label = label;
+            this.colorRes = colorRes;
+            this.action = action;
+        }
+    }
+
     /**
      * A question with two stacked full-width buttons: the action on top in
      * yesColorRes, Cancel (blue) below. onYes runs after the dialog closes.
@@ -248,6 +262,15 @@ public final class Ui {
      */
     public static Dialog confirm(Activity a, CharSequence question, CharSequence yesLabel,
                                  int yesColorRes, Runnable onYes) {
+        return choose(a, question, new Choice(yesLabel, yesColorRes, onYes));
+    }
+
+    /**
+     * Like {@link #confirm}, with more than one action: the choices stacked in
+     * the order given, Cancel (blue) always last. Each choice's action runs
+     * after the dialog closes.
+     */
+    public static Dialog choose(Activity a, CharSequence question, Choice... choices) {
         Dialog d = new Dialog(a);
         d.requestWindowFeature(Window.FEATURE_NO_TITLE);
         LinearLayout box = new LinearLayout(a);
@@ -262,9 +285,13 @@ public final class Ui {
         TextView q = bold(a, question, 24);
         q.setGravity(Gravity.CENTER);
         box.addView(q);
-        Button yes = button(a, yesLabel, yesColorRes);
-        yes.setOnClickListener(v -> { d.dismiss(); onYes.run(); });
-        box.addView(yes, fullWidth(a, 24));
+        int gap = 24;
+        for (Choice c : choices) {
+            Button b = button(a, c.label, c.colorRes);
+            b.setOnClickListener(v -> { d.dismiss(); c.action.run(); });
+            box.addView(b, fullWidth(a, gap));
+            gap = 12;
+        }
         Button no = button(a, a.getString(R.string.cancel), R.color.blue);
         no.setOnClickListener(v -> d.dismiss());
         box.addView(no, fullWidth(a, 12));

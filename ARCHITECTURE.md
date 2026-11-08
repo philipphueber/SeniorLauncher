@@ -27,12 +27,14 @@ separate app, not part of this one.
 | `AppsActivity` | Every launchable app with an "Add" / "On home ✓" toggle. The only way to put an app on the home screen. |
 | `WidgetsActivity` | Places widgets (bind, optional configure, store) and removes them. Lists them grouped by app with previews, a size badge (small/wide) and a search over widget and app names. |
 | `IconColor` | Pure: an icon's main colour for Colourful tiles, made readable under white text. Unit tested. |
-| `SettingsActivity` | Lock (long press), choose home app, phone settings. |
+| `SettingsActivity` | Lock (long press), colours, arrange home screen, choose home app, phone settings. |
+| `ArrangeActivity` | The home items in order, with "Page 1", "Page 2" headings from `Pages.layout`; ▲ Earlier / ▼ Later on each. From Settings, or from the long press on a tile (that tile marked). Never while locked. |
 | `Widgets` | The one `AppWidgetHost`: creates, sizes and deletes widget views. |
 | `AppInfo` | Label, icon, launchability and launch of an app tile, via `LauncherApps`. |
 | `DefaultApps` | On first run, adds tiles for the default phone, messages, camera, photos, contacts and browser apps. |
+| `Order` | Pure: moves one item earlier or later in a list, stepping over hidden items; clamps at the ends. Unit tested. |
 | `Store` | The ordered home items, the lock flag and the first-run flag, in SharedPreferences. |
-| `Ui` | Shared buttons, helper-screen frame and confirmation dialog, so every screen looks alike. Resolves every colour through the chosen theme (`Ui.color`, `Ui.applyTheme`). |
+| `Ui` | Shared buttons, helper-screen frame and dialogs (`confirm`, and `choose` for more than one action), so every screen looks alike. Resolves every colour through the chosen theme (`Ui.color`, `Ui.applyTheme`). |
 | `Palette` | Pure: the four colour themes (Light, Dark, High contrast, Colourful) as roles, the Colourful tile colours, and the WCAG contrast check. Unit tested for readability. |
 | `HomeItem` | Pure: an app tile or a widget (id and rows). |
 | `HomeCodec` | Pure: the item list to and from one string. Unit tested. |
@@ -50,6 +52,27 @@ spans the full width and starts on a new row; if its rows do not fit on the
 current page, it starts the next one. Tiles never move
 on their own: a page only changes when an item is added or removed. Home always
 goes back to page 1.
+
+## Order
+
+New items go to the end. The helper changes the order on the Arrange screen
+(Settings, or hold a tile and choose Move): every item the home screen shows,
+with page headings computed by `Pages.layout`, so a wide widget that pushes
+things to the next page is visible there too. Each tile has two buttons,
+▲ Earlier and ▼ Later, greyed out at the ends; there is no drag and drop,
+because the senior's phone has no gestures and the helper gets the same big
+buttons as everywhere else.
+
+- A move is one step past the next *shown* item (`Order.moveAmong`): an app
+  that is briefly missing (being updated) keeps its place, but is not a place
+  a tap could seem to stop at.
+- Every tap is stored at once. The moved row stays under the finger while the
+  others flow past it (its scroll offset is restored before drawing), and it
+  is never detached, so TalkBack keeps its focus and announces "Phone, now
+  place 3 of 14, page 2".
+- Back to the home screen, it shows the page of the item moved last, so the
+  helper sees the result at once instead of the page the item left. Home
+  still always goes to page 1 (it drops that hand-over).
 
 ## Widgets
 
@@ -100,7 +123,8 @@ changed.
 
 The helper locks the home screen in Settings with a long press. Locked, the
 Apps, Widgets and Settings buttons are replaced by a padlock and long-press on
-tiles does nothing, so the senior can only open things. Holding the padlock
+tiles does nothing (no Move, no Remove; the Arrange screen closes itself if it
+is ever opened locked), so the senior can only open things. Holding the padlock
 asks "Unlock settings?". There is no PIN, on purpose: the long press is the
 protection against accidents, not against a determined person.
 

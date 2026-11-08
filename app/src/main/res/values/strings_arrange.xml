@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ArrangeActivity: the order of the home screen. -->
+    <string name="arrange_title">Arrange home screen</string>
+    <string name="arrange_intro">Tap “▲ Earlier” or “▼ Later” to move a tile. The home screen shows them in this order, two side by side; the headings show where each page begins.</string>
+    <string name="arrange_empty">There is nothing on the home screen yet.</string>
+    <string name="arrange_page">Page %1$d</string>
+    <string name="arrange_earlier">▲ Earlier</string>
+    <string name="arrange_later">▼ Later</string>
+    <string name="arrange_earlier_cd">Move %1$s earlier</string>
+    <string name="arrange_later_cd">Move %1$s later</string>
+    <string name="arrange_widget_small">Small widget</string>
+    <string name="arrange_widget_wide">Wide widget, takes a whole row</string>
+    <!-- Read aloud by TalkBack for a row, e.g. "Phone, place 3 of 14, page 2". -->
+    <string name="arrange_place_cd">%1$s, place %2$d of %3$d, page %4$d</string>
+    <!-- Read aloud by TalkBack after a move. -->
+    <string name="arrange_moved">%1$s, now place %2$d of %3$d, page %4$d</string>
+</resources>

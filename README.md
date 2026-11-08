@@ -40,6 +40,9 @@ Needs Android 8.0 or newer.
 
 - **Apps** lists every app. **Add** puts it on the home screen, **On home ✓**
   takes it off again. New tiles go to the end.
+- **Settings → Arrange home screen** puts the tiles in the order you want:
+  **▲ Earlier** and **▼ Later** move a tile one place; headings show where each
+  page begins.
 - **Widgets** lists the widgets your apps offer. Tap one to put it on the home
   screen; Android asks once whether to allow it. Widgets are removed there too.
 - **Settings → Colours**: Light, Dark, High contrast (white on black), or
@@ -47,7 +50,8 @@ Needs Android 8.0 or newer.
 - **Settings → Lock**: press and hold. Afterwards only the tiles are left, so
   nothing can be changed by accident. To unlock, press and hold the padlock at
   the top.
-- To take a tile off, press and hold it (only when unlocked).
+- To move a tile or take it off, press and hold it (only when unlocked) and
+  choose **Move** or **Remove**.
 
 ## SeniorLauncher (Deutsch)
 
@@ -88,6 +92,9 @@ Benötigt Android 8.0 oder neuer.
 
 - **Apps** zeigt alle Apps. **Hinzufügen** legt sie auf die Startseite,
   **Auf Start ✓** nimmt sie wieder herunter. Neue Kacheln kommen ans Ende.
+- **Einstellungen → Startseite ordnen** bringt die Kacheln in die gewünschte
+  Reihenfolge: **▲ Nach vorne** und **▼ Nach hinten** verschieben eine Kachel
+  um einen Platz; Überschriften zeigen, wo jede Seite beginnt.
 - **Widgets** zeigt die Widgets Ihrer Apps. Tippen Sie eines an, um es auf die
   Startseite zu legen; Android fragt einmal, ob das erlaubt ist. Entfernt werden
   Widgets ebenfalls dort.
@@ -97,8 +104,8 @@ Benötigt Android 8.0 oder neuer.
 - **Einstellungen → Sperren**: gedrückt halten. Danach sind nur noch die
   Kacheln da, sodass nichts aus Versehen geändert wird. Zum Entsperren das
   Schloss oben gedrückt halten.
-- Eine Kachel nehmen Sie herunter, indem Sie sie gedrückt halten (nur
-  entsperrt).
+- Um eine Kachel zu verschieben oder herunterzunehmen, halten Sie sie gedrückt
+  (nur entsperrt) und wählen **Verschieben** oder **Entfernen**.
 
 ## Contributing
 

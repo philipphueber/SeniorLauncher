@@ -11,8 +11,9 @@
     <string name="home_next_desc">Nächste Seite</string>
     <string name="home_empty">Hier sind noch keine Apps.\nTippen Sie auf „Apps“, um welche hinzuzufügen.</string>
     <string name="home_empty_locked">Hier sind noch keine Apps.</string>
-    <string name="home_remove_question">„%1$s“ vom Startbildschirm entfernen?</string>
-    <string name="home_remove_action">Vom Startbildschirm entfernen</string>
+    <string name="home_tile_question">Was möchten Sie mit „%1$s“ tun?</string>
+    <string name="home_move">Verschieben</string>
+    <string name="home_tile_action">Verschieben oder entfernen</string>
     <string name="home_locked_desc">Die Einstellungen sind gesperrt. Zum Entsperren gedrückt halten.</string>
     <string name="home_unlock_question">Einstellungen entsperren?</string>
     <string name="home_unlock">Entsperren</string>

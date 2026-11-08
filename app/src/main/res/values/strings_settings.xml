@@ -3,7 +3,7 @@
     <string name="settings_title">Settings</string>
     <string name="settings_lock">Lock</string>
     <string name="settings_lock_hint">Press and hold the button to lock.</string>
-    <string name="settings_lock_explain">When locked, only the home screen is left: the Apps, Widgets and Settings buttons disappear and tiles cannot be removed. To unlock, press and hold the padlock on the home screen.</string>
+    <string name="settings_lock_explain">When locked, only the home screen is left: the Apps, Widgets and Settings buttons disappear and tiles cannot be moved or removed. To unlock, press and hold the padlock on the home screen.</string>
     <string name="settings_colours">Colours</string>
     <string name="settings_colour_light">Light</string>
     <string name="settings_colour_dark">Dark</string>
@@ -11,6 +11,8 @@
     <string name="settings_colour_colourful">Colourful</string>
     <string name="settings_colour_chosen">%1$s ✓</string>
     <string name="settings_colours_explain">Choose what is easiest to read: Light, Dark, High contrast (white on black), or Colourful (each tile in its app’s colour).</string>
+    <string name="settings_arrange">Arrange home screen</string>
+    <string name="settings_arrange_explain">Changes the order of the tiles and widgets on the home screen. New ones always go to the end.</string>
     <string name="settings_home_app">Choose home app</string>
     <string name="settings_home_app_explain">Choose which home screen the phone shows when you press Home. Pick “%1$s” to keep this one.</string>
     <string name="settings_phone">Phone settings</string>
