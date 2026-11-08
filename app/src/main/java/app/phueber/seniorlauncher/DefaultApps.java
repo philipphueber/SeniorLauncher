@@ -42,6 +42,9 @@ public final class DefaultApps {
             if (list == null) launcher.put(pkg, list = new ArrayList<>());
             list.add(i.getComponentName().flattenToString());
         }
+        // The app list could not be read (a transient system error): seeding now
+        // would store an empty home screen for good, so leave it for the next launch.
+        if (launcher.isEmpty()) return;
 
         List<String> picked = new ArrayList<>();
         add(picked, launcher, pm, dialerPackage(c), new Intent(Intent.ACTION_DIAL));
@@ -74,6 +77,22 @@ public final class DefaultApps {
      */
     private static void add(List<String> picked, Map<String, List<String>> launcher,
                             PackageManager pm, String preferred, Intent... intents) {
+        if (preferred != null) {
+            // A package can have several launcher activities (Dialer and Contacts);
+            // ask which one handles the intent rather than taking the first.
+            for (Intent intent : intents) {
+                try {
+                    // A main-selector intent carries its category in the selector.
+                    Intent base = intent.getSelector() != null ? intent.getSelector() : intent;
+                    ResolveInfo ri = pm.resolveActivity(new Intent(base).setPackage(preferred),
+                            PackageManager.MATCH_DEFAULT_ONLY);
+                    if (ri != null && ri.activityInfo != null
+                            && take(picked, launcher, preferred, ri.activityInfo.name)) return;
+                } catch (RuntimeException ignored) {
+                    // Fall back to the package's first launcher activity.
+                }
+            }
+        }
         if (take(picked, launcher, preferred, null)) return;
         for (Intent intent : intents) {
             try {
