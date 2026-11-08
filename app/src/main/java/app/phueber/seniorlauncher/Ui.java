@@ -46,14 +46,78 @@ public final class Ui {
                 c.getResources().getDisplayMetrics()));
     }
 
+    /** The theme every screen draws with; read once per activity in applyTheme. */
+    private static volatile Palette.Theme theme;
+
+    /**
+     * The colour for a role in the helper's chosen theme. Code keeps naming
+     * colours by their resource (R.color.green, ...), which maps to a role;
+     * res/values/styles.xml holds the Light values for previews and the
+     * window background before the first frame.
+     */
     public static int color(Context c, int res) {
-        return c.getColor(res);
+        Palette.Theme t = theme;
+        if (t == null) t = theme = new Store(c).theme();
+        Palette.Role role = role(res);
+        return role != null ? Palette.color(t, role) : c.getColor(res);
+    }
+
+    private static Palette.Role role(int res) {
+        // R.color ids are not compile-time constants in an AGP 8 app, so no switch.
+        if (res == R.color.page) return Palette.Role.PAGE;
+        if (res == R.color.card) return Palette.Role.CARD;
+        if (res == R.color.card_border) return Palette.Role.CARD_BORDER;
+        if (res == R.color.text_black) return Palette.Role.TEXT;
+        if (res == R.color.text_muted) return Palette.Role.TEXT_MUTED;
+        if (res == R.color.green) return Palette.Role.GREEN;
+        if (res == R.color.green_light) return Palette.Role.GREEN_LIGHT;
+        if (res == R.color.battery_fill) return Palette.Role.BATTERY_FILL;
+        if (res == R.color.blue) return Palette.Role.BLUE;
+        if (res == R.color.red) return Palette.Role.RED;
+        if (res == R.color.red_light) return Palette.Role.RED_LIGHT;
+        if (res == R.color.disabled_bg) return Palette.Role.DISABLED_BG;
+        if (res == R.color.disabled_text) return Palette.Role.DISABLED_TEXT;
+        if (res == R.color.press_dark) return Palette.Role.PRESS_ON_CARD;
+        if (res == R.color.press_light) return Palette.Role.PRESS_ON_COLOR;
+        return null;
+    }
+
+    /**
+     * Call first in every onCreate, before building views: loads the chosen
+     * theme and colours the window and system bars to match. Returns it, so a
+     * screen can notice later that the helper changed it.
+     */
+    @SuppressWarnings("deprecation") // bar colours: still honoured below Android 15
+    public static Palette.Theme applyTheme(Activity a) {
+        Palette.Theme t = theme = new Store(a).theme();
+        int page = Palette.color(t, Palette.Role.PAGE);
+        Window w = a.getWindow();
+        w.setBackgroundDrawable(new ColorDrawable(page));
+        w.setStatusBarColor(page);
+        w.setNavigationBarColor(page);
+        View decor = w.getDecorView();
+        int flags = decor.getSystemUiVisibility();
+        boolean light = Palette.isLight(t);
+        flags = light ? flags | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+                : flags & ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            flags = light ? flags | View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
+                    : flags & ~View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+        }
+        decor.setSystemUiVisibility(flags);
+        return t;
+    }
+
+    /** The theme last loaded by applyTheme (or color). */
+    public static Palette.Theme currentTheme(Context c) {
+        Palette.Theme t = theme;
+        return t != null ? t : (theme = new Store(c).theme());
     }
 
     public static TextView text(Context c, CharSequence s, int sp) {
         TextView t = new TextView(c);
         t.setText(s);
-        t.setTextColor(c.getColor(R.color.text_black));
+        t.setTextColor(color(c, R.color.text_black));
         t.setTextSize(TypedValue.COMPLEX_UNIT_SP, sp);
         return t;
     }
@@ -73,7 +137,7 @@ public final class Ui {
         GradientDrawable mask = new GradientDrawable();
         mask.setColor(Color.WHITE);
         mask.setCornerRadius(dp(c, radiusDp));
-        return new RippleDrawable(ColorStateList.valueOf(c.getColor(pressRes)), shape, mask);
+        return new RippleDrawable(ColorStateList.valueOf(color(c, pressRes)), shape, mask);
     }
 
     /** Solid button, white bold text. colorRes: R.color.green / blue / red. */
@@ -88,16 +152,16 @@ public final class Ui {
         b.setMinimumHeight(dp(c, BUTTON_HEIGHT));
         b.setPadding(dp(c, 16), dp(c, 8), dp(c, 16), dp(c, 8));
         b.setStateListAnimator(null);
-        b.setBackground(ripple(c, R.color.press_light, c.getColor(colorRes), 0, 20));
+        b.setBackground(ripple(c, R.color.press_light, color(c, colorRes), 0, 20));
         return b;
     }
 
     /** White card button with a dark border and dark text: secondary actions. */
     public static Button outlined(Context c, CharSequence label) {
         Button b = button(c, label, R.color.card);
-        b.setTextColor(c.getColor(R.color.text_black));
-        b.setBackground(ripple(c, R.color.press_dark, c.getColor(R.color.card),
-                c.getColor(R.color.text_black), 20));
+        b.setTextColor(color(c, R.color.text_black));
+        b.setBackground(ripple(c, R.color.press_dark, color(c, R.color.card),
+                color(c, R.color.text_black), 20));
         return b;
     }
 
@@ -105,9 +169,9 @@ public final class Ui {
     public static void setEnabled(Button b, boolean enabled, int colorRes) {
         Context c = b.getContext();
         b.setEnabled(enabled);
-        b.setTextColor(enabled ? Color.WHITE : c.getColor(R.color.disabled_text));
+        b.setTextColor(enabled ? Color.WHITE : color(c, R.color.disabled_text));
         b.setBackground(ripple(c, R.color.press_light,
-                c.getColor(enabled ? colorRes : R.color.disabled_bg), 0, 20));
+                color(c, enabled ? colorRes : R.color.disabled_bg), 0, 20));
     }
 
     public static LinearLayout.LayoutParams fullWidth(Context c, int topMarginDp) {
@@ -119,12 +183,12 @@ public final class Ui {
 
     /** The pinned "← Back" button of every helper screen: closes the activity. */
     public static View backButton(Activity a) {
-        int fg = a.getColor(R.color.text_black);
+        int fg = color(a, R.color.text_black);
         LinearLayout b = new LinearLayout(a);
         b.setGravity(Gravity.CENTER);
         b.setMinimumHeight(dp(a, BUTTON_HEIGHT));
         b.setPadding(dp(a, 16), dp(a, 8), dp(a, 16), dp(a, 8));
-        b.setBackground(ripple(a, R.color.press_dark, a.getColor(R.color.card), fg, 20));
+        b.setBackground(ripple(a, R.color.press_dark, color(a, R.color.card), fg, 20));
         b.setClickable(true);
         b.setFocusable(true);
         b.setContentDescription(a.getString(R.string.back));
@@ -191,7 +255,7 @@ public final class Ui {
         int p = dp(a, 24);
         box.setPadding(p, p, p, p);
         GradientDrawable bg = new GradientDrawable();
-        bg.setColor(a.getColor(R.color.card));
+        bg.setColor(color(a, R.color.card));
         bg.setCornerRadius(dp(a, 24));
         box.setBackground(bg);
 

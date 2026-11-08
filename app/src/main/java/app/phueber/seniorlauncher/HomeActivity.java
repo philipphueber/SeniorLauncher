@@ -76,6 +76,7 @@ public class HomeActivity extends Activity {
     private LinearLayout prevButton;
     private LinearLayout nextButton;
     private TextView pageLabel;
+    private Palette.Theme shownTheme;
 
     private List<List<Pages.Placement>> pages = Collections.emptyList();
     private int page;
@@ -114,6 +115,7 @@ public class HomeActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        shownTheme = Ui.applyTheme(this);
         store = new Store(this);
         prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
         DefaultApps.seedIfNeeded(this, store);
@@ -189,6 +191,12 @@ public class HomeActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        // The helper may have picked other colours in Settings: every view here
+        // was built with the old ones, so start over rather than repaint by hand.
+        if (store.theme() != shownTheme) {
+            recreate();
+            return;
+        }
         rebuild(false);
     }
 
@@ -300,13 +308,13 @@ public class HomeActivity extends Activity {
 
     /** Icon above a word, outlined: these are for the helper, so they stay modest. */
     private void addHelper(int iconRes, int labelRes, Class<? extends Activity> target, int startMarginDp) {
-        int fg = getColor(R.color.text_black);
+        int fg = Ui.color(this, R.color.text_black);
         LinearLayout b = new LinearLayout(this);
         b.setOrientation(LinearLayout.VERTICAL);
         b.setGravity(Gravity.CENTER);
         b.setMinimumHeight(Ui.dp(this, Ui.BUTTON_HEIGHT));
         b.setPadding(Ui.dp(this, 4), Ui.dp(this, 6), Ui.dp(this, 4), Ui.dp(this, 6));
-        b.setBackground(Ui.ripple(this, R.color.press_dark, getColor(R.color.card), fg, 20));
+        b.setBackground(Ui.ripple(this, R.color.press_dark, Ui.color(this, R.color.card), fg, 20));
         String label = getString(labelRes);
         b.setContentDescription(label);
         b.setOnClickListener(v -> startActivity(new Intent(this, target)));
@@ -340,7 +348,7 @@ public class HomeActivity extends Activity {
     private View padlock() {
         ImageView lock = new ImageView(this);
         lock.setImageResource(R.drawable.ic_home_lock);
-        lock.setImageTintList(ColorStateList.valueOf(getColor(R.color.text_muted)));
+        lock.setImageTintList(ColorStateList.valueOf(Ui.color(this, R.color.text_muted)));
         lock.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
         int pad = Ui.dp(this, 12);
         lock.setPadding(pad, pad, pad, pad);
@@ -433,9 +441,9 @@ public class HomeActivity extends Activity {
 
     private void setPageButtonEnabled(LinearLayout b, boolean enabled) {
         b.setEnabled(enabled);
-        int fg = enabled ? Color.WHITE : getColor(R.color.disabled_text);
+        int fg = enabled ? Color.WHITE : Ui.color(this, R.color.disabled_text);
         b.setBackground(Ui.ripple(this, R.color.press_light,
-                getColor(enabled ? R.color.blue : R.color.disabled_bg), 0, 20));
+                Ui.color(this, enabled ? R.color.blue : R.color.disabled_bg), 0, 20));
         for (int i = 0; i < b.getChildCount(); i++) {
             View v = b.getChildAt(i);
             if (v instanceof TextView) ((TextView) v).setTextColor(fg);
@@ -508,7 +516,7 @@ public class HomeActivity extends Activity {
         if (placements.isEmpty()) {
             TextView empty = Ui.text(this, getString(locked
                     ? R.string.home_empty_locked : R.string.home_empty), 24);
-            empty.setTextColor(getColor(R.color.text_muted));
+            empty.setTextColor(Ui.color(this, R.color.text_muted));
             empty.setGravity(Gravity.CENTER);
             grid.addCell(empty, 0, 0, Pages.ROWS, Pages.COLUMNS);
         }
@@ -537,8 +545,8 @@ public class HomeActivity extends Activity {
         t.setGravity(Gravity.CENTER_HORIZONTAL);
         int p = Ui.dp(this, 10);
         t.setPadding(p, p, p, Ui.dp(this, 8));
-        t.setBackground(Ui.ripple(this, R.color.press_dark, getColor(R.color.card),
-                getColor(R.color.card_border), 24));
+        t.setBackground(Ui.ripple(this, R.color.press_dark, Ui.color(this, R.color.card),
+                Ui.color(this, R.color.card_border), 24));
         t.setContentDescription(name);
         t.setOnClickListener(v -> AppInfo.launch(this, component));
         if (locked) {

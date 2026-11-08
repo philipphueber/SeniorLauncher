@@ -101,20 +101,20 @@ final class BatteryView extends LinearLayout {
         int wordRes;
         switch (kind) {
             case CHARGING:
-                fill = c.getColor(R.color.green); fg = Color.WHITE; stroke = 0;
+                fill = Ui.color(c, R.color.green); fg = Color.WHITE; stroke = 0;
                 wordRes = R.string.home_battery_charging;
                 break;
             case FULL:
-                fill = c.getColor(R.color.green); fg = Color.WHITE; stroke = 0;
+                fill = Ui.color(c, R.color.green); fg = Color.WHITE; stroke = 0;
                 wordRes = R.string.home_battery_full;
                 break;
             case LOW:
-                fill = c.getColor(R.color.red); fg = Color.WHITE; stroke = 0;
+                fill = Ui.color(c, R.color.red); fg = Color.WHITE; stroke = 0;
                 wordRes = R.string.home_battery_low;
                 break;
             default:
-                fill = c.getColor(R.color.card); fg = c.getColor(R.color.text_black);
-                stroke = c.getColor(R.color.green);
+                fill = Ui.color(c, R.color.card); fg = Ui.color(c, R.color.text_black);
+                stroke = Ui.color(c, R.color.green);
                 wordRes = R.string.home_battery;
                 break;
         }
@@ -127,7 +127,7 @@ final class BatteryView extends LinearLayout {
             // the charge goes, so the level reads as colour too, not only as digits.
             // Light green keeps the dark text readable; solid green means "on the cable".
             GradientDrawable level = new GradientDrawable();
-            level.setColor(c.getColor(R.color.battery_fill));
+            level.setColor(Ui.color(c, R.color.battery_fill));
             level.setCornerRadius(Ui.dp(c, 20));
             ClipDrawable clip = new ClipDrawable(level, Gravity.START, ClipDrawable.HORIZONTAL);
             clip.setLevel(pct * 100); // ClipDrawable levels run 0..10000

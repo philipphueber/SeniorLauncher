@@ -81,6 +81,7 @@ public final class AppsActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Ui.applyTheme(this);
         store = new Store(this);
         // The keyboard only when the search field is tapped, and the list shrinks
         // above it instead of being covered.
@@ -89,14 +90,14 @@ public final class AppsActivity extends Activity {
 
         LinearLayout content = Ui.screen(this, getString(R.string.apps_title));
         TextView intro = Ui.text(this, getString(R.string.apps_intro), Ui.TEXT_BODY);
-        intro.setTextColor(getColor(R.color.text_muted));
+        intro.setTextColor(Ui.color(this, R.color.text_muted));
         content.addView(intro, Ui.fullWidth(this, 0));
 
         search = searchField();
         content.addView(search, Ui.fullWidth(this, 16));
 
         status = Ui.text(this, getString(R.string.apps_loading), Ui.TEXT_BODY);
-        status.setTextColor(getColor(R.color.text_muted));
+        status.setTextColor(Ui.color(this, R.color.text_muted));
         status.setGravity(Gravity.CENTER_HORIZONTAL);
         content.addView(status, Ui.fullWidth(this, 24));
 
@@ -168,8 +169,8 @@ public final class AppsActivity extends Activity {
         int p = Ui.dp(this, 12);
         open.setPadding(p, p, p, p);
         open.setMinimumHeight(Ui.dp(this, 80));
-        open.setBackground(Ui.ripple(this, R.color.press_dark, getColor(R.color.card),
-                getColor(R.color.card_border), 20));
+        open.setBackground(Ui.ripple(this, R.color.press_dark, Ui.color(this, R.color.card),
+                Ui.color(this, R.color.card_border), 20));
         open.setClickable(true);
         open.setFocusable(true);
         open.setContentDescription(getString(R.string.apps_open_cd, e.label));
@@ -219,11 +220,11 @@ public final class AppsActivity extends Activity {
     private void styleToggle(Row r, boolean on) {
         Button b = r.toggle;
         b.setText(on ? R.string.apps_on_home : R.string.apps_add);
-        b.setTextColor(on ? Color.WHITE : getColor(R.color.text_black));
+        b.setTextColor(on ? Color.WHITE : Ui.color(this, R.color.text_black));
         b.setBackground(on
-                ? Ui.ripple(this, R.color.press_light, getColor(R.color.green), 0, 20)
-                : Ui.ripple(this, R.color.press_dark, getColor(R.color.card),
-                        getColor(R.color.text_black), 20));
+                ? Ui.ripple(this, R.color.press_light, Ui.color(this, R.color.green), 0, 20)
+                : Ui.ripple(this, R.color.press_dark, Ui.color(this, R.color.card),
+                        Ui.color(this, R.color.text_black), 20));
         b.setContentDescription(getString(on ? R.string.apps_on_home_cd : R.string.apps_add_cd,
                 r.label));
     }
@@ -232,8 +233,8 @@ public final class AppsActivity extends Activity {
         EditText s = new EditText(this);
         s.setHint(R.string.apps_search_hint);
         s.setTextSize(TypedValue.COMPLEX_UNIT_SP, Ui.TEXT_BUTTON);
-        s.setTextColor(getColor(R.color.text_black));
-        s.setHintTextColor(getColor(R.color.text_muted));
+        s.setTextColor(Ui.color(this, R.color.text_black));
+        s.setHintTextColor(Ui.color(this, R.color.text_muted));
         s.setSingleLine(true);
         s.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
         s.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
@@ -241,15 +242,15 @@ public final class AppsActivity extends Activity {
         int p = Ui.dp(this, 18);
         s.setPadding(p, Ui.dp(this, 8), p, Ui.dp(this, 8));
         GradientDrawable bg = new GradientDrawable();
-        bg.setColor(getColor(R.color.card));
-        bg.setStroke(Ui.dp(this, 2), getColor(R.color.text_black));
+        bg.setColor(Ui.color(this, R.color.card));
+        bg.setStroke(Ui.dp(this, 2), Ui.color(this, R.color.text_black));
         bg.setCornerRadius(Ui.dp(this, 32));
         s.setBackground(bg);
 
         Drawable glass = getDrawable(R.drawable.ic_apps_search);
         if (glass != null) {
             glass = glass.mutate();
-            glass.setTint(getColor(R.color.text_black));
+            glass.setTint(Ui.color(this, R.color.text_black));
             int size = Ui.dp(this, 30);
             glass.setBounds(0, 0, size, size);
             s.setCompoundDrawablesRelative(glass, null, null, null);

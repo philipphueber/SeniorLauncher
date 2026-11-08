@@ -7,8 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * All persistent state: the ordered list of home items, the lock flag, and
- * whether the first-run default tiles were added. Every change is written at
+ * All persistent state: the ordered list of home items, the lock flag, the
+ * colour theme, and whether the first-run default tiles were added. Every change is written at
  * once (commit), so a killed process never loses a tile.
  */
 public final class Store {
@@ -16,6 +16,7 @@ public final class Store {
     private static final String K_ITEMS = "items";
     private static final String K_LOCKED = "locked";
     private static final String K_SEEDED = "seeded";
+    private static final String K_THEME = "theme";
 
     private final SharedPreferences prefs;
 
@@ -70,6 +71,14 @@ public final class Store {
 
     public synchronized void setLocked(boolean locked) {
         prefs.edit().putBoolean(K_LOCKED, locked).commit();
+    }
+
+    public synchronized Palette.Theme theme() {
+        return Palette.parse(prefs.getString(K_THEME, null));
+    }
+
+    public synchronized void setTheme(Palette.Theme theme) {
+        prefs.edit().putString(K_THEME, theme.name()).commit();
     }
 
     public synchronized boolean seeded() {

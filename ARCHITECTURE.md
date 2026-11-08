@@ -31,7 +31,8 @@ separate app, not part of this one.
 | `AppInfo` | Label, icon, launchability and launch of an app tile, via `LauncherApps`. |
 | `DefaultApps` | On first run, adds tiles for the default phone, messages, camera, photos, contacts and browser apps. |
 | `Store` | The ordered home items, the lock flag and the first-run flag, in SharedPreferences. |
-| `Ui` | Shared buttons, helper-screen frame and confirmation dialog, so every screen looks alike. |
+| `Ui` | Shared buttons, helper-screen frame and confirmation dialog, so every screen looks alike. Resolves every colour through the chosen theme (`Ui.color`, `Ui.applyTheme`). |
+| `Palette` | Pure: the three colour themes (Light, Dark, High contrast) as roles, and the WCAG contrast check. Unit tested for readability. |
 | `HomeItem` | Pure: an app tile or a widget (id and rows). |
 | `HomeCodec` | Pure: the item list to and from one string. Unit tested. |
 | `Pages` | Pure: splits the items into pages of placements. Unit tested. |
@@ -61,6 +62,22 @@ goes back to page 1.
   height) against the home grid's measured cell height, at most a full page.
 - After every layout each widget is told its real size, so it can choose its
   layout; repeated identical sizes are not sent again.
+
+## Colours
+
+The helper picks one of three fixed themes in Settings: Light (the family
+look of SeniorAlert), Dark (navy, like the reference launcher) and High
+contrast (white on black, thick white outlines). There is no free colour
+picker: `PaletteTest` checks every theme against WCAG contrast (7:1 for text,
+4.5:1 for white text on the green, blue and red buttons), and a picker would
+let an unreadable combination through.
+
+Code names colours by role (`R.color.green`, `R.color.text_black`, ...);
+`Ui.color` maps the resource to its `Palette` role in the current theme. The
+resource values are the Light theme, used for the window before the first
+frame. `Ui.applyTheme` runs first in every `onCreate` and colours the window
+and system bars. `HomeActivity` recreates itself on resume when the theme
+changed.
 
 ## Lock
 

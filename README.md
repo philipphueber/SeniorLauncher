@@ -42,6 +42,8 @@ Needs Android 8.0 or newer.
   takes it off again. New tiles go to the end.
 - **Widgets** lists the widgets your apps offer. Tap one to put it on the home
   screen; Android asks once whether to allow it. Widgets are removed there too.
+- **Settings → Colours**: Light, Dark, or High contrast (white on black). Pick
+  whatever is easiest to read.
 - **Settings → Lock**: press and hold. Afterwards only the tiles are left, so
   nothing can be changed by accident. To unlock, press and hold the padlock at
   the top.
@@ -89,6 +91,8 @@ Benötigt Android 8.0 oder neuer.
 - **Widgets** zeigt die Widgets Ihrer Apps. Tippen Sie eines an, um es auf die
   Startseite zu legen; Android fragt einmal, ob das erlaubt ist. Entfernt werden
   Widgets ebenfalls dort.
+- **Einstellungen → Farben**: Hell, Dunkel oder Hoher Kontrast (weiß auf
+  schwarz). Wählen Sie, was am besten zu lesen ist.
 - **Einstellungen → Sperren**: gedrückt halten. Danach sind nur noch die
   Kacheln da, sodass nichts aus Versehen geändert wird. Zum Entsperren das
   Schloss oben gedrückt halten.

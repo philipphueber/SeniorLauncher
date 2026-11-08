@@ -70,6 +70,7 @@ public class WidgetsActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Ui.applyTheme(this);
         store = new Store(this);
         manager = AppWidgetManager.getInstance(this);
         host = Widgets.host(this);
@@ -127,7 +128,7 @@ public class WidgetsActivity extends Activity {
         }
         if (!any) {
             TextView none = Ui.text(this, getString(R.string.widgets_none_placed), Ui.TEXT_BODY);
-            none.setTextColor(getColor(R.color.text_muted));
+            none.setTextColor(Ui.color(this, R.color.text_muted));
             placed.addView(none, Ui.fullWidth(this, 8));
         }
     }
@@ -139,7 +140,7 @@ public class WidgetsActivity extends Activity {
 
         TextView name = Ui.bold(this, label != null ? label
                 : getString(R.string.widgets_missing), Ui.TEXT_BUTTON);
-        if (label == null) name.setTextColor(getColor(R.color.text_muted));
+        if (label == null) name.setTextColor(Ui.color(this, R.color.text_muted));
         row.addView(name);
 
         Button remove = Ui.button(this, getString(R.string.remove), R.color.red);
@@ -199,7 +200,7 @@ public class WidgetsActivity extends Activity {
 
         if (entries.isEmpty()) {
             TextView none = Ui.text(this, getString(R.string.widgets_none_installed), Ui.TEXT_BODY);
-            none.setTextColor(getColor(R.color.text_muted));
+            none.setTextColor(Ui.color(this, R.color.text_muted));
             content.addView(none, Ui.fullWidth(this, 12));
             return;
         }
@@ -219,7 +220,7 @@ public class WidgetsActivity extends Activity {
         ImageView preview = new ImageView(this);
         preview.setScaleType(ImageView.ScaleType.FIT_CENTER);
         preview.setImageResource(R.drawable.ic_widgets_widget);
-        preview.setImageTintList(ColorStateList.valueOf(getColor(R.color.disabled_text)));
+        preview.setImageTintList(ColorStateList.valueOf(Ui.color(this, R.color.disabled_text)));
         preview.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         LinearLayout.LayoutParams plp = new LinearLayout.LayoutParams(size, size);
         plp.setMarginEnd(Ui.dp(this, 16));
@@ -232,7 +233,7 @@ public class WidgetsActivity extends Activity {
         label.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         texts.addView(label);
         TextView app = Ui.text(this, e.app, Ui.TEXT_BODY);
-        app.setTextColor(getColor(R.color.text_muted));
+        app.setTextColor(Ui.color(this, R.color.text_muted));
         app.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         texts.addView(app);
         row.addView(texts, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
@@ -392,8 +393,8 @@ public class WidgetsActivity extends Activity {
         int p = Ui.dp(this, 16);
         c.setPadding(p, p, p, p);
         c.setMinimumHeight(Ui.dp(this, Ui.BUTTON_HEIGHT));
-        c.setBackground(Ui.ripple(this, R.color.press_dark, getColor(R.color.card),
-                getColor(R.color.card_border), 20));
+        c.setBackground(Ui.ripple(this, R.color.press_dark, Ui.color(this, R.color.card),
+                Ui.color(this, R.color.card_border), 20));
         return c;
     }
 }
