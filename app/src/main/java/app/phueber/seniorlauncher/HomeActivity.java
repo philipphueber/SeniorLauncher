@@ -59,14 +59,22 @@ import java.util.Set;
  * The grid is rebuilt in onResume (an app may have been added, removed or
  * uninstalled meanwhile), but only when something visible changed, so coming
  * back to the home screen does not make the tiles flicker or the widgets reload.
- * Coming back from arranging, it shows the page of the item the helper moved
- * last, so the result is the first thing seen. Home always shows page 1.
+ * Coming back from arranging or adding a widget, it shows the page of the item
+ * the helper moved or added last (showNext), so the result is the first thing
+ * seen. Home always shows page 1.
  */
 public class HomeActivity extends Activity {
     // Read by WidgetsActivity (Widgets.rowsFor) to size a new widget in grid rows.
     private static final String PREFS = "seniorlauncher";
     private static final String K_CELL_HEIGHT_DP = "cell_height_dp";
     private static final int GAP_DP = 12;
+
+    /**
+     * Handed over by ArrangeActivity (the item moved last) and WidgetsActivity
+     * (the widget just added): its page is shown when home is next in front.
+     * Main thread only; lost with the process, which then means page 1.
+     */
+    private static HomeItem showNext;
 
     private final Handler handler = new Handler(Looper.getMainLooper());
     private Store store;
@@ -86,7 +94,7 @@ public class HomeActivity extends Activity {
     private List<List<Pages.Placement>> pages = Collections.emptyList();
     private int page;
     private int shownPage = -1;
-    /** Show this item's page at the next rebuild (the one the helper last moved). */
+    /** Show this item's page at the next rebuild (taken from showNext). */
     private HomeItem showItem;
     private boolean stopped; // packages may have changed unseen, see onResume
     private String shownKey; // what the grid shows, to skip needless rebuilds
@@ -221,7 +229,7 @@ public class HomeActivity extends Activity {
             recreate();
             return;
         }
-        showItem = ArrangeActivity.takeLastMoved();
+        showItem = takeShowNext();
         if (stopped) {
             // Apps may have been updated, disabled or enabled while the package
             // receiver was not registered; only the forced path redraws icons and labels.
@@ -266,9 +274,20 @@ public class HomeActivity extends Activity {
         super.onNewIntent(intent);
         setIntent(intent);
         dismissDialog();
-        ArrangeActivity.takeLastMoved(); // Home means page 1, even after arranging
+        takeShowNext(); // Home means page 1, even after arranging or adding
         page = 0;
         if (shownKey != null) showPage();
+    }
+
+    /** Has the home screen turn to this item's page when it is next shown, once. */
+    static void showNext(HomeItem item) {
+        showNext = item;
+    }
+
+    private static HomeItem takeShowNext() {
+        HomeItem i = showNext;
+        showNext = null;
+        return i;
     }
 
     private Intent register(BroadcastReceiver r, IntentFilter f) {

@@ -78,7 +78,8 @@ buttons as everywhere else.
   place 3 of 14, page 2".
 - Back to the home screen, it shows the page of the item moved last, so the
   helper sees the result at once instead of the page the item left. Home
-  still always goes to page 1 (it drops that hand-over).
+  still always goes to page 1 (it drops that hand-over). The hand-over is one
+  static slot, `HomeActivity.showNext`, which adding a widget uses too.
 
 ## Widgets
 
@@ -86,9 +87,15 @@ buttons as everywhere else.
   listening in `onStart` and stops it in `onStop`.
 - Adding: allocate an id, bind it (the first time Android asks "Create widget
   and allow access?", with an "Always allow" box), run the widget's own
-  configuration activity if it has a required one, then store it. Every
-  cancel or failure frees the id again; ids no item uses are freed when the
-  Widgets screen opens.
+  configuration activity if it has a required one, then store it, hand it to
+  `HomeActivity.showNext` and finish, so home opens on the new widget's page.
+  Every cancel or failure frees the id again; ids no item uses are freed when
+  the Widgets screen opens. Failures and a configuration activity that returns
+  without success get a Toast; refusing the system's bind prompt does not
+  (the user chose it).
+- A placed widget whose provider is gone (its app disabled it or was
+  uninstalled) is hidden on home, never shown as a broken box. The Widgets
+  screen lists it as "no longer available" with the reason and Remove.
 - Small or wide: a widget made for one launcher cell (1x1: its target cells
   on Android 12+, else a minimum size of at most 57dp, the platform's one-cell
   size) goes into one tile, dressed like an app: the same card, its name below.
