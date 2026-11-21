@@ -12,7 +12,9 @@ import java.util.function.Predicate;
 
 /**
  * All persistent state: the ordered list of home items, the lock flag and its
- * PIN hash, the colour theme, and whether the first-run default tiles were added. Every change is written at
+ * PIN hash, the colour theme, whether the first-run default tiles were added,
+ * and which apps' notifications the notifications card shows (package names
+ * only: notification content is never stored). Every change is written at
  * once (commit), so a killed process never loses a tile.
  */
 public final class Store {
@@ -25,6 +27,8 @@ public final class Store {
     private static final String K_THEME = "theme";
     /** Widget ids the helper sized by hand, comma-separated; the others re-fit automatically. */
     private static final String K_SIZED = "sized_widgets";
+    /** Packages whose notifications the card shows, comma-separated; absent until first set. */
+    private static final String K_NOTE_APPS = "notification_apps";
 
     private final SharedPreferences prefs;
     private final Context app;
@@ -143,6 +147,64 @@ public final class Store {
             b.append(id);
         }
         prefs.edit().putString(K_SIZED, b.toString()).commit();
+    }
+
+    /** The notifications card, or null if it is not on the home screen. */
+    public synchronized HomeItem notificationsCard() {
+        for (HomeItem i : items()) if (i.isNotifications()) return i;
+        return null;
+    }
+
+    /** Appends the notifications card; does nothing if it is already there (at most one). */
+    public synchronized HomeItem addNotificationsCard(int rows) {
+        HomeItem there = notificationsCard();
+        if (there != null) return there;
+        List<HomeItem> list = items();
+        HomeItem card = HomeItem.notifications(rows);
+        list.add(card);
+        setItems(list);
+        return card;
+    }
+
+    public synchronized void removeNotificationsCard() {
+        List<HomeItem> list = new ArrayList<>();
+        for (HomeItem i : items()) if (!i.isNotifications()) list.add(i);
+        setItems(list);
+    }
+
+    /** The card's rows, chosen by the helper; it keeps its place. False if it is not there. */
+    public synchronized boolean setNotificationsRows(int rows) {
+        List<HomeItem> list = items();
+        for (int n = 0; n < list.size(); n++) {
+            if (!list.get(n).isNotifications()) continue;
+            list.set(n, HomeItem.notifications(rows));
+            setItems(list);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * The packages whose notifications the card shows, or null if the helper
+     * (or the first-time defaults) never chose any. A fresh, modifiable set.
+     */
+    public synchronized Set<String> notificationApps() {
+        String s = prefs.getString(K_NOTE_APPS, null);
+        if (s == null) return null;
+        Set<String> out = new TreeSet<>();
+        for (String p : s.split(",")) if (!p.trim().isEmpty()) out.add(p.trim());
+        return out;
+    }
+
+    /** Package names cannot contain ',', so a plain join is safe. */
+    public synchronized void setNotificationApps(Set<String> packages) {
+        StringBuilder b = new StringBuilder();
+        for (String p : new TreeSet<>(packages)) {
+            if (p == null || p.isEmpty() || p.contains(",")) continue;
+            if (b.length() > 0) b.append(',');
+            b.append(p);
+        }
+        prefs.edit().putString(K_NOTE_APPS, b.toString()).commit();
     }
 
     /**

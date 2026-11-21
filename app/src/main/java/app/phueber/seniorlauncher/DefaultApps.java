@@ -147,7 +147,7 @@ public final class DefaultApps {
         return Intent.makeMainSelectorActivity(Intent.ACTION_MAIN, category);
     }
 
-    private static String dialerPackage(Context c) {
+    static String dialerPackage(Context c) {
         try {
             TelecomManager tm = c.getSystemService(TelecomManager.class);
             return tm == null ? null : tm.getDefaultDialerPackage();
@@ -156,7 +156,7 @@ public final class DefaultApps {
         }
     }
 
-    private static String smsPackage(Context c) {
+    static String smsPackage(Context c) {
         try {
             return Telephony.Sms.getDefaultSmsPackage(c);
         } catch (RuntimeException e) {

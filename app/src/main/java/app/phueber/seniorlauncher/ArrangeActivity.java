@@ -139,7 +139,7 @@ public final class ArrangeActivity extends Activity {
         List<HomeItem> out = new ArrayList<>();
         for (HomeItem i : store.items()) {
             boolean there = i.isApp() ? AppInfo.exists(this, i.component)
-                    : Widgets.label(this, i.widgetId) != null;
+                    : i.isNotifications() || Widgets.label(this, i.widgetId) != null;
             if (there) out.add(i);
         }
         return out;
@@ -248,6 +248,11 @@ public final class ArrangeActivity extends Activity {
             name = AppInfo.label(this, item.component);
             Drawable d = AppInfo.icon(this, item.component);
             icon.setImageDrawable(d != null ? d : getDrawable(android.R.drawable.sym_def_app_icon));
+        } else if (item.isNotifications()) {
+            name = getString(R.string.notes_title);
+            kind = getString(R.string.notes_arrange_kind);
+            icon.setImageResource(R.drawable.ic_home_messages);
+            icon.setImageTintList(ColorStateList.valueOf(Ui.color(this, R.color.text_black)));
         } else {
             String label = Widgets.label(this, item.widgetId);
             name = label != null ? label : getString(R.string.widgets_missing);

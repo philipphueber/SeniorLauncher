@@ -52,7 +52,8 @@ import java.util.Set;
  * 1. Header: time, date with weekday, and the battery in words.
  * 2. Helper bar: Apps, Widgets, Settings; when locked only a small padlock that
  *    needs a long press.
- * 3. One page of a fixed 2 x 3 grid of app tiles and widgets.
+ * 3. One page of a fixed 2 x 3 grid of app tiles, widgets and the
+ *    notifications card.
  * 4. Previous / "Page 2 of 3" / Next, only when there is more than one page.
  *    There is no swipe: paging is done with the two big buttons.
  *
@@ -107,10 +108,21 @@ public class HomeActivity extends Activity {
     private final Map<String, Integer> iconColors = new HashMap<>();
     private Dialog dialog;
     private boolean receiving;
+    /** The notifications card; one view for the activity's life, like the widget views. */
+    private NotificationCard notesCard;
+    /** Whether the card could work at the last rebuild; while locked it is hidden when not. */
+    private boolean notesReady;
+
+    // Notification access granted or withdrawn while the home screen shows:
+    // while locked the card appears or disappears (see rebuild).
+    private final NotificationHub.Observer notesObserver = () -> {
+        if (locked && NotificationCard.ready(this, store) != notesReady) rebuild(false);
+    };
 
     private final BroadcastReceiver timeReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context c, Intent i) {
             updateClock();
+            if (notesCard != null && notesCard.isAttachedToWindow()) notesCard.refresh(); // "5 min ago"
         }
     };
 
@@ -128,7 +140,11 @@ public class HomeActivity extends Activity {
             handler.postDelayed(forcedRebuild, 500);
         }
     };
-    private final Runnable forcedRebuild = () -> { iconColors.clear(); rebuild(true); };
+    private final Runnable forcedRebuild = () -> {
+        iconColors.clear();
+        if (notesCard != null) notesCard.forgetApps();
+        rebuild(true);
+    };
 
     // An automation app locked, unlocked or changed the colours while the home
     // screen is showing (AutomationReceiver): show it at once, not at the next resume.
@@ -217,6 +233,7 @@ public class HomeActivity extends Activity {
         pkg.addDataScheme("package");
         register(packageReceiver, pkg);
         store.watch(storeListener);
+        NotificationHub.watch(notesObserver);
         receiving = true;
         updateClock();
     }
@@ -236,6 +253,7 @@ public class HomeActivity extends Activity {
             // receiver was not registered; only the forced path redraws icons and labels.
             stopped = false;
             iconColors.clear();
+            if (notesCard != null) notesCard.forgetApps();
             rebuild(true);
             return;
         }
@@ -249,6 +267,7 @@ public class HomeActivity extends Activity {
             unregisterReceiver(batteryReceiver);
             unregisterReceiver(packageReceiver);
             store.unwatch(storeListener);
+            NotificationHub.unwatch(notesObserver);
             receiving = false;
         }
         handler.removeCallbacks(forcedRebuild);
@@ -511,10 +530,17 @@ public class HomeActivity extends Activity {
      */
     private void rebuild(boolean force) {
         locked = store.locked();
+        notesReady = NotificationCard.ready(this, store);
         List<HomeItem> visible = new ArrayList<>();
         Set<Integer> widgetIds = new HashSet<>();
+        HomeItem card = null;
         for (HomeItem i : store.items()) {
-            if (i.isApp()) {
+            if (i.isNotifications()) {
+                // Unlocked it always shows, to tell the helper what is missing.
+                // Locked and not working (no access, no apps) it is hidden, like a
+                // widget whose app is gone: the senior never sees a request.
+                if (!locked || notesReady) visible.add(card = i);
+            } else if (i.isApp()) {
                 // Uninstalled or disabled apps are hidden, not deleted: an app that is
                 // being updated is briefly missing and comes back with its tile.
                 if (AppInfo.current(this, i.component) != null) visible.add(i);
@@ -524,6 +550,9 @@ public class HomeActivity extends Activity {
             }
         }
         widgetViews.keySet().retainAll(widgetIds); // removed in WidgetsActivity
+
+        // Access or the picked apps may have changed in Settings or on the Widgets screen.
+        if (card != null && notesCard != null) notesCard.show(card.rows, locked);
 
         String key = locked + "|" + visible;
         if (!force && key.equals(shownKey)) {
@@ -585,7 +614,9 @@ public class HomeActivity extends Activity {
         for (int i = 0; i < page; i++) index += pages.get(i).size();
         for (Pages.Placement pl : placements) {
             int at = index++;
-            View v = pl.item.isApp() ? tile(pl.item.component, at) : widgetViews.get(pl.item.widgetId);
+            View v = pl.item.isApp() ? tile(pl.item.component, at)
+                    : pl.item.isNotifications() ? notesCard(pl.item)
+                    : widgetViews.get(pl.item.widgetId);
             if (v == null) continue;
             if (v.getParent() instanceof ViewGroup) ((ViewGroup) v.getParent()).removeView(v);
             if (pl.item.isWidget()) {
@@ -606,6 +637,13 @@ public class HomeActivity extends Activity {
         pageLabel.setText(getString(R.string.home_page, page + 1, count));
         setPageButtonEnabled(prevButton, page > 0);
         setPageButtonEnabled(nextButton, page < count - 1);
+    }
+
+    /** The notifications card, made once and kept, set to the item's rows. */
+    private View notesCard(HomeItem item) {
+        if (notesCard == null) notesCard = new NotificationCard(this, store);
+        notesCard.show(item.rows, locked);
+        return notesCard;
     }
 
     /**

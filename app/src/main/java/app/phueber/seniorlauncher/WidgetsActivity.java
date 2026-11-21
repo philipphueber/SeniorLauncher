@@ -48,12 +48,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Puts other apps' widgets on the home screen and takes them off again.
+ * Puts other apps' widgets on the home screen and takes them off again, and
+ * the built-in notifications card ("Messages"): offered first under "Add a
+ * widget" while it is not placed (at most one), and once placed it has its
+ * own card with the notification access state, "Choose apps", its sizes
+ * (1 row, 2 rows, Full page) and Remove.
  *
  * The widgets to add are grouped by app (app icon and name as a header), each
  * widget a card with its preview, its name and whether it fits in one tile
@@ -92,6 +97,9 @@ public class WidgetsActivity extends Activity {
     private AppWidgetManager manager;
     private AppWidgetHost host;
     private LinearLayout placed;
+    /** The placed notifications card's row, refilled on resume (access, apps). */
+    private LinearLayout notesBox;
+    private View notesAdd;
     private Dialog dialog;
     private EditText search;
     private TextView noMatch;
@@ -138,6 +146,9 @@ public class WidgetsActivity extends Activity {
         TextView hint = Ui.text(this, getString(R.string.widgets_add_hint), Ui.TEXT_BODY);
         hint.setTextColor(Ui.color(this, R.color.text_muted));
         content.addView(hint, Ui.fullWidth(this, 4));
+        notesAdd = notesAddCard();
+        content.addView(notesAdd, Ui.fullWidth(this, 16));
+        notesAdd.setVisibility(store.notificationsCard() == null ? View.VISIBLE : View.GONE);
 
         search = searchField();
         search.setVisibility(View.GONE); // until the list is there
@@ -149,6 +160,13 @@ public class WidgetsActivity extends Activity {
         content.addView(noMatch, Ui.fullWidth(this, 24));
 
         showProviders(content);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Back from granting notification access or choosing apps.
+        if (notesBox != null) showNotesRow();
     }
 
     @Override
@@ -174,12 +192,22 @@ public class WidgetsActivity extends Activity {
 
     private void showPlaced() {
         placed.removeAllViews();
+        notesBox = null;
         boolean any = false;
         for (HomeItem item : store.items()) {
+            if (item.isNotifications()) {
+                any = true;
+                notesBox = card();
+                notesBox.setOrientation(LinearLayout.VERTICAL);
+                placed.addView(notesBox, Ui.fullWidth(this, 12));
+                showNotesRow();
+                continue;
+            }
             if (!item.isWidget()) continue;
             any = true;
             placed.addView(placedRow(item.widgetId), Ui.fullWidth(this, 12));
         }
+        if (notesAdd != null) notesAdd.setVisibility(notesBox == null ? View.VISIBLE : View.GONE);
         if (!any) {
             TextView none = Ui.text(this, getString(R.string.widgets_none_placed), Ui.TEXT_BODY);
             none.setTextColor(Ui.color(this, R.color.text_muted));
@@ -299,6 +327,132 @@ public class WidgetsActivity extends Activity {
             }
             box.addView(b, Ui.fullWidth(this, 8));
         }
+    }
+
+    // ---------------------------------------------------------------- notifications card
+
+    /**
+     * The placed notifications card: its name, whether notification access is
+     * granted and whose notifications it shows, in words; then the buttons to
+     * grant access (only while missing), choose apps, size it and remove it.
+     */
+    private void showNotesRow() {
+        LinearLayout box = notesBox;
+        box.removeAllViews();
+        HomeItem item = store.notificationsCard();
+        if (item == null) return;
+        String name = getString(R.string.notes_title);
+        box.addView(notesHeader(R.string.notes_builtin));
+
+        boolean granted = NotificationHub.granted(this);
+        Set<String> apps = store.notificationApps();
+        List<String> names = new ArrayList<>();
+        if (apps != null) for (String p : apps) names.add(NotificationCard.appLabel(this, p).toString());
+        names.sort(Collator.getInstance());
+        TextView access = Ui.text(this, getString(granted ? R.string.notes_access_on
+                : R.string.notes_access_off), Ui.TEXT_BODY);
+        box.addView(access, Ui.fullWidth(this, 12));
+        TextView shows = Ui.text(this, names.isEmpty() ? getString(R.string.notes_apps_none)
+                : getString(R.string.notes_apps_list, TextUtils.join(", ", names)), Ui.TEXT_BODY);
+        box.addView(shows, Ui.fullWidth(this, 8));
+
+        if (store.locked()) return;
+        if (!granted) {
+            Button allow = Ui.button(this, getString(R.string.notes_allow), R.color.green);
+            allow.setOnClickListener(v -> NotificationHub.openAccessSettings(this));
+            box.addView(allow, Ui.fullWidth(this, 12));
+        }
+        Button choose = Ui.button(this, getString(R.string.notes_choose_apps), R.color.blue);
+        choose.setOnClickListener(v -> startActivity(new Intent(this, NotificationAppsActivity.class)));
+        box.addView(choose, Ui.fullWidth(this, 12));
+
+        TextView heading = Ui.text(this, getString(R.string.widgets_size_heading), Ui.TEXT_BODY);
+        heading.setTextColor(Ui.color(this, R.color.text_muted));
+        box.addView(heading, Ui.fullWidth(this, 16));
+        for (int rows = 1; rows <= Pages.ROWS; rows++) {
+            String size = sizeName(rows);
+            boolean chosen = rows == Math.min(item.rows, Pages.ROWS);
+            Button b = chosen
+                    ? Ui.button(this, getString(R.string.widgets_size_chosen, size), R.color.green)
+                    : Ui.outlined(this, size);
+            b.setContentDescription(getString(R.string.widgets_size_named, name,
+                    chosen ? getString(R.string.widgets_size_chosen, size) : size));
+            final int r = rows;
+            if (!chosen) {
+                b.setOnClickListener(v -> {
+                    if (!store.setNotificationsRows(r)) return;
+                    showNotesRow();
+                    box.announceForAccessibility(getString(R.string.widgets_size_named, name, size));
+                });
+            }
+            box.addView(b, Ui.fullWidth(this, 8));
+        }
+
+        Button remove = Ui.button(this, getString(R.string.remove), R.color.red);
+        remove.setContentDescription(getString(R.string.widgets_remove_named, name));
+        remove.setOnClickListener(v -> {
+            if (dialog != null) dialog.dismiss();
+            dialog = Ui.confirm(this, getString(R.string.widgets_remove_question),
+                    getString(R.string.remove), R.color.red, () -> {
+                        store.removeNotificationsCard();
+                        showPlaced();
+                    });
+        });
+        box.addView(remove, Ui.fullWidth(this, 12));
+    }
+
+    /** "[speech bubble] Messages" over one line saying what it is. */
+    private View notesHeader(int subtitleRes) {
+        LinearLayout top = new LinearLayout(this);
+        top.setOrientation(LinearLayout.HORIZONTAL);
+        top.setGravity(Gravity.CENTER_VERTICAL);
+        FrameLayout frame = previewFrame();
+        ImageView icon = new ImageView(this);
+        icon.setImageResource(R.drawable.ic_home_messages);
+        icon.setImageTintList(ColorStateList.valueOf(Ui.color(this, R.color.text_black)));
+        int p = Ui.dp(this, 10);
+        icon.setPadding(p, p, p, p);
+        frame.addView(icon, new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        int thumb = Ui.dp(this, THUMB_DP);
+        LinearLayout.LayoutParams flp = new LinearLayout.LayoutParams(thumb, thumb);
+        flp.setMarginEnd(Ui.dp(this, 16));
+        top.addView(frame, flp);
+        LinearLayout texts = new LinearLayout(this);
+        texts.setOrientation(LinearLayout.VERTICAL);
+        texts.addView(Ui.bold(this, getString(R.string.notes_title), Ui.TEXT_BUTTON));
+        TextView sub = Ui.text(this, getString(subtitleRes), Ui.TEXT_BODY);
+        sub.setTextColor(Ui.color(this, R.color.text_muted));
+        texts.addView(sub);
+        top.addView(texts, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        return top;
+    }
+
+    /**
+     * "Messages" at the top of the list to add: one big button that puts the
+     * card on the home screen (2 rows), picks the usual apps the first time,
+     * and goes home to it, like adding a widget.
+     */
+    private View notesAddCard() {
+        LinearLayout c = card();
+        c.setOrientation(LinearLayout.VERTICAL);
+        c.setClickable(true);
+        c.setFocusable(true);
+        c.setContentDescription(getString(R.string.notes_add_cd));
+        c.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
+        View header = notesHeader(R.string.notes_builtin);
+        header.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS);
+        c.addView(header);
+        TextView what = Ui.text(this, getString(R.string.notes_add_explain), Ui.TEXT_BODY);
+        what.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        c.addView(what, Ui.fullWidth(this, 12));
+        c.setOnClickListener(v -> {
+            if (store.locked() || store.notificationsCard() != null) return;
+            NotificationHub.seedDefaultApps(this, store);
+            HomeActivity.showNext(store.addNotificationsCard(2));
+            finish(); // home, turned to the new card's page, like a new widget
+        });
+        return c;
     }
 
     /** The stored home item of a widget, or null if it was removed meanwhile. */

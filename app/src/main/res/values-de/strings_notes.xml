@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notes_title">Nachrichten</string>
+    <string name="notes_none">Keine neuen Nachrichten</string>
+    <plurals name="notes_more">
+        <item quantity="one">und %d weitere Nachricht</item>
+        <item quantity="other">und %d weitere Nachrichten</item>
+    </plurals>
+    <plurals name="notes_count">
+        <item quantity="one">%d Nachricht</item>
+        <item quantity="other">%d Nachrichten</item>
+    </plurals>
+    <string name="notes_just_now">gerade eben</string>
+    <plurals name="notes_minutes">
+        <item quantity="one">vor %d Min.</item>
+        <item quantity="other">vor %d Min.</item>
+    </plurals>
+    <string name="notes_today">heute %1$s</string>
+    <string name="notes_yesterday">gestern %1$s</string>
+    <string name="notes_earlier">%1$s, %2$s</string>
+    <string name="notes_entry_cd">%1$s, %2$s: %3$s. %4$s. Tippen zum Öffnen.</string>
+    <string name="notes_need_access">Damit hier neue Nachrichten erscheinen, braucht die Startseite einmal den „Benachrichtigungszugriff“.</string>
+    <string name="notes_allow">Benachrichtigungszugriff erlauben</string>
+    <string name="notes_need_apps">Wählen Sie, wessen Nachrichten hier erscheinen.</string>
+    <string name="notes_choose_apps">Apps wählen</string>
+
+    <string name="notes_builtin">In die Startseite eingebaut</string>
+    <string name="notes_add_explain">Neue Nachrichten der Apps, die Sie wählen, die neueste zuerst. Ein Tipp öffnet die Nachricht.</string>
+    <string name="notes_add_cd">Nachrichten, in die Startseite eingebaut: neue Nachrichten der Apps, die Sie wählen. Tippen Sie, um sie auf die Startseite zu legen.</string>
+    <string name="notes_access_on">Benachrichtigungszugriff: erlaubt ✓</string>
+    <string name="notes_access_off">Benachrichtigungszugriff: noch nicht erlaubt, darum kann nichts erscheinen.</string>
+    <string name="notes_apps_list">Zeigt Nachrichten von: %1$s</string>
+    <string name="notes_apps_none">Noch keine Apps gewählt, darum erscheint nichts.</string>
+    <string name="notes_arrange_kind">Nachrichten-Karte, nimmt ganze Reihen ein</string>
+
+    <string name="notes_apps_title">Apps für Nachrichten</string>
+    <string name="notes_apps_intro">Neue Benachrichtigungen der Apps mit „Gezeigt ✓“ erscheinen auf der Startseite. Sie bleiben auf diesem Telefon und werden nie gespeichert.</string>
+    <string name="notes_apps_show">Zeigen</string>
+    <string name="notes_apps_shown">Gezeigt ✓</string>
+    <string name="notes_apps_show_cd">Nachrichten von %1$s auf der Startseite zeigen</string>
+    <string name="notes_apps_shown_cd">Nachrichten von %1$s erscheinen auf der Startseite. Tippen, um sie auszublenden.</string>
+</resources>

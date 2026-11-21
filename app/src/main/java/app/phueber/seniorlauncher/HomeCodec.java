@@ -9,9 +9,11 @@ import java.util.Set;
  * Serialises the home-screen item list to one SharedPreferences string, so the
  * app needs no database and no JSON library. Entries are joined by ';':
  * "a:&lt;component&gt;" for an app, "w:&lt;id&gt;:&lt;rows&gt;" for a wide widget and
- * "s:&lt;id&gt;" for a small (one-cell) widget, e.g. "a:com.x/.Main;w:12:2;s:13".
- * "s:" is a separate prefix, not a third "w:" field, so lists written before
- * small widgets existed still decode unchanged. Pure Java, unit tested.
+ * "s:&lt;id&gt;" for a small (one-cell) widget and "n:&lt;rows&gt;" for the
+ * notifications card, e.g. "a:com.x/.Main;w:12:2;s:13;n:2".
+ * "s:" and "n:" are separate prefixes, not extra "w:" fields, so lists written
+ * before they existed still decode unchanged (and an older build simply skips
+ * the entries it does not know). Pure Java, unit tested.
  *
  * A component name may in theory contain any character, so ';' and '%' inside it
  * are percent-escaped (%3B, %25). Everything else, including '/', '.', '$' and
@@ -19,9 +21,10 @@ import java.util.Set;
  * entry, so ':' needs no escape.
  *
  * decode() skips malformed entries instead of throwing: one corrupt entry must
- * never make every other tile disappear. It also drops repeated apps and
- * repeated widget ids, because the same tile twice on the home screen is never
- * wanted and a duplicate widget id would make AppWidgetHost host one view twice.
+ * never make every other tile disappear. It also drops repeated apps,
+ * repeated widget ids and any second notifications card, because the same
+ * tile twice on the home screen is never wanted and a duplicate widget id
+ * would make AppWidgetHost host one view twice.
  */
 final class HomeCodec {
     private HomeCodec() {}
@@ -39,6 +42,8 @@ final class HomeCodec {
                     else if (c == ';') sb.append("%3B");
                     else sb.append(c);
                 }
+            } else if (item.isNotifications()) {
+                sb.append("n:").append(item.rows);
             } else if (item.small) {
                 sb.append("s:").append(item.widgetId);
             } else {
@@ -54,6 +59,7 @@ final class HomeCodec {
         if (s == null || s.isEmpty()) return out;
         Set<String> apps = new HashSet<>();
         Set<Integer> widgets = new HashSet<>();
+        boolean notifications = false;
         for (String part : s.split(";", -1)) {
             if (part.startsWith("a:")) {
                 String comp = unescape(part.substring(2));
@@ -67,6 +73,15 @@ final class HomeCodec {
                     int rows = Integer.parseInt(f[1]);
                     if (rows < 1) continue;
                     if (widgets.add(id)) out.add(HomeItem.widget(id, rows));
+                } catch (NumberFormatException e) {
+                    // malformed entry: skip it
+                }
+            } else if (part.startsWith("n:")) {
+                try {
+                    int rows = Integer.parseInt(part.substring(2));
+                    if (rows < 1 || notifications) continue;
+                    notifications = true;
+                    out.add(HomeItem.notifications(rows));
                 } catch (NumberFormatException e) {
                     // malformed entry: skip it
                 }

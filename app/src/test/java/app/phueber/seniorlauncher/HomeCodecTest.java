@@ -68,4 +68,37 @@ public class HomeCodecTest {
         List<HomeItem> in = Arrays.asList(HomeItem.widget(9, 3), HomeItem.app("b/.B"), HomeItem.app("a/.A"));
         assertEquals(in, HomeCodec.decode(HomeCodec.encode(in)));
     }
+
+    @Test public void notificationsCardRoundTrip() {
+        List<HomeItem> in = Arrays.asList(
+                HomeItem.app("x/.A"), HomeItem.notifications(2), HomeItem.smallWidget(4), HomeItem.widget(5, 1));
+        assertEquals("a:x/.A;n:2;s:4;w:5:1", HomeCodec.encode(in));
+        assertEquals(in, HomeCodec.decode(HomeCodec.encode(in)));
+    }
+
+    @Test public void notificationsCardIsNotAWidget() {
+        HomeItem n = HomeItem.notifications(3);
+        assertTrue(n.isNotifications());
+        assertTrue(!n.isApp() && !n.isWidget() && !n.isOneCell());
+        assertEquals(3, n.rows);
+        assertEquals(1, HomeItem.notifications(0).rows);
+        assertTrue(!n.equals(HomeItem.widget(0, 3)));
+    }
+
+    @Test public void atMostOneNotificationsCard() {
+        assertEquals(Arrays.asList(HomeItem.notifications(1), HomeItem.app("x/.A")),
+                HomeCodec.decode("n:1;a:x/.A;n:3"));
+    }
+
+    @Test public void skipsMalformedNotificationsCard() {
+        assertEquals(Arrays.asList(HomeItem.notifications(2)),
+                HomeCodec.decode("n:;n:0;n:-1;n:x;n:2:1;n:99999999999;n:2"));
+    }
+
+    @Test public void listsWithoutTheCardDecodeAsBefore() {
+        String old = "a:x/.A;w:1:2;s:3";
+        assertEquals(Arrays.asList(HomeItem.app("x/.A"), HomeItem.widget(1, 2), HomeItem.smallWidget(3)),
+                HomeCodec.decode(old));
+        assertEquals(old, HomeCodec.encode(HomeCodec.decode(old)));
+    }
 }

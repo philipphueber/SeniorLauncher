@@ -1,8 +1,9 @@
 # Architecture
 
 Package `app.phueber.seniorlauncher`. A home screen that only launches: its tiles
-open other apps, and it hosts other apps' home-screen widgets
-(`AppWidgetHost`). Nothing else happens inside it. Phone and contacts are a
+open other apps, it hosts other apps' home-screen widgets
+(`AppWidgetHost`), and a built-in notifications card shows new messages
+that open in their own app. Nothing else happens inside it. Phone and contacts are a
 separate app, not part of this one.
 
 ## Requirements
@@ -25,7 +26,13 @@ separate app, not part of this one.
 | `PageLayout` | A fixed `Pages.ROWS` x `Pages.COLUMNS` grid that always fills its space; places children by row, column and span. Reports the cell size after layout. |
 | `BatteryView` | The battery box: percent plus a word. On battery a light green gauge fills it up to the charge; low is solid red; charging is solid green with a lightning bolt. |
 | `AppsActivity` | Every launchable app with an "Add" / "On home ✓" toggle. The only way to put an app on the home screen. |
-| `WidgetsActivity` | Places widgets (bind, optional configure, store), resizes them (size buttons on each placed card) and removes them. Lists them grouped by app with previews, a size badge (small/wide) and a search over widget and app names. |
+| `WidgetsActivity` | Places widgets (bind, optional configure, store), resizes them (size buttons on each placed card) and removes them. Lists them grouped by app with previews, a size badge (small/wide) and a search over widget and app names. Offers the notifications card ("Messages") first, and manages it once placed (access, apps, size, remove). |
+| `NotificationCard` | The notifications card on home: entries newest first (icon, app · time in words, sender, text), "and N more messages" when they do not fit, or a setup line with one button for the helper. Live while attached. |
+| `NotificationListener` | The `NotificationListenerService`: hands the current notifications to `NotificationHub`. Bound by the system once the helper grants notification access. |
+| `NotificationHub` | In-memory, in-process store of the current notifications plus observers; whether access is granted, the screen to grant it, opening a notification like the shade, the first-time default apps. |
+| `NotificationAppsActivity` | The helper picks whose notifications the card shows ("Show" / "Shown ✓"). Closes itself while locked. |
+| `Note`, `NoteList` | Pure: a notification as the card needs it; which ones are shown, in what order, merged per chat, how many fit, the default apps. Unit tested. |
+| `TimeWords` | Pure: "just now", "5 min ago", today, yesterday or earlier. Unit tested. |
 | `IconColor` | Pure: an icon's main colour for Colourful tiles, made readable under white text. Unit tested. |
 | `SettingsActivity` | Lock (choose a PIN), colours, arrange home screen, choose home app, phone settings. |
 | `ArrangeActivity` | The home items in order, with "Page 1", "Page 2" headings from `Pages.layout`; ▲ Earlier / ▼ Later on each. From Settings, or from the long press on a tile (that tile marked). Never while locked. |
@@ -36,14 +43,14 @@ separate app, not part of this one.
 | `LockProvider` | Tells SeniorPhone and SeniorAlert whether the home screen is locked, and lifts the lock for them when given the PIN. |
 | `AutomationReceiver` | Commands from automation apps (lock, unlock, theme) by broadcast; goes through `Store` like Settings. |
 | `Automation` | Pure: the automation action and extra names, and the lenient parsing of their string extras. Unit tested. |
-| `Store` | The ordered home items (with the widgets sized by hand), the lock flag with its PIN salt/hash, and the first-run flag, in SharedPreferences. |
+| `Store` | The ordered home items (with the widgets sized by hand), the lock flag with its PIN salt/hash, the first-run flag and the notification card's app list (package names only), in SharedPreferences. |
 | `Pin` | PIN validation (4-8 digits), salted SHA-256 hash, constant-time compare, and the fixed reset PIN. Same as SeniorAlert's and SeniorPhone's. Pure. |
 | `PinDialog` | Choose a PIN (twice) when locking; enter it when unlocking. The unlock prompt closes after 10 s without typing. |
 | `Ui` | Shared buttons, helper-screen frame and dialogs (`confirm`, and `choose` for more than one action), so every screen looks alike. Resolves every colour through the chosen theme (`Ui.color`, `Ui.applyTheme`). |
 | `NavBar` | Whether SeniorNav's Back & Home bar is switched on (the enabled accessibility services list it). While it is, the pinned Back button is hidden, since the bar already has Back and Home; re-checked whenever a screen gets focus. Pure part unit tested. |
 | `Palette` | Pure: the four colour themes (Light, Dark, High contrast, Colourful) as roles, the Colourful tile colours, and the WCAG contrast check. Unit tested for readability. |
-| `HomeItem` | Pure: an app tile or a widget (id and rows). |
-| `HomeCodec` | Pure: the item list to and from one string. Unit tested. |
+| `HomeItem` | Pure: an app tile, a widget (id and rows) or the notifications card (rows). |
+| `HomeCodec` | Pure: the item list to and from one string (`a:`, `w:`, `s:`, `n:`). Unit tested. |
 | `Pages` | Pure: splits the items into pages of placements. Unit tested. |
 | `WidgetRows` | Pure: how many rows a widget spans automatically, whether it is 1x1, and which sizes the helper may choose. Unit tested. |
 | `BatteryState` | Pure: normal, low, charging or full, and the percent. Unit tested. |
@@ -141,6 +148,57 @@ buttons as everywhere else.
   server-side feature flags; the host side (listening from `onStart`, sizes
   and options after layout) is the same as for every widget that works.
 
+## Notifications card
+
+A full-width card that shows the current notifications of apps the helper
+picked, so the senior sees "Maria: Are you coming?" on the home screen and
+opens it with one tap. Built in rather than a separate app or a widget: it
+needs the launcher's own lock, theme and grid, and a widget cannot read
+notifications.
+
+- **Storage.** One home item, `n:<rows>`, placed, arranged and removed like a
+  wide widget; at most one (`HomeCodec` drops a second). Added from the top of
+  the Widgets screen at 2 rows; sizes 1 row, 2 rows, Full page. Older builds
+  skip the unknown entry; lists without it decode as before.
+- **Access.** `NotificationListener` needs "Notification access", granted
+  once by the helper. The card (and its entry on the Widgets screen) says so
+  in words with one button: on Android 11+ straight to this app's switch
+  (`ACTION_NOTIFICATION_LISTENER_DETAIL_SETTINGS`), else the list of all.
+  Granted but not yet bound (just granted, after an update) the card asks for
+  a rebind (`requestRebind`).
+- **Which apps.** An allow-list of packages in `Store`, chosen on
+  `NotificationAppsActivity` (from the Widgets screen or the card's setup
+  button; never while locked). Nothing shows until apps are picked; the first
+  time the card is added, the default phone and SMS apps and WhatsApp,
+  Signal and Telegram (if installed) are picked for the helper. The picker
+  also lists apps without a launcher icon that have a notification right now.
+- **Which notifications.** `NoteList.select`: picked apps only, never our
+  own; no group summaries, ongoing or foreground-service notices, media
+  controls or empty ones. Newest first; one entry per app and title (one
+  chat), with the newest text and a count. Time in words (`TimeWords`),
+  refreshed every minute with the clock.
+- **Fit.** The card measures its entries and shows as many as fit
+  (`NoteList.fit`), then "and N more messages"; always at least one. On a
+  card of one row the text has one line, else two.
+- **Live.** The listener and the home screen share one process: the listener
+  posts each change to `NotificationHub` on the main thread, which tells its
+  observers; the card watches while attached. No broadcast.
+- **Tap.** Sends the notification's `contentIntent` from the visible home
+  screen (on Android 14+ with the sender's background-start opt-in, which a
+  `PendingIntent` from a visible app needs), and cancels it if it was
+  auto-cancel, as the shade does. Without one, or if it fails, opens the app.
+- **Locked.** The card works as usual. If it cannot work (no access, no apps)
+  it is hidden instead of showing a request meant for the helper, like a
+  widget whose app is gone; the home screen re-checks when access changes.
+  Hiding beats a neutral line: an empty "No messages" box would claim
+  something it cannot know.
+- **Privacy.** Notification content lives in memory only, in
+  `NotificationHub`, and is gone with the process. Only the package names of
+  the picked apps are written (to `Store`); `allowBackup` is off.
+- **Colours.** The rounded card of a wide widget in the theme's card colour
+  and border; text in the theme's text and muted roles, so every theme keeps
+  the contrast `PaletteTest` checks.
+
 ## Colours
 
 The helper picks one of four fixed themes in Settings: Light (the family
@@ -214,3 +272,7 @@ automated.
   documented use case for it.
 - No permission is needed for widgets. Binding goes through the system's own
   confirmation.
+- Notification access is not a permission but a system switch the helper
+  turns on; `BIND_NOTIFICATION_LISTENER_SERVICE` on the listener only means
+  that the system alone may bind it. On Android 13+ an APK installed outside
+  a store needs "Allow restricted settings" in its app info first.

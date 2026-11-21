@@ -22,6 +22,10 @@ English and German. The app follows the phone's language.
 - **Tiles**, two side by side, three rows per page. A tap opens the app.
 - **Widgets** from other apps (a clock, the weather…) can sit between the
   tiles: small ones in a tile like an app, bigger ones across the full width.
+- **Messages** (if the helper adds it): a wide card with the newest
+  messages from the apps the helper chose, each with the app, the sender, the
+  text and when it came ("5 min ago"). A tap opens the message. If not all
+  fit, the card says how many more there are.
 - **Page 1 of 3** with **Previous** and **Next**, only when there is more
   than one page. Pressing Home always goes back to page 1.
 
@@ -50,6 +54,19 @@ Needs Android 8.0 or newer.
   only the sizes the widget supports; bigger means bigger text), and removed.
   A widget whose app turned it off or was uninstalled is hidden on the home
   screen and marked "no longer available" here.
+- **Messages card**: in **Widgets**, tap **Messages** at the top of "Add a
+  widget". Then, once:
+  1. On the card, tap **Allow notification access** and switch it on for
+     **Home**. (Android 13 and newer, for an APK from the Releases page: if
+     the switch is greyed out, open *Settings → Apps → Home*, tap ⋮ and
+     **Allow restricted settings**, then try again.)
+  2. Check **Choose apps** (in **Widgets**, on the Messages card): Phone,
+     SMS, WhatsApp, Signal and Telegram are picked already if installed. Tap
+     **Show** / **Shown ✓** to change it. Nothing else appears on the card.
+  Size it there too (**1 row**, **2 rows**, **Full page**) and move it like
+  a tile. While locked, a card that is not set up is hidden.
+  Privacy: the messages stay on the phone and are only kept in memory while
+  shown; only the list of chosen apps is saved.
 - **Settings → Colours**: Light, Dark, High contrast (white on black), or
   Colourful (each tile in its app's colour). Pick whatever is easiest to read.
 - **Settings → Lock**: choose a PIN (4 to 8 digits). Afterwards only the
@@ -98,6 +115,10 @@ während das Telefon lädt, steht dort deutlich **Lädt**.
   App.
 - **Widgets** anderer Apps (eine Uhr, das Wetter …) können zwischen den Kacheln
   stehen: kleine in einer Kachel wie eine App, größere über die ganze Breite.
+- **Nachrichten** (wenn der Helfer sie hinzufügt): eine breite Karte mit den
+  neuesten Nachrichten der Apps, die der Helfer gewählt hat, jeweils mit App,
+  Absender, Text und wann sie kam („vor 5 Min.“). Ein Tipp öffnet die
+  Nachricht. Passen nicht alle hin, steht da, wie viele noch da sind.
 - **Seite 1 von 3** mit **Vorige** und **Weiter**, nur wenn es mehr als eine
   Seite gibt. Die Home-Taste führt immer zu Seite 1 zurück.
 
@@ -127,6 +148,23 @@ Benötigt Android 8.0 oder neuer.
   heißt größere Schrift) und entfernen. Ein Widget, das seine App abgeschaltet
   hat oder dessen App deinstalliert wurde, ist auf der Startseite ausgeblendet
   und hier als „nicht mehr verfügbar“ markiert.
+- **Nachrichten-Karte**: unter **Widgets** oben bei „Widget hinzufügen“ auf
+  **Nachrichten** tippen. Dann einmalig:
+  1. Auf der Karte **Benachrichtigungszugriff erlauben** tippen und ihn für
+     **Startseite** einschalten. (Ab Android 13, bei einer APK von der
+     Releases-Seite: Ist der Schalter grau, unter *Einstellungen → Apps →
+     Startseite* auf ⋮ und **Eingeschränkte Einstellungen zulassen** tippen
+     und es erneut versuchen.)
+  2. **Apps wählen** prüfen (unter **Widgets**, auf der Nachrichten-Karte):
+     Telefon, SMS, WhatsApp, Signal und Telegram sind schon gewählt, falls
+     installiert. **Zeigen** / **Gezeigt ✓** ändert das. Andere Apps
+     erscheinen nicht.
+  Dort lässt sich auch die Größe wählen (**1 Zeile**, **2 Zeilen**,
+  **Ganze Seite**); verschoben wird sie wie eine Kachel. Gesperrt ist eine
+  nicht eingerichtete Karte ausgeblendet.
+  Datenschutz: Die Nachrichten bleiben auf dem Telefon und werden nur im
+  Arbeitsspeicher gehalten, solange sie angezeigt werden; gespeichert wird
+  nur die Liste der gewählten Apps.
 - **Einstellungen → Farben**: Hell, Dunkel, Hoher Kontrast (weiß auf schwarz)
   oder Bunt (jede Kachel in der Farbe ihrer App). Wählen Sie, was am besten zu lesen
   ist.
