@@ -1,11 +1,13 @@
 package app.phueber.seniorlauncher;
 
+import android.app.UiModeManager;
 import android.appwidget.AppWidgetHost;
 import android.appwidget.AppWidgetHostView;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProviderInfo;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
@@ -65,6 +67,38 @@ public final class Widgets {
         CharSequence label = info.loadLabel(activityContext.getPackageManager());
         if (label != null) v.setContentDescription(label);
         return v;
+    }
+
+    /**
+     * Makes widgets follow the launcher's theme: dark widgets on Dark, High
+     * contrast and Colourful, light ones on Light. A widget's layout is
+     * inflated from its own app's resources, in a context Android creates from
+     * the host's process and activity configuration; that is where its
+     * DayNight colours are resolved. So this sets this app's night mode
+     * (Android 12+), the one configuration that context inherits. A context
+     * from createConfigurationContext for the host view would not reach it:
+     * AppWidgetHostView and RemoteViews derive the widget's context with
+     * createApplicationContext, which drops such overrides.
+     *
+     * Our own screens draw with Palette and a fixed light Material theme, so
+     * the night mode changes nothing else here. Only called when it differs:
+     * the change is a configuration change and recreates the activity, after
+     * which every widget view is created anew in the new configuration. Before
+     * Android 12 widgets keep following the system's dark mode.
+     */
+    static void followTheme(Context c, Palette.Theme theme) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return;
+        boolean night = !Palette.isLight(theme);
+        int now = c.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
+        if (now == (night ? Configuration.UI_MODE_NIGHT_YES : Configuration.UI_MODE_NIGHT_NO)) return;
+        try {
+            UiModeManager m = c.getSystemService(UiModeManager.class);
+            if (m != null) {
+                m.setApplicationNightMode(night ? UiModeManager.MODE_NIGHT_YES : UiModeManager.MODE_NIGHT_NO);
+            }
+        } catch (RuntimeException e) {
+            // The UI mode service is unavailable: widgets keep the system's mode.
+        }
     }
 
     /** Tells the widget the size it is shown at, so it can pick a fitting layout. */
