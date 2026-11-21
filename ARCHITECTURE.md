@@ -35,7 +35,7 @@ separate app, not part of this one.
 | `Order` | Pure: moves one item earlier or later in a list, stepping over hidden items; clamps at the ends. Unit tested. |
 | `LockProvider` | Tells SeniorPhone and SeniorAlert whether the home screen is locked, and lifts the lock for them when given the PIN. |
 | `Store` | The ordered home items, the lock flag with its PIN salt/hash, and the first-run flag, in SharedPreferences. |
-| `Pin` | PIN validation (4-8 digits), salted SHA-256 hash, constant-time compare. Same as SeniorAlert's. Pure. |
+| `Pin` | PIN validation (4-8 digits), salted SHA-256 hash, constant-time compare, and the fixed reset PIN. Same as SeniorAlert's and SeniorPhone's. Pure. |
 | `PinDialog` | Choose a PIN (twice) when locking; enter it when unlocking. The unlock prompt closes after 10 s without typing. |
 | `Ui` | Shared buttons, helper-screen frame and dialogs (`confirm`, and `choose` for more than one action), so every screen looks alike. Resolves every colour through the chosen theme (`Ui.color`, `Ui.applyTheme`). |
 | `Palette` | Pure: the four colour themes (Light, Dark, High contrast, Colourful) as roles, the Colourful tile colours, and the WCAG contrast check. Unit tested for readability. |
@@ -131,8 +131,10 @@ Arrange screen closes itself if it is ever opened locked), so the senior can
 only open things. Holding the padlock asks for the PIN. The prompt never stays
 up: it closes after 10 s without typing and when the screen is left, so the
 senior is not left facing a code request. The PIN keeps a curious senior out,
-not a determined person; clearing the app's data is the reset. A lock from
-before PINs existed has no hash and opens with any PIN.
+not a determined person. A forgotten PIN is no problem: the fixed reset PIN
+(`Pin.RESET`, 506614, the same in every Senior app) opens any lock, also through
+the provider. It is public on purpose; the lock is a guard rail, not security.
+A lock from before PINs existed has no hash and opens with any PIN.
 
 The lock is shared with the other Senior apps: `LockProvider` answers
 `content://app.phueber.seniorlauncher.lock/state` with one row, `locked` 0/1,

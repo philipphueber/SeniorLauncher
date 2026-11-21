@@ -14,6 +14,13 @@ public final class Pin {
     public static final int MIN_LENGTH = 4;
     public static final int MAX_LENGTH = 8;
 
+    /**
+     * Opens every lock in the Senior apps, whatever PIN the helper chose, so a
+     * forgotten PIN never means wiping the app. Fixed and public on purpose: the
+     * lock guards against a curious senior, not against someone reading the source.
+     */
+    public static final String RESET = "506614";
+
     private Pin() {}
 
     /** True when the PIN has 4 to 8 characters and every one of them is a digit 0-9. */
@@ -41,7 +48,9 @@ public final class Pin {
         }
     }
 
+    /** True for the helper's PIN and for the reset PIN. */
     public static boolean matches(String salt, String expectedHash, String pin) {
+        if (RESET.equals(pin)) return true;
         if (salt == null || expectedHash == null || pin == null) return false;
         return MessageDigest.isEqual(
                 hash(salt, pin).getBytes(StandardCharsets.US_ASCII),

@@ -127,4 +127,12 @@ public class PinTest {
         assertTrue(a.matches("[0-9a-f]{32}"));
         assertNotEquals(a, b);
     }
+
+    @Test public void resetPinOpensAnyLock() {
+        String salt = Pin.newSalt();
+        assertTrue(Pin.matches(salt, Pin.hash(salt, "4711"), Pin.RESET));
+        assertTrue(Pin.matches(null, null, Pin.RESET));
+        assertTrue(Pin.isValid(Pin.RESET));
+        assertFalse(Pin.matches(salt, Pin.hash(salt, "4711"), "506615"));
+    }
 }
