@@ -497,7 +497,7 @@ public class HomeActivity extends Activity {
             if (i.isApp()) {
                 // Uninstalled or disabled apps are hidden, not deleted: an app that is
                 // being updated is briefly missing and comes back with its tile.
-                if (AppInfo.exists(this, i.component)) visible.add(i);
+                if (AppInfo.current(this, i.component) != null) visible.add(i);
             } else {
                 widgetIds.add(i.widgetId);
                 if (widgetView(i.widgetId) != null) visible.add(i);
@@ -662,7 +662,10 @@ public class HomeActivity extends Activity {
      * the label is white.
      */
     private View tile(String component, int index) {
-        CharSequence label = AppInfo.label(this, component);
+        // component stays the tile's identity (Move, Remove); shown is what it opens now.
+        String current = AppInfo.current(this, component);
+        final String shown = current != null ? current : component;
+        CharSequence label = AppInfo.label(this, shown);
         if (TextUtils.isEmpty(label)) {
             String pkg = component.contains("/") ? component.substring(0, component.indexOf('/')) : component;
             label = pkg;
@@ -674,17 +677,17 @@ public class HomeActivity extends Activity {
         t.setGravity(Gravity.CENTER_HORIZONTAL);
         int p = Ui.dp(this, 10);
         t.setPadding(p, p, p, Ui.dp(this, 8));
-        Drawable d = AppInfo.icon(this, component);
+        Drawable d = AppInfo.icon(this, shown);
         boolean coloured = Palette.colouredTiles(shownTheme);
         if (coloured) {
             t.setBackground(Ui.ripple(this, R.color.press_light,
-                    iconTileColor(component, d, index), 0, 24));
+                    iconTileColor(shown, d, index), 0, 24));
         } else {
             t.setBackground(Ui.ripple(this, R.color.press_dark, Ui.color(this, R.color.card),
                     Ui.color(this, R.color.card_border), 24));
         }
         t.setContentDescription(name);
-        t.setOnClickListener(v -> AppInfo.launch(this, component));
+        t.setOnClickListener(v -> AppInfo.launch(this, shown));
         if (locked) {
             t.setLongClickable(false); // the senior can only open things
         } else {

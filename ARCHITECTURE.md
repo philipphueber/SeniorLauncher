@@ -30,7 +30,7 @@ separate app, not part of this one.
 | `SettingsActivity` | Lock (choose a PIN), colours, arrange home screen, choose home app, phone settings. |
 | `ArrangeActivity` | The home items in order, with "Page 1", "Page 2" headings from `Pages.layout`; ▲ Earlier / ▼ Later on each. From Settings, or from the long press on a tile (that tile marked). Never while locked. |
 | `Widgets` | The one `AppWidgetHost`: creates, sizes and deletes widget views. |
-| `AppInfo` | Label, icon, launchability and launch of an app tile, via `LauncherApps`. |
+| `AppInfo` | Label, icon, launchability and launch of an app tile, via `LauncherApps`. A tile whose launcher activity was disabled follows the app's only remaining one (SeniorLight swaps icon aliases to show the light's state). |
 | `DefaultApps` | On first run, adds tiles for the default phone, messages, camera, photos, contacts and browser apps. |
 | `Order` | Pure: moves one item earlier or later in a list, stepping over hidden items; clamps at the ends. Unit tested. |
 | `LockProvider` | Tells SeniorPhone and SeniorAlert whether the home screen is locked, and lifts the lock for them when given the PIN. |

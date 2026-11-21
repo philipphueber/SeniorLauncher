@@ -39,6 +39,29 @@ public final class AppInfo {
         }
     }
 
+    /**
+     * The launcher activity to show and open for a stored tile: the stored one
+     * while it is launchable; otherwise, if its app now has exactly one
+     * launchable activity, that one; otherwise null (the tile is hidden). Some
+     * apps switch their icon by enabling a different launcher alias (SeniorLight
+     * shows whether the light is on that way), which would otherwise make the
+     * tile vanish exactly while the light is on. With several activities left
+     * there is no telling which one was meant, so nothing is guessed.
+     */
+    public static String current(Context c, String flattened) {
+        if (exists(c, flattened)) return flattened;
+        ComponentName cn = parse(flattened);
+        LauncherApps la = c.getSystemService(LauncherApps.class);
+        if (cn == null || la == null) return null;
+        try {
+            List<LauncherActivityInfo> list = la.getActivityList(cn.getPackageName(), Process.myUserHandle());
+            return list != null && list.size() == 1
+                    ? list.get(0).getComponentName().flattenToString() : null;
+        } catch (RuntimeException e) {
+            return null;
+        }
+    }
+
     /** The app's label; its package name if it is gone, "" if the string is not a component. */
     public static CharSequence label(Context c, String flattened) {
         ComponentName cn = parse(flattened);
