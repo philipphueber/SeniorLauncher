@@ -47,12 +47,6 @@ public final class ArrangeActivity extends Activity {
     private static final String EXTRA_ITEM = "item";
     private static final int ICON_DP = 48;
 
-    /**
-     * The item the helper last moved, for HomeActivity to show its page on
-     * return. Main thread only; lost with the process, which then means page 1.
-     */
-    private static HomeItem lastMoved;
-
     /** One shown item's card, kept across moves so it is never detached. */
     private static final class Row {
         final HomeItem item;
@@ -90,13 +84,6 @@ public final class ArrangeActivity extends Activity {
             one.add(highlight);
             i.putExtra(EXTRA_ITEM, HomeCodec.encode(one));
         }
-        return i;
-    }
-
-    /** The item last moved here, once; null if none was. */
-    static HomeItem takeLastMoved() {
-        HomeItem i = lastMoved;
-        lastMoved = null;
         return i;
     }
 
@@ -351,7 +338,7 @@ public final class ArrangeActivity extends Activity {
             return;
         }
         selected = r.item;
-        lastMoved = r.item;
+        HomeActivity.showNext(r.item); // home opens on its new page
         refresh(r);
         // Keep the row under the finger; the list moves around it.
         afterLayout(() -> scroll.scrollTo(0, Math.max(0, topInScroll(r.view) - before)));

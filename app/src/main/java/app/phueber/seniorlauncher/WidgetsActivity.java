@@ -221,12 +221,19 @@ public class WidgetsActivity extends Activity {
             TextView app = Ui.text(this, appName(info.provider.getPackageName()), Ui.TEXT_BODY);
             app.setTextColor(Ui.color(this, R.color.text_muted));
             texts.addView(app);
+        } else {
+            // Its app turned it off or was uninstalled; home hides it rather than
+            // showing a broken box, so this is the one place the helper learns why.
+            TextView why = Ui.text(this, getString(R.string.widgets_missing_why), Ui.TEXT_BODY);
+            why.setTextColor(Ui.color(this, R.color.text_muted));
+            texts.addView(why);
         }
         top.addView(texts, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         row.addView(top);
 
         Button remove = Ui.button(this, getString(R.string.remove), R.color.red);
-        if (label != null) remove.setContentDescription(getString(R.string.widgets_remove_named, label));
+        remove.setContentDescription(label != null ? getString(R.string.widgets_remove_named, label)
+                : getString(R.string.widgets_remove_missing));
         remove.setOnClickListener(v -> {
             if (dialog != null) dialog.dismiss();
             dialog = Ui.confirm(this, getString(R.string.widgets_remove_question),
@@ -672,7 +679,17 @@ public class WidgetsActivity extends Activity {
         if (requestCode != REQ_BIND && requestCode != REQ_CONFIGURE) return;
         if (pendingId == AppWidgetManager.INVALID_APPWIDGET_ID) return;
         if (resultCode != RESULT_OK) {
-            cancelPending(); // the user said no or backed out: nothing to report
+            if (requestCode == REQ_CONFIGURE) {
+                // The widget's own setup gave up (backed out, or it failed by
+                // itself): without a word the helper would look for it on home.
+                String label = pendingLabel();
+                Toast.makeText(this, label != null
+                        ? getString(R.string.widgets_setup_cancelled, label)
+                        : getString(R.string.widgets_setup_cancelled_unnamed),
+                        Toast.LENGTH_LONG).show();
+            }
+            // Refusing the system's "Allow?" screen is the user's own choice: nothing to report.
+            cancelPending();
             return;
         }
         if (requestCode == REQ_BIND) configureOrFinish();
@@ -712,8 +729,22 @@ public class WidgetsActivity extends Activity {
             return;
         }
         Widgets.place(this, pendingId, info);
+        for (HomeItem item : store.items()) {
+            if (item.isWidget() && item.widgetId == pendingId) HomeActivity.showNext(item);
+        }
         clearPending();
-        finish(); // straight back to the home screen, where the new widget now is
+        finish(); // straight back to the home screen, turned to the new widget's page
+    }
+
+    /** The name of the widget being added, or null if it cannot be read. */
+    private String pendingLabel() {
+        try {
+            AppWidgetProviderInfo info = manager.getAppWidgetInfo(pendingId);
+            CharSequence l = info != null ? info.loadLabel(getPackageManager()) : null;
+            return l != null && l.length() > 0 ? l.toString() : null;
+        } catch (RuntimeException e) {
+            return null;
+        }
     }
 
     /** Something went wrong (not the user's choice): free the id and say so. */

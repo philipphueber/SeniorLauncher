@@ -4,12 +4,16 @@
     <string name="widgets_on_home">Auf der Startseite</string>
     <string name="widgets_none_placed">Auf der Startseite sind noch keine Widgets.</string>
     <string name="widgets_missing">Widget nicht mehr verfügbar</string>
+    <string name="widgets_missing_why">Seine App hat es abgeschaltet oder wurde entfernt, darum ist es auf der Startseite ausgeblendet.</string>
+    <string name="widgets_remove_missing">Nicht mehr verfügbares Widget entfernen</string>
     <string name="widgets_remove_question">Dieses Widget von der Startseite entfernen?</string>
     <string name="widgets_remove_named">%1$s entfernen</string>
     <string name="widgets_add">Widget hinzufügen</string>
     <string name="widgets_add_hint">Tippen Sie auf ein Widget, um es auf die Startseite zu legen.</string>
     <string name="widgets_none_installed">Auf diesem Telefon sind keine Widgets installiert.</string>
     <string name="widgets_add_failed">Das Widget konnte nicht hinzugefügt werden.</string>
+    <string name="widgets_setup_cancelled">%1$s wurde nicht hinzugefügt: Die Einrichtung wurde abgebrochen.</string>
+    <string name="widgets_setup_cancelled_unnamed">Das Widget wurde nicht hinzugefügt: Die Einrichtung wurde abgebrochen.</string>
     <string name="widgets_search_hint">Widget oder App suchen</string>
     <string name="widgets_none_found">Kein Widget gefunden.</string>
     <string name="widgets_size_small">Klein, wie eine App</string>

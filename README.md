@@ -44,7 +44,10 @@ Needs Android 8.0 or newer.
   **▲ Earlier** and **▼ Later** move a tile one place; headings show where each
   page begins.
 - **Widgets** lists the widgets your apps offer. Tap one to put it on the home
-  screen; Android asks once whether to allow it. Widgets are removed there too.
+  screen; Android asks once whether to allow it. Afterwards the home screen
+  opens on the page with the new widget. Widgets are removed there too. A
+  widget whose app turned it off or was uninstalled is hidden on the home
+  screen and marked "no longer available" here.
 - **Settings → Colours**: Light, Dark, High contrast (white on black), or
   Colourful (each tile in its app's colour). Pick whatever is easiest to read.
 - **Settings → Lock**: choose a PIN (4 to 8 digits). Afterwards only the
@@ -115,8 +118,11 @@ Benötigt Android 8.0 oder neuer.
   Reihenfolge: **▲ Nach vorne** und **▼ Nach hinten** verschieben eine Kachel
   um einen Platz; Überschriften zeigen, wo jede Seite beginnt.
 - **Widgets** zeigt die Widgets Ihrer Apps. Tippen Sie eines an, um es auf die
-  Startseite zu legen; Android fragt einmal, ob das erlaubt ist. Entfernt werden
-  Widgets ebenfalls dort.
+  Startseite zu legen; Android fragt einmal, ob das erlaubt ist. Danach öffnet
+  die Startseite die Seite mit dem neuen Widget. Entfernt werden Widgets
+  ebenfalls dort. Ein Widget, das seine App abgeschaltet hat oder dessen App
+  deinstalliert wurde, ist auf der Startseite ausgeblendet und hier als „nicht
+  mehr verfügbar“ markiert.
 - **Einstellungen → Farben**: Hell, Dunkel, Hoher Kontrast (weiß auf schwarz)
   oder Bunt (jede Kachel in der Farbe ihrer App). Wählen Sie, was am besten zu lesen
   ist.
