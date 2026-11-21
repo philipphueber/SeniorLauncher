@@ -13,7 +13,13 @@ public class AutomationTest {
         assertNull(Automation.lockPin("123"));
         assertNull(Automation.lockPin("123456789"));
         assertNull(Automation.lockPin("12a4"));
-        assertNull(Automation.lockPin("12 34"));
+        assertNull(Automation.lockPin("12 3"));
+    }
+
+    @Test public void spacesInsideThePinDoNotMatter() {
+        assertEquals("1357", Automation.lockPin("13 57"));
+        assertEquals("1357", Automation.lockPin(" 1 3\t5 7 "));
+        assertEquals("1357", Automation.unlockPin("13 57"));
     }
 
     @Test public void unlockPinTrimmed() {

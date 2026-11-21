@@ -8,7 +8,7 @@ import java.util.Locale;
  * android.* imports), so it is unit tested.
  *
  * Senders can only attach string extras, so every value arrives as text and is
- * read leniently: surrounding spaces and case do not matter. Anything that
+ * read leniently: spaces and case do not matter. Anything that
  * cannot be read is null, and the receiver then does nothing.
  */
 final class Automation {
@@ -26,18 +26,24 @@ final class Automation {
 
     private Automation() {}
 
-    /** A PIN for LOCK: 4 to 8 digits after trimming, else null. */
+    /**
+     * A PIN for LOCK: 4 to 8 digits once every space is dropped ("13 57" is
+     * 1357, as the README promises), else null.
+     */
     static String lockPin(String raw) {
-        if (raw == null) return null;
-        String pin = raw.trim();
-        return Pin.isValid(pin) ? pin : null;
+        String pin = noSpaces(raw);
+        return pin != null && Pin.isValid(pin) ? pin : null;
     }
 
-    /** A PIN for UNLOCK: the trimmed text, or null when there is none. */
+    /** A PIN for UNLOCK: the text without any spaces, or null when there is none. */
     static String unlockPin(String raw) {
-        if (raw == null) return null;
-        String pin = raw.trim();
-        return pin.isEmpty() ? null : pin;
+        String pin = noSpaces(raw);
+        return pin == null || pin.isEmpty() ? null : pin;
+    }
+
+    /** raw without any whitespace (a PIN never contains any), or null. */
+    private static String noSpaces(String raw) {
+        return raw == null ? null : raw.replaceAll("\\s+", "");
     }
 
     /**

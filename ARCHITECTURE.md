@@ -278,8 +278,8 @@ Automation apps (Trigly, Tasker) send `app.phueber.seniorlauncher.action.LOCK`
 / `UNLOCK` (extra `pin`) and `SET_THEME` (extra `theme`) to
 `AutomationReceiver`. Broadcasts, not activities: nothing needs to appear on
 screen, and a broadcast from the background needs no overlay permission. The
-extras are strings because that is all such apps can send; `Automation` trims,
-ignores case and drops anything unreadable without an error. The receiver
+extras are strings because that is all such apps can send; `Automation` drops
+spaces (also inside a PIN: "13 57" is 1357), ignores case and drops anything unreadable without an error. The receiver
 calls `Store`, so `LockProvider` notifies SeniorPhone and SeniorAlert as
 usual, and a showing home screen watches the preferences and redraws (or
 recreates for a new theme) at once. It is exported without a permission, for
