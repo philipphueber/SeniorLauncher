@@ -360,6 +360,12 @@ public class HomeActivity extends Activity {
         clock.setMaxLines(1);
         left.addView(clock);
         date = Ui.text(this, "", 22);
+        // One line: the battery box grows when low ("Battery low / Please charge")
+        // and would push the date onto two. It shrinks a little instead, never
+        // below a still large 16sp, and only then is the month cut off.
+        date.setMaxLines(1);
+        date.setEllipsize(TextUtils.TruncateAt.END);
+        date.setAutoSizeTextTypeUniformWithConfiguration(16, 22, 1, TypedValue.COMPLEX_UNIT_SP);
         left.addView(date);
         LinearLayout.LayoutParams llp = new LinearLayout.LayoutParams(
                 0, ViewGroup.LayoutParams.WRAP_CONTENT, 1);
