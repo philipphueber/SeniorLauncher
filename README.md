@@ -55,6 +55,23 @@ Needs Android 8.0 or newer.
 - To move a tile or take it off, press and hold it (only when unlocked) and
   choose **Move** or **Remove**.
 
+## Automation (Trigly, Tasker, …)
+
+Automation apps can lock, unlock and recolour the home screen with a
+broadcast to package `app.phueber.seniorlauncher`. All extras are text.
+
+| Send mode | Action | Extras | What it does |
+|---|---|---|---|
+| Broadcast | `app.phueber.seniorlauncher.action.LOCK` | `pin`: 4 to 8 digits | Locks the home screen (and the Phone and Alarm apps) with this PIN. Does nothing if it is already locked. |
+| Broadcast | `app.phueber.seniorlauncher.action.UNLOCK` | `pin`: the PIN, or the reset PIN | Unlocks, if the PIN is right. |
+| Broadcast | `app.phueber.seniorlauncher.action.SET_THEME` | `theme`: `light`, `dark`, `high_contrast` or `colourful` | Picks the colours, like Settings → Colours. |
+
+Spaces and upper/lower case do not matter; anything unreadable is ignored.
+Example in Trigly, lock every night at 22:00: trigger *Time 22:00*, action
+*Fire intent* with send mode *Broadcast*, action
+`app.phueber.seniorlauncher.action.LOCK`, package `app.phueber.seniorlauncher`,
+extra `pin` = `1234`.
+
 ## SeniorLauncher (Deutsch)
 
 Eine sehr einfache Startseite für Android, gemacht für Senioren.
@@ -110,6 +127,24 @@ Benötigt Android 8.0 oder neuer.
   die Reset-PIN **506614** öffnet die Sperre jeder Senior-App.
 - Um eine Kachel zu verschieben oder herunterzunehmen, halten Sie sie gedrückt
   (nur entsperrt) und wählen **Verschieben** oder **Entfernen**.
+
+### Automatisierung (Trigly, Tasker, …)
+
+Automatisierungs-Apps können die Startseite per Broadcast an das Paket
+`app.phueber.seniorlauncher` sperren, entsperren und umfärben. Alle Extras sind
+Text.
+
+| Sendeart | Aktion | Extras | Was passiert |
+|---|---|---|---|
+| Broadcast | `app.phueber.seniorlauncher.action.LOCK` | `pin`: 4 bis 8 Ziffern | Sperrt die Startseite (und die Telefon- und Wecker-App) mit dieser PIN. Ist sie schon gesperrt, passiert nichts. |
+| Broadcast | `app.phueber.seniorlauncher.action.UNLOCK` | `pin`: die PIN oder die Reset-PIN | Entsperrt, wenn die PIN stimmt. |
+| Broadcast | `app.phueber.seniorlauncher.action.SET_THEME` | `theme`: `light`, `dark`, `high_contrast` oder `colourful` (auch `hell`, `dunkel`, `kontrast`, `bunt`) | Wählt die Farben wie Einstellungen → Farben. |
+
+Leerzeichen und Groß-/Kleinschreibung sind egal; Unlesbares wird ignoriert.
+Beispiel in Trigly, jeden Abend um 22:00 sperren: Auslöser *Zeit 22:00*,
+Aktion *Intent senden* mit Sendeart *Broadcast*, Aktion
+`app.phueber.seniorlauncher.action.LOCK`, Paket `app.phueber.seniorlauncher`,
+Extra `pin` = `1234`.
 
 ## Contributing
 

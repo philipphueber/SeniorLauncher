@@ -122,6 +122,19 @@ public class HomeActivity extends Activity {
     };
     private final Runnable forcedRebuild = () -> { iconColors.clear(); rebuild(true); };
 
+    // An automation app locked, unlocked or changed the colours while the home
+    // screen is showing (AutomationReceiver): show it at once, not at the next resume.
+    private final SharedPreferences.OnSharedPreferenceChangeListener storeListener = (p, key) -> {
+        if (store.theme() != shownTheme) {
+            recreate();
+            return;
+        }
+        if (store.locked() != locked) {
+            dismissDialog(); // an unlock prompt or tile menu no longer fits
+            rebuild(false);
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -194,6 +207,7 @@ public class HomeActivity extends Activity {
         pkg.addAction(Intent.ACTION_PACKAGE_REPLACED);
         pkg.addDataScheme("package");
         register(packageReceiver, pkg);
+        store.watch(storeListener);
         receiving = true;
         updateClock();
     }
@@ -225,6 +239,7 @@ public class HomeActivity extends Activity {
             unregisterReceiver(timeReceiver);
             unregisterReceiver(batteryReceiver);
             unregisterReceiver(packageReceiver);
+            store.unwatch(storeListener);
             receiving = false;
         }
         handler.removeCallbacks(forcedRebuild);

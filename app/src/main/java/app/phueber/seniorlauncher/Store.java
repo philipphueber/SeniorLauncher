@@ -122,6 +122,19 @@ public final class Store {
         prefs.edit().putString(K_THEME, theme.name()).commit();
     }
 
+    /**
+     * Calls l on the main thread after any change, also one made elsewhere in
+     * the process (AutomationReceiver). Android keeps only a weak reference:
+     * the caller must hold on to l.
+     */
+    public void watch(SharedPreferences.OnSharedPreferenceChangeListener l) {
+        prefs.registerOnSharedPreferenceChangeListener(l);
+    }
+
+    public void unwatch(SharedPreferences.OnSharedPreferenceChangeListener l) {
+        prefs.unregisterOnSharedPreferenceChangeListener(l);
+    }
+
     public synchronized boolean seeded() {
         return prefs.getBoolean(K_SEEDED, false);
     }

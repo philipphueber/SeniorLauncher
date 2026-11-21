@@ -34,6 +34,8 @@ separate app, not part of this one.
 | `DefaultApps` | On first run, adds tiles for the default phone, messages, camera, photos, contacts and browser apps. |
 | `Order` | Pure: moves one item earlier or later in a list, stepping over hidden items; clamps at the ends. Unit tested. |
 | `LockProvider` | Tells SeniorPhone and SeniorAlert whether the home screen is locked, and lifts the lock for them when given the PIN. |
+| `AutomationReceiver` | Commands from automation apps (lock, unlock, theme) by broadcast; goes through `Store` like Settings. |
+| `Automation` | Pure: the automation action and extra names, and the lenient parsing of their string extras. Unit tested. |
 | `Store` | The ordered home items, the lock flag with its PIN salt/hash, and the first-run flag, in SharedPreferences. |
 | `Pin` | PIN validation (4-8 digits), salted SHA-256 hash, constant-time compare, and the fixed reset PIN. Same as SeniorAlert's and SeniorPhone's. Pure. |
 | `PinDialog` | Choose a PIN (twice) when locking; enter it when unlocking. The unlock prompt closes after 10 s without typing. |
@@ -146,6 +148,22 @@ screen. Nothing else can be written: no app can lock, or unlock without the
 PIN. No permission guards the provider: the state is visible on screen anyway,
 and the apps have separate signing keys, which rules out a signature
 permission. Installed without the launcher, each app keeps its own lock.
+
+## Automation
+
+Automation apps (Trigly, Tasker) send `app.phueber.seniorlauncher.action.LOCK`
+/ `UNLOCK` (extra `pin`) and `SET_THEME` (extra `theme`) to
+`AutomationReceiver`. Broadcasts, not activities: nothing needs to appear on
+screen, and a broadcast from the background needs no overlay permission. The
+extras are strings because that is all such apps can send; `Automation` trims,
+ignores case and drops anything unreadable without an error. The receiver
+calls `Store`, so `LockProvider` notifies SeniorPhone and SeniorAlert as
+usual, and a showing home screen watches the preferences and redraws (or
+recreates for a new theme) at once. It is exported without a permission, for
+the same reason the lock provider is: the lock is a guard rail, not security.
+Unlocking still needs the PIN, and LOCK is ignored while locked, so a sender
+cannot replace the helper's PIN. The arrangement of tiles and widgets is not
+automated.
 
 ## Permissions
 
