@@ -95,8 +95,27 @@ buttons as everywhere else.
   stay wide.
 - Rows (wide widgets): the widget's minimum height (and, on Android 12+, its target cell
   height) against the home grid's measured cell height, at most a full page.
-- After every layout each widget is told its real size, so it can choose its
-  layout; repeated identical sizes are not sent again.
+- Wide widgets sit on the app tile's card (theme card colour and border,
+  rounded, 6dp padding, clipped to the corners), so transparent widgets such
+  as clocks and music players do not float on the page. In Colourful the card
+  stays the plain card colour; only small widgets take a tile colour.
+- After every layout each widget is told its real size (the host view's own,
+  so inside the card's padding), so it can choose its layout; repeated
+  identical sizes are not sent again.
+- Theme: widgets resolve their DayNight colours from their own app's
+  resources in a context Android derives with `createApplicationContext`,
+  which keeps the process and activity configuration but drops any
+  `createConfigurationContext` override. So `Widgets.followTheme` sets this
+  app's night mode (`UiModeManager.setApplicationNightMode`, Android 12+): on
+  for Dark, High contrast and Colourful, off for Light. Our own screens use a
+  fixed light Material theme plus `Palette`, so nothing else changes. The
+  change recreates `HomeActivity`, so every widget view is created anew.
+  Before Android 12 widgets follow the system's dark mode.
+- Known limit: the Pixel Battery widget (Settings Services,
+  `com.google.android.settings.intelligence`) stays on "Loading…" on the
+  emulator. It fills itself from Bluetooth device battery data behind
+  server-side feature flags; the host side (listening from `onStart`, sizes
+  and options after layout) is the same as for every widget that works.
 
 ## Colours
 

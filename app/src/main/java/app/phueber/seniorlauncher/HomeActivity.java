@@ -139,6 +139,7 @@ public class HomeActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         shownTheme = Ui.applyTheme(this);
+        Widgets.followTheme(this, shownTheme);
         store = new Store(this);
         prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
         DefaultApps.seedIfNeeded(this, store);
@@ -568,7 +569,9 @@ public class HomeActivity extends Activity {
             View v = pl.item.isApp() ? tile(pl.item.component, at) : widgetViews.get(pl.item.widgetId);
             if (v == null) continue;
             if (v.getParent() instanceof ViewGroup) ((ViewGroup) v.getParent()).removeView(v);
-            if (pl.item.isWidget() && pl.item.small) v = smallWidgetTile(v, pl.item.widgetId);
+            if (pl.item.isWidget()) {
+                v = pl.item.small ? smallWidgetTile(v, pl.item.widgetId) : wideWidgetCard(v);
+            }
             grid.addCell(v, pl.row, pl.col, pl.rowSpan, pl.colSpan);
         }
         if (placements.isEmpty()) {
@@ -599,15 +602,7 @@ public class HomeActivity extends Activity {
         int p = Ui.dp(this, 10);
         t.setPadding(p, p, p, Ui.dp(this, 8));
         boolean coloured = Palette.colouredTiles(shownTheme);
-        GradientDrawable bg = new GradientDrawable();
-        bg.setCornerRadius(Ui.dp(this, 24));
-        if (coloured) {
-            bg.setColor(Palette.tileColor(widgetId));
-        } else {
-            bg.setColor(Ui.color(this, R.color.card));
-            bg.setStroke(Ui.dp(this, 2), Ui.color(this, R.color.card_border));
-        }
-        t.setBackground(bg);
+        t.setBackground(widgetCard(coloured ? Palette.tileColor(widgetId) : 0));
         t.addView(hostView, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));
 
         String name = Widgets.label(this, widgetId);
@@ -626,6 +621,39 @@ public class HomeActivity extends Activity {
         tlp.topMargin = Ui.dp(this, 4);
         t.addView(text, tlp);
         return t;
+    }
+
+    /**
+     * A wide widget on the same card as an app tile, so widgets with a
+     * transparent background (clocks, music) do not float on the page. The card
+     * keeps the theme's card colour in Colourful too: a bright tile colour behind
+     * a whole widget would fight with its content. Clipped to the rounded card,
+     * so square widget corners do not poke out. Widgets.updateSize measures the
+     * host view itself, so the size the widget is told already leaves out the
+     * padding.
+     */
+    private View wideWidgetCard(View hostView) {
+        FrameLayout f = new FrameLayout(this);
+        int p = Ui.dp(this, 6);
+        f.setPadding(p, p, p, p);
+        f.setBackground(widgetCard(0));
+        f.setClipToOutline(true);
+        f.addView(hostView, new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        return f;
+    }
+
+    /** The app tile's card, not pressable: filled with fill, or (0) the theme's card with its border. */
+    private GradientDrawable widgetCard(int fill) {
+        GradientDrawable bg = new GradientDrawable();
+        bg.setCornerRadius(Ui.dp(this, 24));
+        if (fill != 0) {
+            bg.setColor(fill);
+        } else {
+            bg.setColor(Ui.color(this, R.color.card));
+            bg.setStroke(Ui.dp(this, 2), Ui.color(this, R.color.card_border));
+        }
+        return bg;
     }
 
     /**
