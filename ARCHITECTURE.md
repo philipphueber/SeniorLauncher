@@ -142,7 +142,10 @@ buttons as everywhere else.
   app's night mode (`UiModeManager.setApplicationNightMode`, Android 12+): on
   for Dark, High contrast and Colourful, off for Light. Our own screens use a
   fixed light Material theme plus `Palette`, so nothing else changes. The
-  change recreates `HomeActivity`, so every widget view is created anew.
+  change recreates `HomeActivity`, so every widget view is created anew. On a
+  theme change `HomeActivity` therefore sets the night mode first and
+  recreates by hand only when that does not (no light/dark change, or before
+  Android 12), so it is built once, not twice.
   Before Android 12 widgets follow the system's dark mode.
 - Known limit: the Pixel Battery widget (Settings Services,
   `com.google.android.settings.intelligence`) stays on "Loading…" on the

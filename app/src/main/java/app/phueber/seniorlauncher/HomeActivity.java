@@ -151,7 +151,7 @@ public class HomeActivity extends Activity {
     // screen is showing (AutomationReceiver): show it at once, not at the next resume.
     private final SharedPreferences.OnSharedPreferenceChangeListener storeListener = (p, key) -> {
         if (store.theme() != shownTheme) {
-            recreate();
+            followTheme();
             return;
         }
         if (store.locked() != locked) {
@@ -248,7 +248,7 @@ public class HomeActivity extends Activity {
         // The helper may have picked other colours in Settings: every view here
         // was built with the old ones, so start over rather than repaint by hand.
         if (store.theme() != shownTheme) {
-            recreate();
+            followTheme();
             return;
         }
         // Granted but not bound (just granted, after an update): ask again each
@@ -312,6 +312,15 @@ public class HomeActivity extends Activity {
         takeShowNext(); // Home means page 1, even after arranging or adding
         page = 0;
         if (shownKey != null) showPage();
+    }
+
+    /**
+     * A new theme: start over in it. On Android 12+ a change between light and
+     * dark also sets the app's night mode for the widgets, which recreates this
+     * activity by itself; recreating here too would build everything twice.
+     */
+    private void followTheme() {
+        if (!Widgets.followTheme(this, store.theme())) recreate();
     }
 
     /** Has the home screen turn to this item's page when it is next shown, once. */

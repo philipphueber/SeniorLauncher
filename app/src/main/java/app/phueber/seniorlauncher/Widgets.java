@@ -88,20 +88,25 @@ public final class Widgets {
      * the change is a configuration change and recreates the activity, after
      * which every widget view is created anew in the new configuration. Before
      * Android 12 widgets keep following the system's dark mode.
+     *
+     * Returns whether it asked for a new night mode, that is whether a
+     * recreate of the showing activities is on its way.
      */
-    static void followTheme(Context c, Palette.Theme theme) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return;
+    static boolean followTheme(Context c, Palette.Theme theme) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return false;
         boolean night = !Palette.isLight(theme);
         int now = c.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
-        if (now == (night ? Configuration.UI_MODE_NIGHT_YES : Configuration.UI_MODE_NIGHT_NO)) return;
+        if (now == (night ? Configuration.UI_MODE_NIGHT_YES : Configuration.UI_MODE_NIGHT_NO)) return false;
         try {
             UiModeManager m = c.getSystemService(UiModeManager.class);
             if (m != null) {
                 m.setApplicationNightMode(night ? UiModeManager.MODE_NIGHT_YES : UiModeManager.MODE_NIGHT_NO);
+                return true;
             }
         } catch (RuntimeException e) {
             // The UI mode service is unavailable: widgets keep the system's mode.
         }
+        return false;
     }
 
     /** Tells the widget the size it is shown at, so it can pick a fitting layout. */
