@@ -86,5 +86,9 @@ build is unsigned; debug builds and tests are unaffected.
 
 ### Release certificate
 
-TODO: after `scripts/setup-signing.sh`, put the `CN=SeniorLauncher, C=DE`
-certificate's SHA-256 digest here, exactly as `apksigner` prints it.
+Every release is signed with this key (`CN=SeniorLauncher, C=DE`); `apksigner` must
+print exactly:
+
+    Signer #1 certificate SHA-256 digest: 0f1b2ce9a8fb1cfcb4f9d0809fb1d29c4b74551f8ea41bdb0fced0fba8b98a6e
+
+To check a downloaded APK: `apksigner verify --print-certs SeniorLauncher-<version>.apk`.
