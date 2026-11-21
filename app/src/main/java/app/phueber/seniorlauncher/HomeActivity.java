@@ -69,6 +69,7 @@ public class HomeActivity extends Activity {
     private static final String PREFS = "seniorlauncher";
     private static final String K_CELL_HEIGHT_DP = "cell_height_dp";
     private static final int GAP_DP = Widgets.GAP_DP;
+    private static final String S_PAGE = "page";
 
     /**
      * Handed over by ArrangeActivity (the item moved last) and WidgetsActivity
@@ -162,6 +163,9 @@ public class HomeActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // A recreate (new colours, night mode from Widgets.followTheme, any other
+        // configuration change) keeps the page; showPage clamps it if pages shrank.
+        if (savedInstanceState != null) page = savedInstanceState.getInt(S_PAGE, 0);
         shownTheme = Ui.applyTheme(this);
         Widgets.followTheme(this, shownTheme);
         store = new Store(this);
@@ -286,6 +290,14 @@ public class HomeActivity extends Activity {
         handler.removeCallbacksAndMessages(null);
         dismissDialog();
         super.onDestroy();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle out) {
+        super.onSaveInstanceState(out);
+        // Only across a recreate: started again after the process died (Home
+        // pressed), the home screen opens on page 1 like any Home press.
+        if (isChangingConfigurations()) out.putInt(S_PAGE, page);
     }
 
     /** Pressing Home while the home screen is showing goes back to page 1. */
