@@ -25,18 +25,18 @@ separate app, not part of this one.
 | `PageLayout` | A fixed `Pages.ROWS` x `Pages.COLUMNS` grid that always fills its space; places children by row, column and span. Reports the cell size after layout. |
 | `BatteryView` | The battery box: percent plus a word. On battery a light green gauge fills it up to the charge; low is solid red; charging is solid green with a lightning bolt. |
 | `AppsActivity` | Every launchable app with an "Add" / "On home ✓" toggle. The only way to put an app on the home screen. |
-| `WidgetsActivity` | Places widgets (bind, optional configure, store) and removes them. Lists them grouped by app with previews, a size badge (small/wide) and a search over widget and app names. |
+| `WidgetsActivity` | Places widgets (bind, optional configure, store), resizes them (size buttons on each placed card) and removes them. Lists them grouped by app with previews, a size badge (small/wide) and a search over widget and app names. |
 | `IconColor` | Pure: an icon's main colour for Colourful tiles, made readable under white text. Unit tested. |
 | `SettingsActivity` | Lock (choose a PIN), colours, arrange home screen, choose home app, phone settings. |
 | `ArrangeActivity` | The home items in order, with "Page 1", "Page 2" headings from `Pages.layout`; ▲ Earlier / ▼ Later on each. From Settings, or from the long press on a tile (that tile marked). Never while locked. |
-| `Widgets` | The one `AppWidgetHost`: creates, sizes and deletes widget views. |
+| `Widgets` | The one `AppWidgetHost`: creates, sizes and deletes widget views; turns a provider's declaration into a `WidgetRows.Spec` (dp). |
 | `AppInfo` | Label, icon, launchability and launch of an app tile, via `LauncherApps`. A tile whose launcher activity was disabled follows the app's only remaining one (SeniorLight swaps icon aliases to show the light's state). |
 | `DefaultApps` | On first run, adds tiles for the default phone, messages, camera, photos, contacts and browser apps. |
 | `Order` | Pure: moves one item earlier or later in a list, stepping over hidden items; clamps at the ends. Unit tested. |
 | `LockProvider` | Tells SeniorPhone and SeniorAlert whether the home screen is locked, and lifts the lock for them when given the PIN. |
 | `AutomationReceiver` | Commands from automation apps (lock, unlock, theme) by broadcast; goes through `Store` like Settings. |
 | `Automation` | Pure: the automation action and extra names, and the lenient parsing of their string extras. Unit tested. |
-| `Store` | The ordered home items, the lock flag with its PIN salt/hash, and the first-run flag, in SharedPreferences. |
+| `Store` | The ordered home items (with the widgets sized by hand), the lock flag with its PIN salt/hash, and the first-run flag, in SharedPreferences. |
 | `Pin` | PIN validation (4-8 digits), salted SHA-256 hash, constant-time compare, and the fixed reset PIN. Same as SeniorAlert's and SeniorPhone's. Pure. |
 | `PinDialog` | Choose a PIN (twice) when locking; enter it when unlocking. The unlock prompt closes after 10 s without typing. |
 | `Ui` | Shared buttons, helper-screen frame and dialogs (`confirm`, and `choose` for more than one action), so every screen looks alike. Resolves every colour through the chosen theme (`Ui.color`, `Ui.applyTheme`). |
@@ -45,7 +45,7 @@ separate app, not part of this one.
 | `HomeItem` | Pure: an app tile or a widget (id and rows). |
 | `HomeCodec` | Pure: the item list to and from one string. Unit tested. |
 | `Pages` | Pure: splits the items into pages of placements. Unit tested. |
-| `WidgetRows` | Pure: how many rows a widget spans. Unit tested. |
+| `WidgetRows` | Pure: how many rows a widget spans automatically, whether it is 1x1, and which sizes the helper may choose. Unit tested. |
 | `BatteryState` | Pure: normal, low, charging or full, and the percent. Unit tested. |
 
 Pure classes have JVM tests in `app/src/test`; Android-facing classes have none.
@@ -56,7 +56,8 @@ Pure classes have JVM tests in `app/src/test`; Android-facing classes have none.
 by row; a small (1x1) widget takes one cell exactly like an app. A wide widget
 spans the full width and starts on a new row; if its rows do not fit on the
 current page, it starts the next one. Tiles never move
-on their own: a page only changes when an item is added or removed. Home always
+on their own: a page only changes when an item is added, removed or resized
+(or an automatic widget re-fits after a font or display size change). Home always
 goes back to page 1.
 
 ## Order
@@ -103,6 +104,21 @@ buttons as everywhere else.
   stay wide.
 - Rows (wide widgets): the widget's minimum height (and, on Android 12+, its target cell
   height) against the home grid's measured cell height, at most a full page.
+  When the measured cell height changes (font or display size), `HomeActivity`
+  re-fits these automatic rows (`Widgets.refitAutomatic`), except for widgets
+  the helper sized by hand (their ids are kept in `Store`, apart from the item
+  list, so the `w:`/`s:` format stays as it is).
+- Resizing: the automatic size is only the default. Each card under "On the
+  home screen" offers Small / 1 row / 2 rows / Full page, the stored one marked
+  "✓ … (chosen)", hidden while locked. Only what the provider allows
+  (`WidgetRows.allowedSizes`): rows change only for a vertically resizable
+  widget, to bands (cells plus gaps) at least its smallest height and up to the
+  first that reaches its `maxResizeHeight`; Small when it is 1x1 or its
+  minimum size, shrunk by `minResizeWidth/Height` on the axes it resizes on,
+  fits one launcher cell (`canBeSmall`; wider than `isOneByOne`, which still
+  alone decides the default). The automatic and the stored size are always
+  offered. A choice keeps the item's place (`Store.setWidgetSize`); the home
+  screen shows it on return and sends the widget its new real size.
 - Wide widgets sit on the app tile's card (theme card colour and border,
   rounded, 6dp padding, clipped to the corners), so transparent widgets such
   as clocks and music players do not float on the page. In Colourful the card

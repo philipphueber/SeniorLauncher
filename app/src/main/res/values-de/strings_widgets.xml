@@ -18,6 +18,14 @@
     <string name="widgets_none_found">Kein Widget gefunden.</string>
     <string name="widgets_size_small">Klein, wie eine App</string>
     <string name="widgets_size_wide">Breit</string>
+    <string name="widgets_size_heading">Größe auf der Startseite</string>
+    <plurals name="widgets_size_rows">
+        <item quantity="one">%d Zeile</item>
+        <item quantity="other">%d Zeilen</item>
+    </plurals>
+    <string name="widgets_size_full">Ganze Seite</string>
+    <string name="widgets_size_chosen">✓ %1$s (gewählt)</string>
+    <string name="widgets_size_named">%1$s: %2$s</string>
     <string name="widgets_card_cd">%1$s, von %2$s. %3$s. Tippen Sie, um es auf die Startseite zu legen.</string>
     <string name="widgets_loading">Widgets werden geladen …</string>
 </resources>

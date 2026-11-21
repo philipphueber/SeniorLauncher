@@ -45,8 +45,10 @@ Needs Android 8.0 or newer.
   page begins.
 - **Widgets** lists the widgets your apps offer. Tap one to put it on the home
   screen; Android asks once whether to allow it. Afterwards the home screen
-  opens on the page with the new widget. Widgets are removed there too. A
-  widget whose app turned it off or was uninstalled is hidden on the home
+  opens on the page with the new widget. Each placed widget can be made
+  bigger or smaller there (**Small**, **1 row**, **2 rows**, **Full page**:
+  only the sizes the widget supports; bigger means bigger text), and removed.
+  A widget whose app turned it off or was uninstalled is hidden on the home
   screen and marked "no longer available" here.
 - **Settings → Colours**: Light, Dark, High contrast (white on black), or
   Colourful (each tile in its app's colour). Pick whatever is easiest to read.
@@ -119,10 +121,12 @@ Benötigt Android 8.0 oder neuer.
   um einen Platz; Überschriften zeigen, wo jede Seite beginnt.
 - **Widgets** zeigt die Widgets Ihrer Apps. Tippen Sie eines an, um es auf die
   Startseite zu legen; Android fragt einmal, ob das erlaubt ist. Danach öffnet
-  die Startseite die Seite mit dem neuen Widget. Entfernt werden Widgets
-  ebenfalls dort. Ein Widget, das seine App abgeschaltet hat oder dessen App
-  deinstalliert wurde, ist auf der Startseite ausgeblendet und hier als „nicht
-  mehr verfügbar“ markiert.
+  die Startseite die Seite mit dem neuen Widget. Dort lässt sich jedes
+  platzierte Widget auch größer oder kleiner machen (**Klein**, **1 Zeile**,
+  **2 Zeilen**, **Ganze Seite**: nur die Größen, die das Widget kann; größer
+  heißt größere Schrift) und entfernen. Ein Widget, das seine App abgeschaltet
+  hat oder dessen App deinstalliert wurde, ist auf der Startseite ausgeblendet
+  und hier als „nicht mehr verfügbar“ markiert.
 - **Einstellungen → Farben**: Hell, Dunkel, Hoher Kontrast (weiß auf schwarz)
   oder Bunt (jede Kachel in der Farbe ihrer App). Wählen Sie, was am besten zu lesen
   ist.
