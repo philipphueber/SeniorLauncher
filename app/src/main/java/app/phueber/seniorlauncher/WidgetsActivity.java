@@ -8,6 +8,7 @@ import android.appwidget.AppWidgetProviderInfo;
 import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
@@ -165,9 +166,29 @@ public class WidgetsActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        if (closedByLock()) return;
+        store.watch(lockWatch);
         // Back from granting notification access or choosing apps.
         if (notesBox != null) showNotesRow();
     }
+
+    @Override
+    protected void onPause() {
+        store.unwatch(lockWatch);
+        super.onPause();
+    }
+
+    /**
+     * A helper screen: locked meanwhile (an automation app can lock at any
+     * time), it closes, and every action checks again before it changes anything.
+     */
+    private boolean closedByLock() {
+        if (!store.locked()) return false;
+        finish();
+        return true;
+    }
+
+    private final SharedPreferences.OnSharedPreferenceChangeListener lockWatch = (p, key) -> closedByLock();
 
     @Override
     protected void onSaveInstanceState(Bundle out) {
@@ -265,13 +286,17 @@ public class WidgetsActivity extends Activity {
             row.addView(sizes, Ui.fullWidth(this, 0));
         }
 
+        if (store.locked()) return row; // like the sizes: nothing to change while locked
         Button remove = Ui.button(this, getString(R.string.remove), R.color.red);
         remove.setContentDescription(label != null ? getString(R.string.widgets_remove_named, label)
                 : getString(R.string.widgets_remove_missing));
         remove.setOnClickListener(v -> {
+            if (closedByLock()) return;
             if (dialog != null) dialog.dismiss();
-            dialog = Ui.confirm(this, getString(R.string.widgets_remove_question),
+            dialog = Ui.confirm(this, label != null ? getString(R.string.widgets_remove_question_named, label)
+                    : getString(R.string.widgets_remove_question),
                     getString(R.string.remove), R.color.red, () -> {
+                        if (closedByLock()) return;
                         Widgets.delete(this, widgetId);
                         showPlaced();
                     });
@@ -280,7 +305,7 @@ public class WidgetsActivity extends Activity {
         return row;
     }
 
-    /** The provider a placed widget is bound to, or null if its app is gone. */
+    /** The provider a placed (or just bound) widget is bound to, or null if its app is gone. */
     private AppWidgetProviderInfo placedInfo(int widgetId) {
         try {
             return manager.getAppWidgetInfo(widgetId);
@@ -319,6 +344,7 @@ public class WidgetsActivity extends Activity {
             }
             if (!chosen) {
                 b.setOnClickListener(v -> {
+                    if (closedByLock()) return;
                     if (!store.setWidgetSize(widgetId, size == WidgetRows.SMALL, Math.max(1, size))) return;
                     showSizes(box, widgetId, info, label);
                     box.announceForAccessibility(label != null
@@ -359,11 +385,15 @@ public class WidgetsActivity extends Activity {
         if (store.locked()) return;
         if (!granted) {
             Button allow = Ui.button(this, getString(R.string.notes_allow), R.color.green);
-            allow.setOnClickListener(v -> NotificationHub.openAccessSettings(this));
+            allow.setOnClickListener(v -> {
+                if (!closedByLock()) NotificationHub.openAccessSettings(this);
+            });
             box.addView(allow, Ui.fullWidth(this, 12));
         }
         Button choose = Ui.button(this, getString(R.string.notes_choose_apps), R.color.blue);
-        choose.setOnClickListener(v -> startActivity(new Intent(this, NotificationAppsActivity.class)));
+        choose.setOnClickListener(v -> {
+            if (!closedByLock()) startActivity(new Intent(this, NotificationAppsActivity.class));
+        });
         box.addView(choose, Ui.fullWidth(this, 12));
 
         TextView heading = Ui.text(this, getString(R.string.widgets_size_heading), Ui.TEXT_BODY);
@@ -380,6 +410,7 @@ public class WidgetsActivity extends Activity {
             final int r = rows;
             if (!chosen) {
                 b.setOnClickListener(v -> {
+                    if (closedByLock()) return;
                     if (!store.setNotificationsRows(r)) return;
                     showNotesRow();
                     box.announceForAccessibility(getString(R.string.widgets_size_named, name, size));
@@ -391,9 +422,11 @@ public class WidgetsActivity extends Activity {
         Button remove = Ui.button(this, getString(R.string.remove), R.color.red);
         remove.setContentDescription(getString(R.string.widgets_remove_named, name));
         remove.setOnClickListener(v -> {
+            if (closedByLock()) return;
             if (dialog != null) dialog.dismiss();
-            dialog = Ui.confirm(this, getString(R.string.widgets_remove_question),
+            dialog = Ui.confirm(this, getString(R.string.widgets_remove_question_named, name),
                     getString(R.string.remove), R.color.red, () -> {
+                        if (closedByLock()) return;
                         store.removeNotificationsCard();
                         showPlaced();
                     });
@@ -447,7 +480,7 @@ public class WidgetsActivity extends Activity {
         what.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         c.addView(what, Ui.fullWidth(this, 12));
         c.setOnClickListener(v -> {
-            if (store.locked() || store.notificationsCard() != null) return;
+            if (closedByLock() || store.notificationsCard() != null) return;
             NotificationHub.seedDefaultApps(this, store);
             HomeActivity.showNext(store.addNotificationsCard(2));
             finish(); // home, turned to the new card's page, like a new widget
@@ -856,6 +889,7 @@ public class WidgetsActivity extends Activity {
     // ---------------------------------------------------------------- adding
 
     private void add(AppWidgetProviderInfo p) {
+        if (closedByLock()) return;
         if (pendingId != AppWidgetManager.INVALID_APPWIDGET_ID) return; // a double tap
         pendingId = host.allocateAppWidgetId();
         pendingProvider = p.provider;
@@ -891,6 +925,11 @@ public class WidgetsActivity extends Activity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode != REQ_BIND && requestCode != REQ_CONFIGURE) return;
         if (pendingId == AppWidgetManager.INVALID_APPWIDGET_ID) return;
+        if (store.locked()) { // locked while the system's or the widget's screen was up
+            cancelPending();
+            finish();
+            return;
+        }
         if (resultCode != RESULT_OK) {
             if (requestCode == REQ_CONFIGURE) {
                 // The widget's own setup gave up (backed out, or it failed by
@@ -911,7 +950,7 @@ public class WidgetsActivity extends Activity {
 
     /** Bound: show the widget's setup screen if it needs one, else place it. */
     private void configureOrFinish() {
-        AppWidgetProviderInfo info = manager.getAppWidgetInfo(pendingId);
+        AppWidgetProviderInfo info = placedInfo(pendingId);
         // Bound to what the user tapped? (null: the app was removed meanwhile.)
         if (info == null || !info.provider.equals(pendingProvider)) {
             fail();
@@ -936,7 +975,7 @@ public class WidgetsActivity extends Activity {
     }
 
     private void finishAdd() {
-        AppWidgetProviderInfo info = manager.getAppWidgetInfo(pendingId);
+        AppWidgetProviderInfo info = placedInfo(pendingId);
         if (info == null) {
             fail();
             return;

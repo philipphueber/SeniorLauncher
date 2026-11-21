@@ -2,6 +2,7 @@ package app.phueber.seniorlauncher;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.LauncherActivityInfo;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
@@ -111,10 +112,30 @@ public final class AppsActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        if (closedByLock()) return;
+        store.watch(lockWatch);
         // The home screen may have removed a tile (long-press) while we were away.
         Set<String> onHome = onHome();
         for (Row r : rows) styleToggle(r, onHome.contains(r.component));
     }
+
+    @Override
+    protected void onPause() {
+        store.unwatch(lockWatch);
+        super.onPause();
+    }
+
+    /**
+     * A helper screen: locked meanwhile (an automation app can lock at any
+     * time), it closes, and every action checks again before it changes anything.
+     */
+    private boolean closedByLock() {
+        if (!store.locked()) return false;
+        finish();
+        return true;
+    }
+
+    private final SharedPreferences.OnSharedPreferenceChangeListener lockWatch = (p, key) -> closedByLock();
 
     /** Labels and icons come from the package manager, which is slow with many apps. */
     private void load() {
@@ -208,6 +229,7 @@ public final class AppsActivity extends Activity {
         toggle.setOnClickListener(v -> {
             // Read back from the store rather than trusting the button, so a
             // double tap cannot add the same app twice.
+            if (closedByLock()) return;
             boolean add = !store.containsApp(r.component);
             if (add) store.addApp(r.component);
             else store.removeApp(r.component);

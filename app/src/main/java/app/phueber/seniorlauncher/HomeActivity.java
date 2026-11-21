@@ -407,7 +407,8 @@ public class HomeActivity extends Activity {
         b.setBackground(Ui.ripple(this, R.color.press_dark, Ui.color(this, R.color.card), fg, 20));
         String label = getString(labelRes);
         b.setContentDescription(label);
-        b.setOnClickListener(v -> startActivity(new Intent(this, target)));
+        // Single top: a double tap opens the screen once, not twice on top of itself.
+        b.setOnClickListener(v -> startActivity(new Intent(this, target).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)));
         asButton(b, null);
 
         TextView t = Ui.bold(this, label, 18);

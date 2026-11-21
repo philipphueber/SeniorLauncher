@@ -9,6 +9,7 @@
     <string name="widgets_missing_why">Its app turned it off or was removed, so it is hidden on the home screen.</string>
     <string name="widgets_remove_missing">Remove the widget that is no longer available</string>
     <string name="widgets_remove_question">Remove this widget from the home screen?</string>
+    <string name="widgets_remove_question_named">Remove “%1$s” from the home screen?</string>
     <string name="widgets_remove_named">Remove %1$s</string>
     <string name="widgets_add">Add a widget</string>
     <string name="widgets_add_hint">Tap a widget to put it on the home screen.</string>

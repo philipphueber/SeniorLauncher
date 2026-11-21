@@ -2,6 +2,7 @@ package app.phueber.seniorlauncher;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -31,8 +32,11 @@ public final class SettingsActivity extends Activity {
         // the guard against locking by accident, so a plain tap opens it.
         Button lock = Ui.button(this, getString(R.string.settings_lock), R.color.green);
         lock.setOnClickListener(v -> {
+            if (closedByLock()) return;
             dismissDialog();
             dialog = PinDialog.choose(this, pin -> {
+                // Locked by automation while the PIN was typed: keep that PIN.
+                if (closedByLock()) return;
                 store.lock(pin);
                 finish(); // back to the home screen, which now shows only the padlock
             });
@@ -55,7 +59,7 @@ public final class SettingsActivity extends Activity {
                     : Ui.outlined(this, name);
             b.setSelected(t == current);
             b.setOnClickListener(v -> {
-                if (t == store.theme()) return;
+                if (closedByLock() || t == store.theme()) return;
                 store.setTheme(t);
                 recreate(); // redraw this screen in the new colours at once
             });
@@ -65,7 +69,9 @@ public final class SettingsActivity extends Activity {
 
         // The order of the home screen; also reachable by holding a tile.
         Button arrange = Ui.button(this, getString(R.string.settings_arrange), R.color.blue);
-        arrange.setOnClickListener(v -> startActivity(ArrangeActivity.intent(this, null)));
+        arrange.setOnClickListener(v -> {
+            if (!closedByLock()) startActivity(ArrangeActivity.intent(this, null));
+        });
         content.addView(arrange, Ui.fullWidth(this, 36));
         content.addView(explanation(getString(R.string.settings_arrange_explain)), Ui.fullWidth(this, 8));
 
@@ -100,6 +106,7 @@ public final class SettingsActivity extends Activity {
 
     /** Opens a system screen; some vendors lack some screens, hence the fallback. */
     private void open(Intent first, Intent fallback) {
+        if (closedByLock()) return;
         try {
             startActivity(first);
         } catch (RuntimeException e) {
@@ -111,6 +118,31 @@ public final class SettingsActivity extends Activity {
             }
         }
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (closedByLock()) return;
+        store.watch(lockWatch);
+    }
+
+    @Override
+    protected void onPause() {
+        store.unwatch(lockWatch);
+        super.onPause();
+    }
+
+    /**
+     * A helper screen: locked meanwhile (an automation app can lock at any
+     * time), it closes, and every action checks again before it changes anything.
+     */
+    private boolean closedByLock() {
+        if (!store.locked()) return false;
+        finish();
+        return true;
+    }
+
+    private final SharedPreferences.OnSharedPreferenceChangeListener lockWatch = (p, key) -> closedByLock();
 
     @Override
     protected void onStop() {

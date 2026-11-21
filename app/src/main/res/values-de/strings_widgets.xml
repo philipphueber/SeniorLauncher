@@ -7,6 +7,7 @@
     <string name="widgets_missing_why">Seine App hat es abgeschaltet oder wurde entfernt, darum ist es auf der Startseite ausgeblendet.</string>
     <string name="widgets_remove_missing">Nicht mehr verfügbares Widget entfernen</string>
     <string name="widgets_remove_question">Dieses Widget von der Startseite entfernen?</string>
+    <string name="widgets_remove_question_named">„%1$s“ von der Startseite entfernen?</string>
     <string name="widgets_remove_named">%1$s entfernen</string>
     <string name="widgets_add">Widget hinzufügen</string>
     <string name="widgets_add_hint">Tippen Sie auf ein Widget, um es auf die Startseite zu legen.</string>
