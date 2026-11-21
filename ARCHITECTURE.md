@@ -167,7 +167,11 @@ notifications.
   in words with one button: on Android 11+ straight to this app's switch
   (`ACTION_NOTIFICATION_LISTENER_DETAIL_SETTINGS`), else the list of all.
   Granted but not yet bound (just granted, after an update) the card asks for
-  a rebind (`requestRebind`).
+  a rebind (`requestRebind`) when attached, and the home screen again on every
+  resume. Until the listener is connected nothing is known, so the card claims
+  nothing: hidden while locked (`NotificationCard.ready` needs the connection),
+  "Connecting to notifications …" for the helper otherwise, never "No new
+  messages".
 - **Which apps.** An allow-list of packages in `Store`, chosen on
   `NotificationAppsActivity` (from the Widgets screen or the card's setup
   button; never while locked). Nothing shows until apps are picked; the first
@@ -178,13 +182,22 @@ notifications.
   own; no group summaries, ongoing or foreground-service notices, media
   controls or empty ones. Newest first; one entry per app and title (one
   chat), with the newest text and a count. Time in words (`TimeWords`),
-  refreshed every minute with the clock.
-- **Fit.** The card measures its entries and shows as many as fit
-  (`NoteList.fit`), then "and N more messages"; always at least one. On a
-  card of one row the text has one line, else two.
+  refreshed every minute with the clock: only the time texts change, in
+  place. Spoken as "App, sender: text. time." with one full stop each
+  (`NoteList.sentence`, so "Min." or "times." do not get a second).
+- **Fit.** The card builds at most `NoteList.MAX_BUILT` (10) entries,
+  measures them and shows as many as fit (`NoteList.fit`), then "and N more
+  messages", counted over all of them; always at least one. On a card of one
+  row the text has one line, else two.
 - **Live.** The listener and the home screen share one process: the listener
   posts each change to `NotificationHub` on the main thread, which tells its
-  observers; the card watches while attached. No broadcast.
+  observers only about the picked apps' notifications (a busy phone posts many
+  others); the card watches while attached. It rebuilds only when the entries
+  (or its state, rows or lock) differ from what it shows (`Note` and
+  `NoteList.Entry` compare by value), so a resume, an unrelated change or the
+  minute tick keep its views and TalkBack's focus. A notification whose extras
+  cannot be read (`BadParcelableException`, Android 8 to 12) is skipped, not a
+  crash of the home screen. No broadcast.
 - **Tap.** Sends the notification's `contentIntent` from the visible home
   screen (on Android 14+ with the sender's background-start opt-in, which a
   `PendingIntent` from a visible app needs), and cancels it if it was

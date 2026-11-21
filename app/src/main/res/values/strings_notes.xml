@@ -3,6 +3,8 @@
     <!-- The notifications card ("Messages") on the home screen. -->
     <string name="notes_title">Messages</string>
     <string name="notes_none">No new messages</string>
+    <!-- Unlocked only: access is granted but the system has not started the listener yet. Says nothing about whether there are messages. -->
+    <string name="notes_connecting">Connecting to notifications …</string>
     <!-- Below the entries that fit, when some do not. -->
     <plurals name="notes_more">
         <item quantity="one">and %d more message</item>
@@ -23,8 +25,8 @@
     <string name="notes_yesterday">yesterday %1$s</string>
     <!-- %1$s is the day (Mon 3 Nov), %2$s the time. -->
     <string name="notes_earlier">%1$s, %2$s</string>
-    <!-- Read aloud for an entry: app, sender, text, time. -->
-    <string name="notes_entry_cd">%1$s, %2$s: %3$s. %4$s. Tap to open.</string>
+    <!-- Read aloud for an entry: app, sender, text, time. Text and time come with their own full stop (NoteList.sentence). -->
+    <string name="notes_entry_cd">%1$s, %2$s: %3$s %4$s Tap to open.</string>
     <!-- Shown to the helper only (never while locked). -->
     <string name="notes_need_access">To show new messages here, this home screen needs “Notification access” once.</string>
     <string name="notes_allow">Allow notification access</string>

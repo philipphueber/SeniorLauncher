@@ -123,7 +123,7 @@ public class HomeActivity extends Activity {
     private final BroadcastReceiver timeReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context c, Intent i) {
             updateClock();
-            if (notesCard != null && notesCard.isAttachedToWindow()) notesCard.refresh(); // "5 min ago"
+            if (notesCard != null && notesCard.isAttachedToWindow()) notesCard.updateTimes(); // "5 min ago"
         }
     };
 
@@ -251,6 +251,9 @@ public class HomeActivity extends Activity {
             recreate();
             return;
         }
+        // Granted but not bound (just granted, after an update): ask again each
+        // time home comes back, not only when the card is first attached.
+        NotificationHub.ensureBound(this);
         showItem = takeShowNext();
         if (stopped) {
             // Apps may have been updated, disabled or enabled while the package

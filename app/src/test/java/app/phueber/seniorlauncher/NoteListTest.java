@@ -1,6 +1,7 @@
 package app.phueber.seniorlauncher;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -112,5 +113,45 @@ public class NoteListTest {
                 new ArrayList<>(NoteList.defaults("both", "both", installed)));
         assertTrue(NoteList.defaults("gone", null, installed).isEmpty());
         assertTrue(NoteList.defaults("x", "y", null).isEmpty());
+    }
+
+    @Test public void sameEntriesAreEqualSoTheCardNeedNotRedraw() {
+        List<Note> all = Arrays.asList(note("1", "chat", "Maria", "Hi", 1, 0), note("2", "chat", "Maria", "Hello", 2, 0));
+        List<Note> copy = Arrays.asList(note("1", "chat", "Maria", "Hi", 1, 0), note("2", "chat", "Maria", "Hello", 2, 0));
+        assertEquals(NoteList.select(all, ALLOWED, OWN), NoteList.select(copy, ALLOWED, OWN));
+        assertEquals(NoteList.select(all, ALLOWED, OWN).hashCode(), NoteList.select(copy, ALLOWED, OWN).hashCode());
+    }
+
+    @Test public void anyShownChangeMakesEntriesDiffer() {
+        Note a = note("1", "chat", "Maria", "Hi", 1, 0);
+        assertNotEquals(a, note("1", "chat", "Maria", "Hi!", 1, 0));
+        assertNotEquals(a, note("1", "chat", "Maria", "Hi", 2, 0));
+        assertNotEquals(a, note("1", "chat", "Anna", "Hi", 1, 0));
+        assertNotEquals(a, note("9", "chat", "Maria", "Hi", 1, 0));
+        assertNotEquals(new NoteList.Entry(a, 1), new NoteList.Entry(a, 2));
+        assertEquals(new NoteList.Entry(a, 2), new NoteList.Entry(note("1", "chat", "Maria", "Hi", 1, 0), 2));
+    }
+
+    @Test public void fitWithUnbuiltEntriesAlwaysLeavesRoomForMore() {
+        // All 3 built ones would fit, but 12 exist: "and N more" must be shown.
+        assertEquals(2, NoteList.fit(new int[] {10, 10, 10}, 30, 10, 12));
+        // Same as before when everything was built.
+        assertEquals(3, NoteList.fit(new int[] {10, 10, 10}, 30, 10, 3));
+        assertEquals(1, NoteList.fit(new int[] {50}, 30, 10, 12));
+        assertEquals(0, NoteList.fit(new int[0], 30, 10, 0));
+    }
+
+    @Test public void builtAreCapped() {
+        assertTrue(NoteList.MAX_BUILT >= 5 && NoteList.MAX_BUILT <= 20);
+    }
+
+    @Test public void spokenTextEndsWithOneFullStop() {
+        assertEquals("Call me.", NoteList.sentence("Call me"));
+        assertEquals("Call me.", NoteList.sentence("Call me."));
+        assertEquals("Really?", NoteList.sentence("Really? "));
+        assertEquals("vor 5 Min.", NoteList.sentence("vor 5 Min."));
+        assertEquals("Wait…", NoteList.sentence("Wait…"));
+        assertEquals("", NoteList.sentence(""));
+        assertEquals("", NoteList.sentence(null));
     }
 }

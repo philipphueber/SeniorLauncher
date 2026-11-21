@@ -25,11 +25,11 @@ public final class NotificationListener extends NotificationListenerService {
     }
 
     @Override public void onNotificationPosted(StatusBarNotification sbn) {
-        NotificationHub.posted(sbn);
+        NotificationHub.posted(this, sbn);
     }
 
     @Override public void onNotificationRemoved(StatusBarNotification sbn) {
-        NotificationHub.removed(sbn.getKey());
+        NotificationHub.removed(this, sbn.getKey());
     }
 
     @Override public void onDestroy() {

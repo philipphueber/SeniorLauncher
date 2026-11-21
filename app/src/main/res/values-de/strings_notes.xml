@@ -2,6 +2,7 @@
 <resources>
     <string name="notes_title">Nachrichten</string>
     <string name="notes_none">Keine neuen Nachrichten</string>
+    <string name="notes_connecting">Verbinde mit Benachrichtigungen …</string>
     <plurals name="notes_more">
         <item quantity="one">und %d weitere Nachricht</item>
         <item quantity="other">und %d weitere Nachrichten</item>
@@ -18,7 +19,7 @@
     <string name="notes_today">heute %1$s</string>
     <string name="notes_yesterday">gestern %1$s</string>
     <string name="notes_earlier">%1$s, %2$s</string>
-    <string name="notes_entry_cd">%1$s, %2$s: %3$s. %4$s. Tippen zum Öffnen.</string>
+    <string name="notes_entry_cd">%1$s, %2$s: %3$s %4$s Tippen zum Öffnen.</string>
     <string name="notes_need_access">Damit hier neue Nachrichten erscheinen, braucht die Startseite einmal den „Benachrichtigungszugriff“.</string>
     <string name="notes_allow">Benachrichtigungszugriff erlauben</string>
     <string name="notes_need_apps">Wählen Sie, wessen Nachrichten hier erscheinen.</string>

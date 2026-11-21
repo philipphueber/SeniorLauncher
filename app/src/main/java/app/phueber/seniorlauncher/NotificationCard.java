@@ -22,6 +22,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -40,9 +42,13 @@ import java.util.TimeZone;
  * Until it can work (no notification access, or no apps picked) it says so in
  * words with one big button for the helper. While locked it is never shown in
  * that state (HomeActivity hides it, see {@link #ready}), so the senior never
- * faces a request meant for the helper.
+ * faces a request meant for the helper. Granted but not yet connected it
+ * claims nothing: hidden while locked, "Connecting to notifications …" for
+ * the helper otherwise, never "No new messages".
  *
- * Watches NotificationHub while attached, so it updates live while shown.
+ * Watches NotificationHub while attached, so it updates live while shown, and
+ * rebuilds only when what it shows changed; at most NoteList.MAX_BUILT entries
+ * are built, the rest are counted in "and N more".
  */
 @SuppressLint("ViewConstructor") // built in code with its Activity and Store, never inflated
 final class NotificationCard extends FrameLayout implements NotificationHub.Observer {
@@ -54,6 +60,25 @@ final class NotificationCard extends FrameLayout implements NotificationHub.Obse
     private final Map<String, CharSequence> appNames = new HashMap<>();
     private int rows = 2;
     private boolean locked;
+    /** What the card shows now (state, rows, lock, entries), to skip rebuilding the same. */
+    private List<Object> shownKey;
+    /** The built entries, so the minute tick only updates their times. */
+    private final List<Shown> builtEntries = new ArrayList<>();
+
+    private static final int NEED_ACCESS = 0, NEED_APPS = 1, CONNECTING = 2, NONE = 3, ENTRIES = 4;
+
+    /** One built entry and the views whose text has the time in it. */
+    private static final class Shown {
+        final NoteList.Entry entry;
+        final View row;
+        final TextView meta;
+
+        Shown(NoteList.Entry entry, View row, TextView meta) {
+            this.entry = entry;
+            this.row = row;
+            this.meta = meta;
+        }
+    }
 
     NotificationCard(Activity a, Store store) {
         super(a);
@@ -69,10 +94,14 @@ final class NotificationCard extends FrameLayout implements NotificationHub.Obse
         setClipToOutline(true);
     }
 
-    /** Whether the card can show notifications: access granted and apps picked. */
+    /**
+     * Whether the card can show notifications: access granted, apps picked and
+     * the listener connected. Until it is connected nothing is known, so the
+     * locked home screen hides the card rather than claim "No new messages".
+     */
     static boolean ready(Context c, Store store) {
         Set<String> apps = store.notificationApps();
-        return apps != null && !apps.isEmpty() && NotificationHub.granted(c);
+        return apps != null && !apps.isEmpty() && NotificationHub.granted(c) && NotificationHub.isConnected();
     }
 
     void show(int rows, boolean locked) {
@@ -85,6 +114,7 @@ final class NotificationCard extends FrameLayout implements NotificationHub.Obse
     void forgetApps() {
         icons.clear();
         appNames.clear();
+        shownKey = null; // built with the old ones
     }
 
     @Override protected void onAttachedToWindow() {
@@ -103,35 +133,74 @@ final class NotificationCard extends FrameLayout implements NotificationHub.Obse
         refresh();
     }
 
-    /** Redraws from the current state; also called every minute, for the times. */
+    /**
+     * Shows the current state. Rebuilds only when what is shown changed, so a
+     * resume or an unrelated change keeps the views (and TalkBack's focus on
+     * them); otherwise only the times are brought up to date.
+     */
     void refresh() {
-        removeAllViews();
         Set<String> apps = store.notificationApps();
+        List<NoteList.Entry> entries = null;
+        int state;
         if (!NotificationHub.granted(getContext())) {
-            setup(R.string.notes_need_access, R.string.notes_allow,
-                    () -> NotificationHub.openAccessSettings(activity));
+            state = NEED_ACCESS;
+        } else if (apps == null || apps.isEmpty()) {
+            state = NEED_APPS;
+        } else if (!NotificationHub.isConnected()) {
+            state = CONNECTING;
+        } else {
+            entries = NoteList.select(NotificationHub.notes(), apps, getContext().getPackageName());
+            state = entries.isEmpty() ? NONE : ENTRIES;
+        }
+        List<Object> key = Arrays.asList(state, rows, locked, entries);
+        if (key.equals(shownKey)) {
+            updateTimes();
             return;
         }
-        if (apps == null || apps.isEmpty()) {
-            setup(R.string.notes_need_apps, R.string.notes_choose_apps,
-                    () -> activity.startActivity(new Intent(activity, NotificationAppsActivity.class)));
-            return;
-        }
-        List<NoteList.Entry> entries = NoteList.select(NotificationHub.notes(), apps,
-                getContext().getPackageName());
-        if (entries.isEmpty()) {
-            TextView none = Ui.text(getContext(), getContext().getString(R.string.notes_none), Ui.TEXT_BUTTON);
-            none.setTextColor(Ui.color(getContext(), R.color.text_muted));
-            none.setGravity(Gravity.CENTER);
-            addView(none, new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.MATCH_PARENT));
-            return;
+        shownKey = key;
+        removeAllViews();
+        builtEntries.clear();
+        switch (state) {
+            case NEED_ACCESS:
+                setup(R.string.notes_need_access, R.string.notes_allow,
+                        () -> NotificationHub.openAccessSettings(activity));
+                return;
+            case NEED_APPS:
+                setup(R.string.notes_need_apps, R.string.notes_choose_apps,
+                        () -> activity.startActivity(new Intent(activity, NotificationAppsActivity.class)));
+                return;
+            case CONNECTING:
+                // Granted, but the system has not started the listener (yet): we
+                // know nothing, so no "No new messages". Locked the card is hidden
+                // (see ready); the helper sees that it is on its way.
+                if (!locked) muted(R.string.notes_connecting);
+                return;
+            case NONE:
+                muted(R.string.notes_none);
+                return;
+            default:
+                break;
         }
         Column column = new Column(getContext());
-        for (NoteList.Entry e : entries) column.addView(entry(e));
+        int built = Math.min(entries.size(), NoteList.MAX_BUILT);
+        for (int i = 0; i < built; i++) column.addView(entry(entries.get(i)));
         column.addView(column.more);
-        column.total = entries.size();
+        column.total = built;
+        column.all = entries.size();
         addView(column, new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT));
+    }
+
+    /** Every minute ("5 min ago"): the times in words, in place, nothing rebuilt. */
+    void updateTimes() {
+        for (Shown s : builtEntries) times(s);
+    }
+
+    private void muted(int textRes) {
+        TextView t = Ui.text(getContext(), getContext().getString(textRes), Ui.TEXT_BUTTON);
+        t.setTextColor(Ui.color(getContext(), R.color.text_muted));
+        t.setGravity(Gravity.CENTER);
+        addView(t, new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT));
     }
 
@@ -185,12 +254,7 @@ final class NotificationCard extends FrameLayout implements NotificationHub.Obse
         texts.setOrientation(LinearLayout.VERTICAL);
         texts.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS);
         CharSequence app = appName(n.pkg);
-        String when = when(n.when);
-        String meta = app + " · " + when;
-        if (e.count > 1) {
-            meta += " · " + c.getResources().getQuantityString(R.plurals.notes_count, e.count, e.count);
-        }
-        TextView top = Ui.text(c, meta, Ui.TEXT_BODY);
+        TextView top = Ui.text(c, "", Ui.TEXT_BODY);
         top.setTextColor(Ui.color(c, R.color.text_muted));
         oneLine(top);
         texts.addView(top);
@@ -206,7 +270,9 @@ final class NotificationCard extends FrameLayout implements NotificationHub.Obse
         }
         row.addView(texts, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
 
-        row.setContentDescription(c.getString(R.string.notes_entry_cd, app, title, n.text, when));
+        Shown s = new Shown(e, row, top);
+        builtEntries.add(s);
+        times(s);
         row.setAccessibilityDelegate(new View.AccessibilityDelegate() {
             @Override public void onInitializeAccessibilityNodeInfo(View host, AccessibilityNodeInfo info) {
                 super.onInitializeAccessibilityNodeInfo(host, info);
@@ -214,6 +280,25 @@ final class NotificationCard extends FrameLayout implements NotificationHub.Obse
             }
         });
         return row;
+    }
+
+    /** "App · 5 min ago · 3 messages" and the spoken text, set only when they changed. */
+    private void times(Shown s) {
+        Context c = getContext();
+        Note n = s.entry.note;
+        CharSequence app = appName(n.pkg);
+        String when = when(n.when);
+        String meta = app + " · " + when;
+        if (s.entry.count > 1) {
+            meta += " · " + c.getResources().getQuantityString(R.plurals.notes_count, s.entry.count, s.entry.count);
+        }
+        if (!meta.contentEquals(s.meta.getText())) s.meta.setText(meta);
+        String title = n.title.isEmpty() ? app.toString() : n.title;
+        String cd = c.getString(R.string.notes_entry_cd, app, title,
+                NoteList.sentence(n.text), NoteList.sentence(when));
+        if (!cd.contentEquals(s.row.getContentDescription() == null ? "" : s.row.getContentDescription())) {
+            s.row.setContentDescription(cd);
+        }
     }
 
     private static void oneLine(TextView t) {
@@ -280,7 +365,10 @@ final class NotificationCard extends FrameLayout implements NotificationHub.Obse
      */
     private final class Column extends ViewGroup {
         final TextView more;
+        /** Entries built as views (at most NoteList.MAX_BUILT) ... */
         int total;
+        /** ... of this many in all, which "and N more" counts. */
+        int all;
         private int shown;
         private int[] heights = new int[0];
         private final int rule;
@@ -311,8 +399,8 @@ final class NotificationCard extends FrameLayout implements NotificationHub.Obse
                 heights[i] = child.getMeasuredHeight() + (i > 0 ? rule : 0);
             }
             more.measure(exactW, free);
-            shown = NoteList.fit(heights, h, more.getMeasuredHeight() + rule);
-            int hidden = total - shown;
+            shown = NoteList.fit(heights, h, more.getMeasuredHeight() + rule, all);
+            int hidden = all - shown;
             String text = hidden > 0 ? getResources().getQuantityString(R.plurals.notes_more, hidden, hidden) : "";
             if (!text.contentEquals(more.getText())) {
                 more.setText(text);
@@ -334,7 +422,7 @@ final class NotificationCard extends FrameLayout implements NotificationHub.Obse
                 child.layout(0, y, w, y + child.getMeasuredHeight());
                 y += child.getMeasuredHeight();
             }
-            if (shown < total) {
+            if (shown < all) {
                 int mh = more.getMeasuredHeight();
                 more.layout(0, (b - t) - mh, w, b - t);
             } else {
@@ -349,7 +437,7 @@ final class NotificationCard extends FrameLayout implements NotificationHub.Obse
                 int top = getChildAt(i).getTop() - rule;
                 canvas.drawRect(inset, top, getWidth() - inset, top + rule, rulePaint);
             }
-            if (shown < total) {
+            if (shown < all) {
                 int top = more.getTop() - rule;
                 canvas.drawRect(inset, top, getWidth() - inset, top + rule, rulePaint);
             }

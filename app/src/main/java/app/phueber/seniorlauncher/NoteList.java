@@ -44,7 +44,24 @@ final class NoteList {
             this.note = note;
             this.count = count;
         }
+
+        @Override public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof Entry)) return false;
+            Entry e = (Entry) o;
+            return count == e.count && note.equals(e.note);
+        }
+
+        @Override public int hashCode() {
+            return 31 * note.hashCode() + count;
+        }
     }
+
+    /**
+     * At most this many entries are built as views: even a full-page card on a
+     * big screen fits fewer, and the rest only count towards "and N more".
+     */
+    static final int MAX_BUILT = 10;
 
     /**
      * The entries to show, newest first. {@code allowed} null or empty shows
@@ -87,10 +104,19 @@ final class NoteList {
      * be cut off: an empty card above "and 3 more" would say nothing.
      */
     static int fit(int[] heights, int available, int moreHeight) {
+        return fit(heights, available, moreHeight, heights == null ? 0 : heights.length);
+    }
+
+    /**
+     * As {@link #fit(int[], int, int)}, when only the first {@code heights}
+     * of {@code total} entries were built (see {@link #MAX_BUILT}): if some
+     * were not, the "and N more" line is always needed.
+     */
+    static int fit(int[] heights, int available, int moreHeight, int total) {
         if (heights == null || heights.length == 0) return 0;
-        long total = 0;
-        for (int h : heights) total += Math.max(0, h);
-        if (total <= available) return heights.length;
+        long sum = 0;
+        for (int h : heights) sum += Math.max(0, h);
+        if (total <= heights.length && sum <= available) return heights.length;
         long used = Math.max(0, moreHeight);
         int n = 0;
         while (n < heights.length && used + Math.max(0, heights[n]) <= available) {
@@ -98,6 +124,20 @@ final class NoteList {
             n++;
         }
         return Math.max(1, n);
+    }
+
+    /**
+     * A notification's text as a sentence for TalkBack: a full stop added only
+     * if it does not already end in one ("Call me." stays, never "Call me..").
+     * Empty stays empty.
+     */
+    static String sentence(String text) {
+        if (text == null) return "";
+        String t = text.trim();
+        if (t.isEmpty()) return "";
+        char last = t.charAt(t.length() - 1);
+        if (".!?…:;".indexOf(last) >= 0) return t;
+        return t + ".";
     }
 
     /**

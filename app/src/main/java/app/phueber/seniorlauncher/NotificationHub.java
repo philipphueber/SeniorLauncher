@@ -66,7 +66,12 @@ final class NotificationHub {
 
     static void connected(NotificationListener l, StatusBarNotification[] all) {
         List<Live> copies = new ArrayList<>();
-        if (all != null) for (StatusBarNotification sbn : all) copies.add(live(sbn));
+        if (all != null) {
+            for (StatusBarNotification sbn : all) {
+                Live c = live(sbn);
+                if (c != null) copies.add(c);
+            }
+        }
         MAIN.post(() -> {
             listener = new WeakReference<>(l);
             active.clear();
@@ -84,27 +89,55 @@ final class NotificationHub {
         });
     }
 
-    static void posted(StatusBarNotification sbn) {
-        Live c = live(sbn);
+    /**
+     * Observers hear only of notifications from the apps the helper picked: a
+     * busy phone posts many others (downloads, updates, music), and redrawing
+     * the card for each would be wasted work and take TalkBack's focus off it.
+     */
+    static void posted(Context c, StatusBarNotification sbn) {
+        Live l = live(sbn);
+        if (l == null) return;
+        Store store = new Store(c);
         MAIN.post(() -> {
-            active.remove(c.note.key); // an update moves it to the end, like a new one
-            active.put(c.note.key, c);
-            changed();
+            Live old = active.remove(l.note.key); // an update moves it to the end, like a new one
+            active.put(l.note.key, l);
+            if (picked(store, l) || picked(store, old)) changed();
         });
     }
 
-    static void removed(String key) {
+    static void removed(Context c, String key) {
+        Store store = new Store(c);
         MAIN.post(() -> {
-            if (active.remove(key) != null) changed();
+            Live old = active.remove(key);
+            if (picked(store, old)) changed();
         });
+    }
+
+    private static boolean picked(Store store, Live l) {
+        if (l == null) return false;
+        Set<String> apps = store.notificationApps();
+        return apps != null && apps.contains(l.note.pkg);
     }
 
     private static void changed() {
         for (Observer o : new ArrayList<>(observers)) o.onNotificationsChanged();
     }
 
-    /** The plain copy the card works with: texts as strings, the flags that hide it. */
+    /**
+     * The plain copy the card works with: texts as strings, the flags that hide
+     * it. Null if it cannot be read: on Android 8 to 12 an app's extras that do
+     * not unparcel throw BadParcelableException here, which must not take the
+     * home screen's process down; that one notification is skipped.
+     */
     private static Live live(StatusBarNotification sbn) {
+        try {
+            return read(sbn);
+        } catch (RuntimeException e) {
+            return null;
+        }
+    }
+
+    private static Live read(StatusBarNotification sbn) {
         Notification n = sbn.getNotification();
         Bundle x = n.extras != null ? n.extras : new Bundle();
         String title = first(x.getCharSequence(Notification.EXTRA_TITLE),
