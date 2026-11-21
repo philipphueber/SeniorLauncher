@@ -224,6 +224,12 @@ public class WidgetsActivity extends Activity {
         }
         top.addView(texts, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         row.addView(top);
+        if (info != null && !store.locked()) {
+            LinearLayout sizes = new LinearLayout(this);
+            sizes.setOrientation(LinearLayout.VERTICAL);
+            showSizes(sizes, widgetId, info, label);
+            row.addView(sizes, Ui.fullWidth(this, 0));
+        }
 
         Button remove = Ui.button(this, getString(R.string.remove), R.color.red);
         if (label != null) remove.setContentDescription(getString(R.string.widgets_remove_named, label));
@@ -246,6 +252,59 @@ public class WidgetsActivity extends Activity {
         } catch (RuntimeException e) {
             return null; // the widget service is unavailable (rare, e.g. during boot)
         }
+    }
+
+    /**
+     * The size buttons of a placed widget: Small / 1 row / 2 rows / Full page,
+     * only those its app allows (Widgets.allowedSizes), the stored one green with
+     * "✓ … (chosen)". Nothing when there is nothing to choose. A tap stores the
+     * size at once and redraws only these buttons; the home screen shows it on
+     * return.
+     */
+    private void showSizes(LinearLayout box, int widgetId, AppWidgetProviderInfo info, String label) {
+        box.removeAllViews();
+        HomeItem item = storedWidget(widgetId);
+        if (item == null) return;
+        int current = item.small ? WidgetRows.SMALL : item.rows;
+        List<Integer> sizes = Widgets.allowedSizes(this, info, current);
+        if (sizes.size() < 2) return;
+
+        TextView heading = Ui.text(this, getString(R.string.widgets_size_heading), Ui.TEXT_BODY);
+        heading.setTextColor(Ui.color(this, R.color.text_muted));
+        box.addView(heading, Ui.fullWidth(this, 16));
+        for (int size : sizes) {
+            String name = sizeName(size);
+            boolean chosen = size == current;
+            Button b = chosen
+                    ? Ui.button(this, getString(R.string.widgets_size_chosen, name), R.color.green)
+                    : Ui.outlined(this, name);
+            if (label != null) {
+                b.setContentDescription(getString(R.string.widgets_size_named, label,
+                        chosen ? getString(R.string.widgets_size_chosen, name) : name));
+            }
+            if (!chosen) {
+                b.setOnClickListener(v -> {
+                    if (!store.setWidgetSize(widgetId, size == WidgetRows.SMALL, Math.max(1, size))) return;
+                    showSizes(box, widgetId, info, label);
+                    box.announceForAccessibility(label != null
+                            ? getString(R.string.widgets_size_named, label, name) : name);
+                });
+            }
+            box.addView(b, Ui.fullWidth(this, 8));
+        }
+    }
+
+    /** The stored home item of a widget, or null if it was removed meanwhile. */
+    private HomeItem storedWidget(int widgetId) {
+        for (HomeItem i : store.items()) if (i.isWidget() && i.widgetId == widgetId) return i;
+        return null;
+    }
+
+    /** "Small, like an app", "1 row", "2 rows" or "Full page". */
+    private String sizeName(int size) {
+        if (size == WidgetRows.SMALL) return getString(R.string.widgets_size_small);
+        if (size >= Pages.ROWS) return getString(R.string.widgets_size_full);
+        return getResources().getQuantityString(R.plurals.widgets_size_rows, size, size);
     }
 
     // ---------------------------------------------------------------- the widget list

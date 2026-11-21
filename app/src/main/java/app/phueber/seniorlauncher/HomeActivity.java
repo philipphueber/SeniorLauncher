@@ -66,7 +66,7 @@ public class HomeActivity extends Activity {
     // Read by WidgetsActivity (Widgets.rowsFor) to size a new widget in grid rows.
     private static final String PREFS = "seniorlauncher";
     private static final String K_CELL_HEIGHT_DP = "cell_height_dp";
-    private static final int GAP_DP = 12;
+    private static final int GAP_DP = Widgets.GAP_DP;
 
     private final Handler handler = new Handler(Looper.getMainLooper());
     private Store store;
@@ -746,6 +746,11 @@ public class HomeActivity extends Activity {
             savedCellDp = cellDp;
             if (prefs.getInt(K_CELL_HEIGHT_DP, -1) != cellDp) {
                 prefs.edit().putInt(K_CELL_HEIGHT_DP, cellDp).apply();
+                // The font or display size changed: widgets sized automatically
+                // get the rows that now fit. Posted: not in this layout pass.
+                handler.post(() -> {
+                    if (!isDestroyed() && Widgets.refitAutomatic(this)) rebuild(false);
+                });
             }
         }
         for (View v : widgetViews.values()) {

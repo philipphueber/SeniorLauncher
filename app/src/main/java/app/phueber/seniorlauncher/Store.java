@@ -5,6 +5,9 @@ import android.content.SharedPreferences;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.function.IntUnaryOperator;
 import java.util.function.Predicate;
 
 /**
@@ -20,6 +23,8 @@ public final class Store {
     private static final String K_HASH = "pin_hash";
     private static final String K_SEEDED = "seeded";
     private static final String K_THEME = "theme";
+    /** Widget ids the helper sized by hand, comma-separated; the others re-fit automatically. */
+    private static final String K_SIZED = "sized_widgets";
 
     private final SharedPreferences prefs;
     private final Context app;
@@ -75,6 +80,69 @@ public final class Store {
         List<HomeItem> list = new ArrayList<>();
         for (HomeItem i : items()) if (!(i.isWidget() && i.widgetId == widgetId)) list.add(i);
         setItems(list);
+        Set<Integer> sized = sized();
+        if (sized.remove(widgetId)) setSized(sized);
+    }
+
+    /**
+     * The helper's size for a placed widget: one tile like an app, or the full
+     * width with {@code rows} rows. It keeps its place in the order, and from
+     * now on is never re-fitted automatically. Returns false if it is not stored.
+     */
+    public synchronized boolean setWidgetSize(int widgetId, boolean small, int rows) {
+        List<HomeItem> list = items();
+        for (int n = 0; n < list.size(); n++) {
+            HomeItem i = list.get(n);
+            if (!i.isWidget() || i.widgetId != widgetId) continue;
+            list.set(n, small ? HomeItem.smallWidget(widgetId) : HomeItem.widget(widgetId, rows));
+            setItems(list);
+            Set<Integer> sized = sized();
+            if (sized.add(widgetId)) setSized(sized);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Gives every wide widget the helper did not size by hand the rows
+     * {@code autoRows} returns for its id (0 or less: leave it). Returns
+     * whether anything changed.
+     */
+    public synchronized boolean refitWidgets(IntUnaryOperator autoRows) {
+        List<HomeItem> list = items();
+        Set<Integer> sized = sized();
+        boolean changed = false;
+        for (int n = 0; n < list.size(); n++) {
+            HomeItem i = list.get(n);
+            if (!i.isWidget() || i.small || sized.contains(i.widgetId)) continue;
+            int rows = autoRows.applyAsInt(i.widgetId);
+            if (rows <= 0 || rows == i.rows) continue;
+            list.set(n, HomeItem.widget(i.widgetId, rows));
+            changed = true;
+        }
+        if (changed) setItems(list);
+        return changed;
+    }
+
+    private Set<Integer> sized() {
+        Set<Integer> ids = new TreeSet<>();
+        for (String part : prefs.getString(K_SIZED, "").split(",")) {
+            try {
+                ids.add(Integer.parseInt(part.trim()));
+            } catch (NumberFormatException ignored) {
+                // empty or damaged entry
+            }
+        }
+        return ids;
+    }
+
+    private void setSized(Set<Integer> ids) {
+        StringBuilder b = new StringBuilder();
+        for (int id : ids) {
+            if (b.length() > 0) b.append(',');
+            b.append(id);
+        }
+        prefs.edit().putString(K_SIZED, b.toString()).commit();
     }
 
     /**

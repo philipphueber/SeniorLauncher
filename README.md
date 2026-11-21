@@ -44,7 +44,9 @@ Needs Android 8.0 or newer.
   **▲ Earlier** and **▼ Later** move a tile one place; headings show where each
   page begins.
 - **Widgets** lists the widgets your apps offer. Tap one to put it on the home
-  screen; Android asks once whether to allow it. Widgets are removed there too.
+  screen; Android asks once whether to allow it. Each placed widget can be
+  made bigger or smaller there (**Small**, **1 row**, **2 rows**, **Full page**:
+  only the sizes the widget supports; bigger means bigger text), and removed.
 - **Settings → Colours**: Light, Dark, High contrast (white on black), or
   Colourful (each tile in its app's colour). Pick whatever is easiest to read.
 - **Settings → Lock**: choose a PIN (4 to 8 digits). Afterwards only the
@@ -115,8 +117,10 @@ Benötigt Android 8.0 oder neuer.
   Reihenfolge: **▲ Nach vorne** und **▼ Nach hinten** verschieben eine Kachel
   um einen Platz; Überschriften zeigen, wo jede Seite beginnt.
 - **Widgets** zeigt die Widgets Ihrer Apps. Tippen Sie eines an, um es auf die
-  Startseite zu legen; Android fragt einmal, ob das erlaubt ist. Entfernt werden
-  Widgets ebenfalls dort.
+  Startseite zu legen; Android fragt einmal, ob das erlaubt ist. Dort lässt sich
+  jedes platzierte Widget auch größer oder kleiner machen (**Klein**, **1 Zeile**,
+  **2 Zeilen**, **Ganze Seite**: nur die Größen, die das Widget kann; größer heißt
+  größere Schrift) und entfernen.
 - **Einstellungen → Farben**: Hell, Dunkel, Hoher Kontrast (weiß auf schwarz)
   oder Bunt (jede Kachel in der Farbe ihrer App). Wählen Sie, was am besten zu lesen
   ist.

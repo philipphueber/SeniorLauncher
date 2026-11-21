@@ -14,6 +14,7 @@ import android.view.View;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
@@ -40,6 +41,8 @@ public final class Widgets {
     static final String PREFS = "seniorlauncher";
     static final String K_CELL_HEIGHT_DP = "cell_height_dp";
     static final int DEFAULT_CELL_HEIGHT_DP = 180;
+    /** Space between grid cells (dp); HomeActivity lays the grid out with it. */
+    static final int GAP_DP = 12;
 
     private static AppWidgetHost host;
     // Last size sent per view (dp, packed), so a relayout does not wake the
@@ -124,14 +127,7 @@ public final class Widgets {
 
     /** Whether this provider's widgets are 1x1 and go into one tile like an app. */
     static boolean isSmall(Context c, AppWidgetProviderInfo info) {
-        float density = c.getResources().getDisplayMetrics().density;
-        int w = Math.round(info.minWidth / density), h = Math.round(info.minHeight / density);
-        int tw = 0, th = 0;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            tw = info.targetCellWidth;
-            th = info.targetCellHeight;
-        }
-        return WidgetRows.isOneByOne(w, h, tw, th);
+        return WidgetRows.isOneByOne(spec(c, info));
     }
 
     /**
@@ -146,19 +142,48 @@ public final class Widgets {
 
     /** Grid rows a new widget of this provider should span on the home screen. */
     static int rowsFor(Context c, AppWidgetProviderInfo info) {
-        float density = c.getResources().getDisplayMetrics().density;
-        // minHeight is in pixels (AppWidgetManager converts the provider's dp).
-        int minDp = Math.round(info.minHeight / density);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && info.targetCellHeight > 0) {
-            // The cell count the app asks for on a normal launcher grid, using the
-            // platform's sizing rule (n cells ~ 73n - 16 dp). Some widgets declare a
-            // tiny minHeight and only say here how tall they want to be.
-            minDp = Math.max(minDp, 73 * info.targetCellHeight - 16);
-        }
-        return WidgetRows.rows(minDp, cellHeightDp(c), Pages.ROWS);
+        return WidgetRows.autoRows(spec(c, info), cellHeightDp(c), Pages.ROWS);
     }
 
-    private static int cellHeightDp(Context c) {
+    /**
+     * The sizes the helper may choose for a placed widget, smallest first:
+     * {@link WidgetRows#SMALL} and/or row counts; current is always among them.
+     */
+    static List<Integer> allowedSizes(Context c, AppWidgetProviderInfo info, int current) {
+        return WidgetRows.allowedSizes(spec(c, info), cellHeightDp(c), GAP_DP, Pages.ROWS, current);
+    }
+
+    /**
+     * Re-fits the rows of every wide widget the helper never sized by hand to
+     * the current cell height (it changes with the font or display size).
+     * Returns whether anything changed. Widgets whose app is gone keep theirs.
+     */
+    static boolean refitAutomatic(Context c) {
+        int cell = cellHeightDp(c);
+        return new Store(c).refitWidgets(id -> {
+            AppWidgetProviderInfo info = info(c, id);
+            return info == null ? 0 : WidgetRows.autoRows(spec(c, info), cell, Pages.ROWS);
+        });
+    }
+
+    /** The provider's size declaration in dp; AppWidgetManager hands it over in pixels. */
+    private static WidgetRows.Spec spec(Context c, AppWidgetProviderInfo info) {
+        float density = c.getResources().getDisplayMetrics().density;
+        int tw = 0, th = 0, maxH = 0;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            tw = info.targetCellWidth;
+            th = info.targetCellHeight;
+            maxH = Math.round(info.maxResizeHeight / density);
+        }
+        return new WidgetRows.Spec(
+                Math.round(info.minWidth / density), Math.round(info.minHeight / density),
+                Math.round(info.minResizeWidth / density), Math.round(info.minResizeHeight / density),
+                maxH, tw, th,
+                (info.resizeMode & AppWidgetProviderInfo.RESIZE_HORIZONTAL) != 0,
+                (info.resizeMode & AppWidgetProviderInfo.RESIZE_VERTICAL) != 0);
+    }
+
+    static int cellHeightDp(Context c) {
         SharedPreferences p = c.getApplicationContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         try {
             return p.getInt(K_CELL_HEIGHT_DP, DEFAULT_CELL_HEIGHT_DP);

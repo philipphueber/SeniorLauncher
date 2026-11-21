@@ -15,6 +15,16 @@
     <string name="widgets_none_found">No widget found.</string>
     <string name="widgets_size_small">Small, like an app</string>
     <string name="widgets_size_wide">Wide</string>
+    <!-- Size choice on a placed widget's card; Small reuses widgets_size_small. -->
+    <string name="widgets_size_heading">Size on the home screen</string>
+    <plurals name="widgets_size_rows">
+        <item quantity="one">%d row</item>
+        <item quantity="other">%d rows</item>
+    </plurals>
+    <string name="widgets_size_full">Full page</string>
+    <string name="widgets_size_chosen">✓ %1$s (chosen)</string>
+    <!-- Spoken for a size button and after choosing: widget name, size. -->
+    <string name="widgets_size_named">%1$s: %2$s</string>
     <!-- Spoken for a widget card: widget name, app name, size badge. -->
     <string name="widgets_card_cd">%1$s, from %2$s. %3$s. Tap to add it to the home screen.</string>
     <string name="widgets_loading">Loading widgets …</string>
