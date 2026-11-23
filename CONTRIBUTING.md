@@ -18,6 +18,7 @@ together is in [ARCHITECTURE.md](ARCHITECTURE.md).
   `res/values/strings.xml` and `res/values-de/strings.xml` (formal "Sie").
 - **Big and plain.** Large text, large touch targets, high contrast, no
   gestures.
+  Exception: the helper-only step cards (`Steps`) use normal Android sizes.
 
 ## Commits
 
