@@ -9,8 +9,9 @@ separate app, not part of this one.
 ## Requirements
 
 - **Pages, not scrolling.** The home screen never scrolls. When the tiles do
-  not fit, they continue on the next page, and big buttons switch pages. There
-  is no swipe.
+  not fit, they continue on the next page, and big buttons switch pages. A
+  swipe turns them instead only if the helper chooses it (see "Turning
+  pages").
 - **Widgets as well as apps.** Other apps' home-screen widgets can be placed
   between the app tiles.
 - **Charging is clearly shown.** Whether the phone is charging must be
@@ -22,7 +23,10 @@ separate app, not part of this one.
 
 | Class | Role |
 |---|---|
-| `HomeActivity` | The home screen: header (time, date, `BatteryView`), helper bar or padlock, one page of the grid, pager bar. Rebuilds only when what is visible changed. |
+| `HomeActivity` | The home screen: header (time, date, `BatteryView`), helper bar or padlock, one page of the grid (in a `SwipePager`), pager bar or page dots. Rebuilds only when what is visible changed. |
+| `Paging` | Pure: Buttons or Swipe, and the swipe rules: when a touch becomes a swipe, when a swipe turns the page, which page. Unit tested. |
+| `SwipePager` | Holds the grid; in swipe mode takes over a clearly sideways touch from the tiles and turns the page, with the slide. Scrollable for TalkBack. |
+| `PageDots` | Swipe mode's page dots under the tiles; for TalkBack "Page 2 of 3" with Next page / Previous page actions. |
 | `PageLayout` | A fixed `Pages.ROWS` x `Pages.COLUMNS` grid that always fills its space; places children by row, column and span. Reports the cell size after layout. |
 | `BatteryView` | The battery box: percent plus a word. On battery a light green gauge fills it up to the charge; low is solid red; charging is solid blue and full solid green, both with a lightning bolt (charging and full differ by colour, not only by word). |
 | `HelperActivity` | Base of the five helper screens: applies the theme, closes the screen when locked and rebuilds it in a new theme, on resume and at once while in front (it watches the store). |
@@ -38,7 +42,7 @@ separate app, not part of this one.
 | `IconColor` | Pure: an icon's main colour for Colourful tiles, made readable under white text. Unit tested. |
 | `IconShape` | Pure: the icon styles (Round, As designed) and the Round geometry: adaptive layers at 108/72, whether a legacy icon is already a disc, where a legacy icon goes in its disc. Unit tested. |
 | `RoundIcon` | Every app icon on every screen goes through `RoundIcon.of`: as it is (As designed) or as a filled circle (Round), see "Icons". Caches a legacy icon's measurement per app. |
-| `SettingsActivity` | Lock (choose a PIN), colours, app icons, arrange home screen, choose home app (with its steps while this is not the home app), phone settings, backup (save/load this app's or all Senior apps' settings). Closes itself when locked. |
+| `SettingsActivity` | Lock (choose a PIN), colours, app icons, turn pages, arrange home screen, choose home app (with its steps while this is not the home app), phone settings, backup (save/load this app's or all Senior apps' settings). Closes itself when locked. |
 | `Steps` | "How? Show the steps" and the card it opens (a dialog on `dialogCard`, in the chosen theme): numbered steps (string arrays, in the words Android shows), notes for other phones, the setup action itself, and Back, which only closes the card (the system Back too), so the helper returns to the screen it came from. The screens keep one short line per task; the full steps only on demand. The same in every Senior app. Used for choosing the home app (Settings, only while this is not the home app) and notification access (Widgets, while missing; with App info for "Allow restricted settings" on Android 13+). Not on the home-screen card itself: a card of one row has no room for a second button. Helper-facing, so the card, its buttons and the "How? Show the steps" trigger use normal Android sizes (16sp text, 20sp bold title, 48dp buttons, 44dp trigger; named `HELPER_*` constants in `Steps`), not the big senior sizes of `Ui`, which every senior screen keeps. |
 | `SettingsBackup` | Saves and restores the launcher's settings, and every Senior app's through its `BackupProvider`; builds the result texts. Off the main thread. |
 | `LauncherBackup` | Pure: the launcher's settings to and from the backup's map, and the restore plan (apps that are here, widgets reused by provider or listed to add again, ids to free). Unit tested. |
@@ -53,9 +57,9 @@ separate app, not part of this one.
 | `Order` | Pure: moves one item to a place counted among the shown items; hidden items keep their place. Unit tested. |
 | `LockProvider` | Tells SeniorPhone, SeniorAlert and SeniorNav whether the home screen is locked and whether a PIN is set, lifts the lock for them when given the PIN, and locks/unlocks without the PIN for SeniorNav's volume-button pattern. |
 | `NavLock` | Pure: only SeniorNav may lock and unlock without the PIN, and locking needs a stored PIN. Unit tested. |
-| `AutomationReceiver` | Commands from automation apps (lock, unlock, theme, icon style, messages tap) by broadcast; goes through `Store` like Settings. |
+| `AutomationReceiver` | Commands from automation apps (lock, unlock, theme, icon style, messages tap, paging) by broadcast; goes through `Store` like Settings. |
 | `Automation` | Pure: the automation action and extra names, and the lenient parsing of their string extras. Unit tested. |
-| `Store` | The ordered home items (with the widgets sized by hand), whether the helper declined the Flashlight replacement, the lock flag with its PIN salt/hash (kept after unlocking), the theme and icon style, the first-run flag and the notification card's app list (package names only) and tap choice, in SharedPreferences. |
+| `Store` | The ordered home items (with the widgets sized by hand), whether the helper declined the Flashlight replacement, the lock flag with its PIN salt/hash (kept after unlocking), the theme, icon style and paging, the first-run flag and the notification card's app list (package names only) and tap choice, in SharedPreferences. |
 | `Pin` | PIN validation (4-8 digits), salted SHA-256 hash, constant-time compare, and the fixed reset PIN. Same as SeniorAlert's and SeniorPhone's. Pure. |
 | `PinDialog` | Choose a PIN (twice) when locking; enter it when unlocking. The unlock prompt closes after 10 s without typing. |
 | `Ui` | Shared buttons, helper-screen frame and dialogs (`confirm`, and `choose` for more than one action; every dialog, the PIN prompt too, on `dialogCard`, outlined like the tiles so it has an edge on the dimmed screen), so every screen looks alike. Resolves every colour through the chosen theme (`Ui.color`, `Ui.applyTheme`). |
@@ -86,6 +90,38 @@ system Back still steps back one screen. A recreate (new colours, or any configu
 the page shown: `HomeActivity` saves it only while `isChangingConfigurations()`,
 so a start after the process died still opens on page 1.
 
+## Turning pages
+
+Settings → Turn pages: **Buttons** (the default) or **Swipe**. Buttons is
+the Previous / "Page 2 of 3" / Next bar. Swipe drops the bar (its height
+goes to the tiles) and shows small dots under them instead, muted except the
+shown page, only when there is more than one page; a sideways swipe on the
+page area turns the page, left to the next, right to the previous.
+
+- **Taps stay taps** (`Paging`, unit tested). The touch goes to the tile as
+  usual; `SwipePager` takes it over (`onInterceptTouchEvent`, the tile gets a
+  cancel, so it never opens) only once the finger moved past the touch slop
+  sideways, at least 1.5 times as far as up or down. Up or down past the slop
+  first, or held for the long-press time first, and the touch is never a
+  swipe: the long-press menu and vertical swipes (SeniorNav's pull-down
+  block, the system's gestures) are untouched. The page turns when the finger
+  went a third of the page's width, or on a flick of at least 25dp at 400dp/s
+  the same way (ViewPager's values); otherwise it springs back.
+- **Feedback.** While dragging, the grid follows the finger at half speed (a
+  little at the first or last page, then springs back); a turn slides the
+  new page in from that side (220 ms).
+- **Widgets.** A swipe over a widget turns the page unless the widget claims
+  the touch itself (`requestDisallowInterceptTouchEvent`, as scrolling lists
+  do once they scroll); then the widget keeps it.
+- **TalkBack.** The page area is scrollable (TalkBack's scroll gestures and
+  actions turn the page), the dots read "Page 2 of 3" with the actions Next
+  page and Previous page, and every turn is announced as "Page 2 of 3".
+- Home still goes to page 1, Back still does nothing, and the hand-over to
+  the page of the item arranged or added last works the same in both modes.
+  The Arrange screen keeps its own Previous / Next buttons.
+- In `Store` (`paging`, absent = Buttons), the backup (`"paging"`, absent =
+  Buttons) and automation (`SET_PAGING`).
+
 ## Order
 
 New items go to the end. The helper changes the order on the Arrange screen
@@ -93,8 +129,9 @@ New items go to the end. The helper changes the order on the Arrange screen
 page at a time, built with the same `PageLayout` and `Pages.layout`, with the
 same tiles; wide widgets and the messages card are blocks with their icon and
 name across their rows. There is no drag and drop and no long press, because
-the senior's phone has no gestures and the helper gets the same taps as
-everywhere else: **tap to pick, tap to place**.
+the senior's phone has no gestures (apart from page swiping, if the helper
+chooses it) and the helper gets the same taps as everywhere else: **tap to
+pick, tap to place**.
 
 - Tap an item: it is picked, with a thick outline, green or in High contrast
   white (`Palette.markBorder`), so it is the most visible item in every
@@ -149,8 +186,17 @@ the home screen?", Remove in red.
 - Small or wide: a widget made for one launcher cell (1x1: its target cells
   on Android 12+, else a minimum size of at most 57dp, the platform's one-cell
   size) goes into one tile, dressed like an app: the same card, its name below.
-  Taps go to the widget. Stored as `s:<id>`; older `w:<id>:<rows>` entries
-  stay wide.
+  Taps go to the widget. A widget with exactly one clickable view (one with
+  a click action, such as SeniorLight's button) gets the whole tile as that
+  button: a tap on its name or the card's edge is passed on with
+  `performClick` (which sends the widget's own `PendingIntent`), with the
+  app tile's ripple, and TalkBack reads the tile as one button named like
+  the widget (`HomeActivity.forwardTaps`, `Widgets.singleClickable`). Checked
+  after every layout of the widget and again at the tap, since an update may
+  re-inflate its views. With several clickable views (or none) only the
+  widget's own views react, as a tap beside them could not say which was
+  meant. A swipe on the tile is a swipe, never a tap (see "Turning pages").
+  Stored as `s:<id>`; older `w:<id>:<rows>` entries stay wide.
 - Rows (wide widgets): the widget's minimum height (and, on Android 12+, its target cell
   height) against the home grid's measured cell height, at most a full page.
   When the measured cell height changes (font or display size), `HomeActivity`
@@ -421,8 +467,8 @@ permission. Installed without the launcher, each app keeps its own lock.
 
 Automation apps (Trigly, Tasker) send `app.phueber.seniorlauncher.action.LOCK`
 / `UNLOCK` (extra `pin`), `SET_THEME` (extra `theme`), `SET_ICONS` (extra
-`style`: round or designed) and `MESSAGES_TAP` (extra `action`: open,
-open_remove or remove) to
+`style`: round or designed), `MESSAGES_TAP` (extra `action`: open,
+open_remove or remove) and `SET_PAGING` (extra `mode`: buttons or swipe) to
 `AutomationReceiver`. Broadcasts, not activities: nothing needs to appear on
 screen, and a broadcast from the background needs no overlay permission. The
 extras are strings because that is all such apps can send; `Automation` drops
@@ -459,7 +505,8 @@ for itself, and the launcher can do all of them in one file.
   guessed at; an unreadable file, or a field of the wrong type, is refused
   with nothing changed. Missing fields take their defaults.
 - **The launcher's settings** (`LauncherBackup`): the home items in order,
-  the colours, the icon style (absent in older files: Round), the
+  the colours, the icon style (absent in older files: Round), the paging
+  (absent: Buttons), the
   messages card's apps (absent when never chosen) and its tap choice
   (absent: Open).
   Apps by launcher activity, with their name for the "not found" list; on

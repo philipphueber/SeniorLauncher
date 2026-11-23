@@ -18,7 +18,9 @@ together is in [ARCHITECTURE.md](ARCHITECTURE.md).
   `res/values/strings.xml` and `res/values-de/strings.xml` (formal "Sie").
 - **Big and plain.** Large text, large touch targets, high contrast, no
   gestures.
-  Exception: the helper-only step cards (`Steps`) use normal Android sizes.
+  Exceptions: the helper-only step cards (`Steps`) use normal Android sizes;
+  the home screen turns pages by a sideways swipe if the helper chooses
+  Settings → Turn pages → Swipe (`Paging`; Buttons stays the default).
 
 ## Commits
 
@@ -46,7 +48,7 @@ gitignored `local.properties` containing `sdk.dir=/path/to/Android/Sdk`.
 
 Unit tests carry the weight; device testing is kept minimal.
 
-    ./gradlew test        # JVM unit tests (HomeCodec, Pages, Order, WidgetRows, BatteryState, Palette, IconColor, IconShape, NavLock, Backup, LauncherBackup, Flashlight)
+    ./gradlew test        # JVM unit tests (HomeCodec, Pages, Paging, Order, WidgetRows, BatteryState, Palette, IconColor, IconShape, NavLock, Backup, LauncherBackup, Flashlight)
     ./gradlew lint
     scripts/smoke.sh      # on a device or emulator: becomes Home, shows charging, pages
 

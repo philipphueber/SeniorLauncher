@@ -15,6 +15,7 @@ import android.os.Bundle;
 import android.os.Process;
 import android.util.SizeF;
 import android.view.View;
+import android.view.ViewGroup;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -295,5 +296,29 @@ public final class Widgets {
         } catch (RuntimeException e) {
             return null; // the widget service is unavailable (rare, e.g. during boot)
         }
+    }
+
+    /**
+     * The widget's only clickable view (one with a click action, as a
+     * RemoteViews click PendingIntent sets), or null when it has none or
+     * several. Hidden views do not count.
+     */
+    static View singleClickable(ViewGroup host) {
+        View[] found = new View[1];
+        return count(host, found) == 1 ? found[0] : null;
+    }
+
+    private static int count(ViewGroup g, View[] found) {
+        int n = 0;
+        for (int i = 0; i < g.getChildCount() && n < 2; i++) {
+            View v = g.getChildAt(i);
+            if (v.getVisibility() != View.VISIBLE) continue;
+            if (v.isClickable() && v.hasOnClickListeners()) {
+                found[0] = v;
+                n++;
+            }
+            if (v instanceof ViewGroup) n += count((ViewGroup) v, found);
+        }
+        return n;
     }
 }

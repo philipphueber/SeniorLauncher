@@ -24,11 +24,14 @@ final class Automation {
     static final String SET_ICONS = PREFIX + "SET_ICONS";
     /** Sets what a tap on a messages-card entry does from extra {@link #EXTRA_ACTION} (NoteTap.automation). */
     static final String MESSAGES_TAP = PREFIX + "MESSAGES_TAP";
+    /** Sets how the home screen turns pages from extra {@link #EXTRA_MODE} (Paging.automation). */
+    static final String SET_PAGING = PREFIX + "SET_PAGING";
 
     static final String EXTRA_PIN = "pin";
     static final String EXTRA_THEME = "theme";
     static final String EXTRA_STYLE = "style";
     static final String EXTRA_ACTION = "action";
+    static final String EXTRA_MODE = "mode";
 
     private Automation() {}
 

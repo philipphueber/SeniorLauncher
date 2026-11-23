@@ -63,6 +63,8 @@ public class AutomationTest {
         assertEquals("app.phueber.seniorlauncher.action.SET_THEME", Automation.SET_THEME);
         assertEquals("app.phueber.seniorlauncher.action.MESSAGES_TAP", Automation.MESSAGES_TAP);
         assertEquals("action", Automation.EXTRA_ACTION);
+        assertEquals("app.phueber.seniorlauncher.action.SET_PAGING", Automation.SET_PAGING);
+        assertEquals("mode", Automation.EXTRA_MODE);
     }
 
     @Test public void iconStyleNames() {

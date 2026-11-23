@@ -43,7 +43,7 @@ public class LauncherBackupTest {
     /** Through the file and back, as a restore sees it. */
     private static LauncherBackup.Settings roundTrip(Set<String> noteApps) throws Exception {
         Map<String, Object> s = LauncherBackup.export(savedHome(), new TreeSet<>(Collections.singleton(7)),
-                "DARK", IconShape.Style.DESIGNED, noteApps, NoteTap.Choice.OPEN_REMOVE, SAVED_PHONE);
+                "DARK", IconShape.Style.DESIGNED, Paging.Mode.SWIPE, noteApps, NoteTap.Choice.OPEN_REMOVE, SAVED_PHONE);
         String file = Backup.writeOne("2026-11-23T10:00:00Z", Backup.LAUNCHER, "0.0.3", s);
         return LauncherBackup.read(Backup.settingsFor(file, Backup.LAUNCHER));
     }
@@ -58,6 +58,7 @@ public class LauncherBackupTest {
         LauncherBackup.Settings s = roundTrip(new TreeSet<>(Arrays.asList("com.chat", "com.phone")));
         assertEquals("DARK", s.theme);
         assertEquals(IconShape.Style.DESIGNED, s.icons);
+        assertEquals(Paging.Mode.SWIPE, s.paging);
         assertEquals(NoteTap.Choice.OPEN_REMOVE, s.noteTap);
         assertEquals(new TreeSet<>(Arrays.asList("com.chat", "com.phone")), s.notificationApps);
         LauncherBackup.Plan p = LauncherBackup.plan(s, Collections.emptyList(), c -> c, id -> null);
@@ -111,6 +112,7 @@ public class LauncherBackupTest {
         assertNull(s.theme);
         assertEquals(IconShape.Style.ROUND, s.icons); // a file from before the setting
         assertEquals(NoteTap.Choice.OPEN, s.noteTap); // likewise
+        assertEquals(Paging.Mode.BUTTONS, s.paging); // likewise
         assertNull(s.notificationApps);
         assertEquals("com.a", s.home.get(0).label); // no name saved: the package
         assertEquals(1, s.home.get(1).rows);
@@ -125,6 +127,14 @@ public class LauncherBackupTest {
         assertEquals(NoteTap.Choice.REMOVE, LauncherBackup.read(m).noteTap);
         m.put("messagesTap", "SOMETHING_NEW");
         assertEquals(NoteTap.Choice.OPEN, LauncherBackup.read(m).noteTap);
+    }
+
+    @Test public void pagingReadBackAndUnknownIsButtons() throws Exception {
+        Map<String, Object> m = settings("[]");
+        m.put("paging", "SWIPE");
+        assertEquals(Paging.Mode.SWIPE, LauncherBackup.read(m).paging);
+        m.put("paging", "SOMETHING_NEW");
+        assertEquals(Paging.Mode.BUTTONS, LauncherBackup.read(m).paging);
     }
 
     @Test public void badItemsMakeTheWholeEntryMalformed() throws Exception {

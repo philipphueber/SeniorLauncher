@@ -12,6 +12,9 @@
     <string name="settings_icons">App-Symbole</string>
     <string name="settings_icons_round">Rund</string>
     <string name="settings_icons_designed">Original</string>
+    <string name="settings_paging">Seiten blättern</string>
+    <string name="settings_paging_buttons">Tasten</string>
+    <string name="settings_paging_swipe">Wischen</string>
     <string name="settings_arrange">Startseite ordnen</string>
     <string name="settings_home_app">Startbildschirm wählen</string>
     <string name="settings_home_app_explain">Wählen Sie „%1$s“, um diese zu behalten.</string>

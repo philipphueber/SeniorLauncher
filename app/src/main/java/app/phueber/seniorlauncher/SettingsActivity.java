@@ -102,6 +102,28 @@ public final class SettingsActivity extends HelperActivity {
             content.addView(b, Ui.fullWidth(this, 8));
         }
 
+        // Turn pages: the big Previous / Next buttons (the default) or a swipe.
+        TextView paging = Ui.bold(this, getString(R.string.settings_paging), Ui.TEXT_BUTTON);
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+            paging.setAccessibilityHeading(true);
+        }
+        content.addView(paging, Ui.fullWidth(this, 36));
+        Paging.Mode mode = store.paging();
+        for (Paging.Mode m : Paging.Mode.values()) {
+            String name = getString(m == Paging.Mode.BUTTONS
+                    ? R.string.settings_paging_buttons : R.string.settings_paging_swipe);
+            Button b = m == mode
+                    ? Ui.button(this, getString(R.string.settings_colour_chosen, name), R.color.green)
+                    : Ui.outlined(this, name);
+            b.setSelected(m == mode);
+            b.setOnClickListener(v -> {
+                if (closedByLock()) return;
+                if (m != store.paging()) store.setPaging(m);
+                followStore(); // redraw this screen with the new choice ticked
+            });
+            content.addView(b, Ui.fullWidth(this, 8));
+        }
+
         // The order of the home screen; also reachable by holding a tile.
         Button arrange = Ui.button(this, getString(R.string.settings_arrange), R.color.blue);
         arrange.setOnClickListener(v -> {

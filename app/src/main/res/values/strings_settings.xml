@@ -12,6 +12,9 @@
     <string name="settings_icons">App icons</string>
     <string name="settings_icons_round">Round</string>
     <string name="settings_icons_designed">As designed</string>
+    <string name="settings_paging">Turn pages</string>
+    <string name="settings_paging_buttons">Buttons</string>
+    <string name="settings_paging_swipe">Swipe</string>
     <string name="settings_arrange">Arrange home screen</string>
     <string name="settings_home_app">Choose home app</string>
     <string name="settings_home_app_explain">Pick “%1$s” to keep this one.</string>

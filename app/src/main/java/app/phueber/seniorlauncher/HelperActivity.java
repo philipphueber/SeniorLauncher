@@ -11,7 +11,7 @@ import android.os.Bundle;
  *
  * - Locked: the screen closes (closedByLock), on resume and at once while in
  *   front; every action checks again before it changes anything.
- * - Another theme or icon style: the screen is rebuilt in it (recreate), on
+ * - Another theme, icon style or paging: the screen is rebuilt in it (recreate), on
  *   resume and at once while in front, like HomeActivity, so it never shows a
  *   stale choice.
  *
@@ -21,6 +21,7 @@ abstract class HelperActivity extends Activity {
     protected Store store;
     private Palette.Theme builtTheme;
     private IconShape.Style builtIcons;
+    private Paging.Mode builtPaging;
     private boolean recreating;
 
     @Override
@@ -29,6 +30,7 @@ abstract class HelperActivity extends Activity {
         builtTheme = Ui.applyTheme(this);
         store = new Store(this);
         builtIcons = store.iconStyle();
+        builtPaging = store.paging();
     }
 
     @Override
@@ -59,12 +61,13 @@ abstract class HelperActivity extends Activity {
     }
 
     /**
-     * Closes on a lock, rebuilds in a new theme or icon style. Returns whether the screen
+     * Closes on a lock, rebuilds in a new theme, icon style or paging (Settings ticks it). Returns whether the screen
      * stays as it is.
      */
     protected final boolean followStore() {
         if (closedByLock()) return false;
-        if (store.theme() != builtTheme || store.iconStyle() != builtIcons) {
+        if (store.theme() != builtTheme || store.iconStyle() != builtIcons
+                || store.paging() != builtPaging) {
             if (!recreating) {
                 recreating = true;
                 recreate();

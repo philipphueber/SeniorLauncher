@@ -55,8 +55,10 @@ import java.util.Set;
  *    needs a long press.
  * 3. One page of a fixed 2 x 3 grid of app tiles, widgets and the
  *    notifications card.
- * 4. Previous / "Page 2 of 3" / Next, only when there is more than one page.
- *    There is no swipe: paging is done with the two big buttons.
+ * 4. Only when there is more than one page: Previous / "Page 2 of 3" / Next
+ *    (Paging.Mode.BUTTONS, the default), or, if the helper chose swiping
+ *    (Paging.Mode.SWIPE), small page dots, and a sideways swipe on the page
+ *    area turns the page (SwipePager).
  *
  * The grid is rebuilt in onResume (an app may have been added, removed or
  * uninstalled meanwhile), but only when something visible changed, so coming
@@ -99,6 +101,11 @@ public class HomeActivity extends Activity {
     private LinearLayout prevButton;
     private LinearLayout nextButton;
     private TextView pageLabel;
+    /** Holds the grid; turns the page on a swipe in swipe mode. */
+    private SwipePager swiper;
+    /** Swipe mode's page indicator, instead of the pager bar. */
+    private PageDots dots;
+    private Paging.Mode shownPaging;
     private Palette.Theme shownTheme;
     private IconShape.Style shownIcons;
 
@@ -167,6 +174,7 @@ public class HomeActivity extends Activity {
             followTheme();
             return;
         }
+        if (store.paging() != shownPaging) followPaging();
         if (store.iconStyle() != shownIcons) {
             shownIcons = store.iconStyle();
             if (notesCard != null) notesCard.forgetApps();
@@ -214,12 +222,37 @@ public class HomeActivity extends Activity {
 
         grid = new PageLayout(this, Pages.ROWS, Pages.COLUMNS, Ui.dp(this, GAP_DP));
         grid.setOnLaidOut(this::onGridLaidOut);
+        swiper = new SwipePager(this);
+        swiper.setHost(new SwipePager.Host() {
+            @Override public boolean canTurn(Paging.Turn t) {
+                return Paging.target(page, pages.size(), t) != page;
+            }
+
+            @Override public void turn(Paging.Turn t) {
+                turnPage(t);
+            }
+        });
+        swiper.addView(grid, new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         LinearLayout.LayoutParams glp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, 0, 1);
         glp.topMargin = Ui.dp(this, 12);
-        root.addView(grid, glp);
+        root.addView(swiper, glp);
 
         root.addView(pagerBar(), Ui.fullWidth(this, 12));
+        dots = new PageDots(this);
+        dots.setTurner(t -> {
+            if (Paging.target(page, pages.size(), t) == page) return false;
+            turnPage(t);
+            return true;
+        });
+        dots.setVisibility(View.GONE);
+        LinearLayout.LayoutParams dlp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, Ui.dp(this, DOTS_DP));
+        dlp.topMargin = Ui.dp(this, 8);
+        root.addView(dots, dlp);
+        shownPaging = store.paging();
+        swiper.setSwipe(shownPaging == Paging.Mode.SWIPE);
         // Clear of the status bar and the gesture bar (Android 15 is edge to edge).
         // On its own frame: fitsSystemWindows replaces a view's padding with the
         // insets, which would drop root's side margins.
@@ -421,6 +454,7 @@ public class HomeActivity extends Activity {
         setIntent(intent);
         takeShowNext(); // Home means page 1, even after arranging or adding
         page = 0;
+        swiper.settle();
         if (shownKey != null) showPage();
     }
 
@@ -614,6 +648,27 @@ public class HomeActivity extends Activity {
 
     // ---------------------------------------------------------------- pager
 
+    /** The page dots' row: small, so swipe mode gives the tiles most of the bar's height. */
+    private static final int DOTS_DP = 20;
+
+    /** Buttons or swipe changed (Settings, automation, a restore): swap bar and dots. */
+    private void followPaging() {
+        shownPaging = store.paging();
+        swiper.setSwipe(shownPaging == Paging.Mode.SWIPE);
+        swiper.settle();
+        updatePager();
+    }
+
+    /** A swipe or TalkBack turned the page: show it, slide it in, say which it is. */
+    private void turnPage(Paging.Turn t) {
+        int to = Paging.target(page, pages.size(), t);
+        if (to == page) return;
+        page = to;
+        showPage();
+        swiper.slideIn(t);
+        swiper.announceForAccessibility(getString(R.string.home_page, page + 1, pages.size()));
+    }
+
     private View pagerBar() {
         pager = new LinearLayout(this);
         pager.setOrientation(LinearLayout.HORIZONTAL);
@@ -766,7 +821,7 @@ public class HomeActivity extends Activity {
 
     private void showPage() {
         if (pages.isEmpty()) return;
-        page = Math.max(0, Math.min(pages.size() - 1, page));
+        page = Paging.clamp(page, pages.size());
         if (page == shownPage) return;
         shownPage = page;
 
@@ -796,11 +851,19 @@ public class HomeActivity extends Activity {
             grid.addCell(empty, 0, 0, Pages.ROWS, Pages.COLUMNS);
         }
 
+        updatePager();
+    }
+
+    /** The pager bar (buttons) or the dots (swipe), only when there is more than one page. */
+    private void updatePager() {
         int count = pages.size();
-        pager.setVisibility(count > 1 ? View.VISIBLE : View.GONE);
+        boolean swipe = shownPaging == Paging.Mode.SWIPE;
+        pager.setVisibility(count > 1 && !swipe ? View.VISIBLE : View.GONE);
+        dots.setVisibility(count > 1 && swipe ? View.VISIBLE : View.GONE);
         pageLabel.setText(getString(R.string.home_page, page + 1, count));
         setPageButtonEnabled(prevButton, page > 0);
         setPageButtonEnabled(nextButton, page < count - 1);
+        dots.set(page, count, Ui.color(this, R.color.text_black), Ui.color(this, R.color.text_muted));
     }
 
     /** The notifications card, made once and kept, set to the item's rows. */
@@ -823,7 +886,8 @@ public class HomeActivity extends Activity {
         int p = Ui.dp(this, 10);
         t.setPadding(p, p, p, Ui.dp(this, 8));
         boolean coloured = Palette.colouredTiles(shownTheme);
-        t.setBackground(widgetCard(coloured ? Palette.tileColor(widgetId) : 0));
+        int fill = coloured ? Palette.tileColor(widgetId) : 0;
+        t.setBackground(widgetCard(fill));
         t.addView(hostView, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));
 
         String name = Widgets.label(this, widgetId);
@@ -841,7 +905,62 @@ public class HomeActivity extends Activity {
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         tlp.topMargin = Ui.dp(this, 4);
         t.addView(text, tlp);
+
+        // A widget with one button (SeniorLight's) gets the whole tile as its
+        // button. Checked after every layout of the widget: an update may
+        // re-inflate its views. The listener lives on the reused host view,
+        // so the one of the tile shown before is replaced.
+        CharSequence label = name;
+        View.OnLayoutChangeListener check = (v, l, tp, r, b, ol, ot, or, ob) ->
+                handler.post(() -> forwardTaps(t, (ViewGroup) hostView, fill, label));
+        Object old = hostView.getTag(R.id.widget_tap_check);
+        if (old instanceof View.OnLayoutChangeListener) {
+            hostView.removeOnLayoutChangeListener((View.OnLayoutChangeListener) old);
+        }
+        hostView.setTag(R.id.widget_tap_check, check);
+        hostView.addOnLayoutChangeListener(check);
+        forwardTaps(t, (ViewGroup) hostView, fill, label);
         return t;
+    }
+
+    /**
+     * A small widget tile whose widget has exactly one clickable view takes
+     * taps anywhere on it (its name, the card's padding) and passes them to
+     * that view: the senior aims at the tile, not at the widget's own smaller
+     * button. With the press ripple of an app tile, and for TalkBack one
+     * button named like the widget. A widget with several clickable views (or
+     * none) keeps today's tile: only the widget's own views react, since a tap
+     * beside them could not say which was meant. A swipe on the tile turns
+     * the page instead (SwipePager cancels the tile's touch).
+     */
+    private void forwardTaps(LinearLayout tile, ViewGroup host, int fill, CharSequence label) {
+        if (isDestroyed()) return;
+        boolean on = Widgets.singleClickable(host) != null;
+        if (Boolean.valueOf(on).equals(tile.getTag(R.id.widget_tap_on))) return;
+        tile.setTag(R.id.widget_tap_on, on);
+        if (on) {
+            boolean coloured = fill != 0;
+            tile.setBackground(coloured
+                    ? Ui.ripple(this, R.color.press_light, fill, 0, 24)
+                    : Ui.ripple(this, R.color.press_dark, Ui.color(this, R.color.card),
+                            Ui.color(this, R.color.card_border), 24));
+            // Looked up again at the tap: the widget may have been re-inflated.
+            tile.setOnClickListener(v -> {
+                View target = Widgets.singleClickable(host);
+                if (target != null) target.performClick();
+            });
+            tile.setContentDescription(label);
+            asButton(tile, null);
+            host.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS);
+        } else {
+            tile.setOnClickListener(null);
+            tile.setClickable(false);
+            tile.setFocusable(false);
+            tile.setAccessibilityDelegate(null);
+            tile.setContentDescription(null);
+            tile.setBackground(widgetCard(fill));
+            host.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_AUTO);
+        }
     }
 
     /**

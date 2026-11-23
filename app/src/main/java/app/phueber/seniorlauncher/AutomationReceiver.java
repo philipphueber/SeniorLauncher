@@ -80,6 +80,15 @@ public final class AutomationReceiver extends BroadcastReceiver {
                 }
                 break;
             }
+            case Automation.SET_PAGING: {
+                Paging.Mode mode = Paging.automation(intent.getStringExtra(Automation.EXTRA_MODE));
+                if (mode == null) {
+                    Log.w(TAG, "SET_PAGING needs extra mode: buttons or swipe");
+                } else {
+                    store.setPaging(mode);
+                }
+                break;
+            }
             default:
                 break;
         }
