@@ -62,6 +62,15 @@ public final class AutomationReceiver extends BroadcastReceiver {
                 }
                 break;
             }
+            case Automation.SET_ICONS: {
+                IconShape.Style style = Automation.iconStyle(intent.getStringExtra(Automation.EXTRA_STYLE));
+                if (style == null) {
+                    Log.w(TAG, "SET_ICONS needs extra style: round or designed");
+                } else {
+                    store.setIconStyle(style);
+                }
+                break;
+            }
             default:
                 break;
         }

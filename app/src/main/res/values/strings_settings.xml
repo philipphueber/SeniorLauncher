@@ -9,6 +9,9 @@
     <string name="settings_colour_high_contrast">High contrast</string>
     <string name="settings_colour_colourful">Colourful</string>
     <string name="settings_colour_chosen">%1$s ✓</string>
+    <string name="settings_icons">App icons</string>
+    <string name="settings_icons_round">Round</string>
+    <string name="settings_icons_designed">As designed</string>
     <string name="settings_arrange">Arrange home screen</string>
     <string name="settings_home_app">Choose home app</string>
     <string name="settings_home_app_explain">Pick “%1$s” to keep this one.</string>

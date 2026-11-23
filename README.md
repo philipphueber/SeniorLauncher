@@ -97,6 +97,8 @@ Needs Android 8.0 or newer.
   shown; only the list of chosen apps is saved.
 - **Settings → Colours**: Light, Dark, High contrast (white on black), or
   Colourful (each tile in its app's colour). Pick whatever is easiest to read.
+- **Settings → App icons**: Round (every app icon a filled circle, the
+  default) or As designed (each app's own shape).
 - **Settings → Lock**: choose a PIN (4 to 8 digits). Afterwards only the
   tiles are left, so nothing can be changed by accident. To unlock, press and
   hold the padlock at the top and enter the PIN; the Phone and Alarm apps
@@ -112,7 +114,7 @@ Needs Android 8.0 or newer.
 - **Settings → Backup** saves the settings to a file you choose (Downloads,
   Google Drive, …) and loads them back, after a reset or on a new phone.
   **Save settings to a file** keeps the home screen (tiles in order, sizes,
-  the messages card and its apps) and the colours. **Save all Senior apps'
+  the messages card and its apps), the colours and the icon style. **Save all Senior apps'
   settings** puts those of the Phone, Alarm and Back & Home apps in the same
   file (SeniorLight has no settings). Loading asks first and then replaces
   the current settings; it says what it could not restore: apps that are not
@@ -125,7 +127,7 @@ Needs Android 8.0 or newer.
 
 ## Automation (Trigly, Tasker, …)
 
-Automation apps can lock, unlock and recolour the home screen with a
+Automation apps can lock, unlock, recolour the home screen and change its icons with a
 broadcast to package `app.phueber.seniorlauncher`. All extras are text.
 
 | Send mode | Action | Extras | What it does |
@@ -133,6 +135,7 @@ broadcast to package `app.phueber.seniorlauncher`. All extras are text.
 | Broadcast | `app.phueber.seniorlauncher.action.LOCK` | `pin`: 4 to 8 digits | Locks the home screen (and the Phone and Alarm apps) with this PIN. Does nothing if it is already locked. |
 | Broadcast | `app.phueber.seniorlauncher.action.UNLOCK` | `pin`: the PIN, or the reset PIN | Unlocks, if the PIN is right. |
 | Broadcast | `app.phueber.seniorlauncher.action.SET_THEME` | `theme`: `light`, `dark`, `high_contrast` or `colourful` | Picks the colours, like Settings → Colours. |
+| Broadcast | `app.phueber.seniorlauncher.action.SET_ICONS` | `style`: `round` or `designed` | Picks the icon style, like Settings → App icons. |
 
 Spaces and upper/lower case do not matter; anything unreadable is ignored.
 Example in Trigly, lock every night at 22:00: trigger *Time 22:00*, action
@@ -236,6 +239,8 @@ Benötigt Android 8.0 oder neuer.
 - **Einstellungen → Farben**: Hell, Dunkel, Hoher Kontrast (weiß auf schwarz)
   oder Bunt (jede Kachel in der Farbe ihrer App). Wählen Sie, was am besten zu lesen
   ist.
+- **Einstellungen → App-Symbole**: Rund (jedes App-Symbol ein gefüllter
+  Kreis, die Voreinstellung) oder Original (die eigene Form jeder App).
 - **Einstellungen → Sperren**: eine PIN wählen (4 bis 8 Ziffern). Danach sind
   nur noch die Kacheln da, sodass nichts aus Versehen geändert wird. Zum
   Entsperren das Schloss oben gedrückt halten und die PIN eingeben; die
@@ -255,7 +260,7 @@ Benötigt Android 8.0 oder neuer.
   Sie wählen (Downloads, Google Drive, …), und lädt sie wieder, nach einem
   Zurücksetzen oder auf einem neuen Telefon. **Einstellungen in eine Datei
   speichern** bewahrt die Startseite (Kacheln in ihrer Reihenfolge, Größen,
-  die Nachrichten-Karte und ihre Apps) und die Farben auf. **Einstellungen
+  die Nachrichten-Karte und ihre Apps), die Farben und die App-Symbole auf. **Einstellungen
   aller Senior-Apps speichern** legt die der Telefon-, Wecker- und
   Zurück-/Start-App mit in dieselbe Datei (SeniorLight hat keine
   Einstellungen). Laden fragt zuerst und ersetzt dann die aktuellen
@@ -271,7 +276,7 @@ Benötigt Android 8.0 oder neuer.
 ### Automatisierung (Trigly, Tasker, …)
 
 Automatisierungs-Apps können die Startseite per Broadcast an das Paket
-`app.phueber.seniorlauncher` sperren, entsperren und umfärben. Alle Extras sind
+`app.phueber.seniorlauncher` sperren, entsperren, umfärben und ihre App-Symbole ändern. Alle Extras sind
 Text.
 
 | Sendeart | Aktion | Extras | Was passiert |
@@ -279,6 +284,7 @@ Text.
 | Broadcast | `app.phueber.seniorlauncher.action.LOCK` | `pin`: 4 bis 8 Ziffern | Sperrt die Startseite (und die Telefon- und Wecker-App) mit dieser PIN. Ist sie schon gesperrt, passiert nichts. |
 | Broadcast | `app.phueber.seniorlauncher.action.UNLOCK` | `pin`: die PIN oder die Reset-PIN | Entsperrt, wenn die PIN stimmt. |
 | Broadcast | `app.phueber.seniorlauncher.action.SET_THEME` | `theme`: `light`, `dark`, `high_contrast` oder `colourful` (auch `hell`, `dunkel`, `kontrast`, `bunt`) | Wählt die Farben wie Einstellungen → Farben. |
+| Broadcast | `app.phueber.seniorlauncher.action.SET_ICONS` | `style`: `round` oder `designed` (auch `rund`, `original`) | Wählt die App-Symbole wie Einstellungen → App-Symbole. |
 
 Leerzeichen und Groß-/Kleinschreibung sind egal; Unlesbares wird ignoriert.
 Beispiel in Trigly, jeden Abend um 22:00 sperren: Auslöser *Zeit 22:00*,

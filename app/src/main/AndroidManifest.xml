@@ -96,6 +96,7 @@
                 <action android:name="app.phueber.seniorlauncher.action.LOCK" />
                 <action android:name="app.phueber.seniorlauncher.action.UNLOCK" />
                 <action android:name="app.phueber.seniorlauncher.action.SET_THEME" />
+                <action android:name="app.phueber.seniorlauncher.action.SET_ICONS" />
             </intent-filter>
         </receiver>
         <!-- The lock state for the other Senior apps; unlock with the PIN, and lock/unlock

@@ -209,7 +209,7 @@ public final class AppsActivity extends HelperActivity {
         open.setOnClickListener(v -> AppInfo.launch(this, e.component));
 
         ImageView icon = new ImageView(this);
-        icon.setImageDrawable(e.icon);
+        icon.setImageDrawable(RoundIcon.of(e.icon, store.iconStyle(), e.component));
         icon.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         int size = Ui.dp(this, ICON_DP);
         open.addView(icon, new LinearLayout.LayoutParams(size, size));

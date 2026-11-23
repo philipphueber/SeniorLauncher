@@ -80,6 +80,28 @@ public final class SettingsActivity extends HelperActivity {
             content.addView(b, Ui.fullWidth(this, 8));
         }
 
+        // App icons: all round (the default), or as each app drew its own.
+        TextView icons = Ui.bold(this, getString(R.string.settings_icons), Ui.TEXT_BUTTON);
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+            icons.setAccessibilityHeading(true);
+        }
+        content.addView(icons, Ui.fullWidth(this, 36));
+        IconShape.Style shown = store.iconStyle();
+        for (IconShape.Style st : IconShape.Style.values()) {
+            String name = getString(st == IconShape.Style.ROUND
+                    ? R.string.settings_icons_round : R.string.settings_icons_designed);
+            Button b = st == shown
+                    ? Ui.button(this, getString(R.string.settings_colour_chosen, name), R.color.green)
+                    : Ui.outlined(this, name);
+            b.setSelected(st == shown);
+            b.setOnClickListener(v -> {
+                if (closedByLock()) return;
+                if (st != store.iconStyle()) store.setIconStyle(st);
+                followStore(); // redraw this screen with the new choice ticked
+            });
+            content.addView(b, Ui.fullWidth(this, 8));
+        }
+
         // The order of the home screen; also reachable by holding a tile.
         Button arrange = Ui.button(this, getString(R.string.settings_arrange), R.color.blue);
         arrange.setOnClickListener(v -> {

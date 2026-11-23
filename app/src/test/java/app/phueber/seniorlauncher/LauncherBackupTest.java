@@ -43,7 +43,7 @@ public class LauncherBackupTest {
     /** Through the file and back, as a restore sees it. */
     private static LauncherBackup.Settings roundTrip(Set<String> noteApps) throws Exception {
         Map<String, Object> s = LauncherBackup.export(savedHome(), new TreeSet<>(Collections.singleton(7)),
-                "DARK", noteApps, SAVED_PHONE);
+                "DARK", IconShape.Style.DESIGNED, noteApps, SAVED_PHONE);
         String file = Backup.writeOne("2026-11-23T10:00:00Z", Backup.LAUNCHER, "0.0.3", s);
         return LauncherBackup.read(Backup.settingsFor(file, Backup.LAUNCHER));
     }
@@ -57,6 +57,7 @@ public class LauncherBackupTest {
     @Test public void sameEmptyPhoneGetsAppsBackAndListsWidgets() throws Exception {
         LauncherBackup.Settings s = roundTrip(new TreeSet<>(Arrays.asList("com.chat", "com.phone")));
         assertEquals("DARK", s.theme);
+        assertEquals(IconShape.Style.DESIGNED, s.icons);
         assertEquals(new TreeSet<>(Arrays.asList("com.chat", "com.phone")), s.notificationApps);
         LauncherBackup.Plan p = LauncherBackup.plan(s, Collections.emptyList(), c -> c, id -> null);
         assertEquals(Arrays.asList(HomeItem.app(PHONE), HomeItem.app(CHAT), HomeItem.notifications(3)), p.items);
@@ -107,6 +108,7 @@ public class LauncherBackupTest {
         LauncherBackup.Settings s = LauncherBackup.read(settings(
                 "[{\"app\":\"com.a/.A\"},{\"widget\":\"com.w/.W\"},{\"messages\":2}]"));
         assertNull(s.theme);
+        assertEquals(IconShape.Style.ROUND, s.icons); // a file from before the setting
         assertNull(s.notificationApps);
         assertEquals("com.a", s.home.get(0).label); // no name saved: the package
         assertEquals(1, s.home.get(1).rows);

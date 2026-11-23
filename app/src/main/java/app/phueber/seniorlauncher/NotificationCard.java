@@ -338,6 +338,7 @@ final class NotificationCard extends FrameLayout implements NotificationHub.Obse
             } catch (PackageManager.NameNotFoundException | RuntimeException e) {
                 d = getContext().getDrawable(android.R.drawable.sym_def_app_icon);
             }
+            d = RoundIcon.of(d, store.iconStyle(), pkg);
             icons.put(pkg, d);
         }
         return d;

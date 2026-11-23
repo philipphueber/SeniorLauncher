@@ -9,6 +9,9 @@
     <string name="settings_colour_high_contrast">Hoher Kontrast</string>
     <string name="settings_colour_colourful">Bunt</string>
     <string name="settings_colour_chosen">%1$s ✓</string>
+    <string name="settings_icons">App-Symbole</string>
+    <string name="settings_icons_round">Rund</string>
+    <string name="settings_icons_designed">Original</string>
     <string name="settings_arrange">Startseite ordnen</string>
     <string name="settings_home_app">Startbildschirm wählen</string>
     <string name="settings_home_app_explain">Wählen Sie „%1$s“, um diese zu behalten.</string>
