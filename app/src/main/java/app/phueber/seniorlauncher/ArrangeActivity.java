@@ -1,6 +1,5 @@
 package app.phueber.seniorlauncher;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.ColorStateList;
@@ -41,9 +40,10 @@ import java.util.Set;
  * and hears the new place ("Phone, now place 3 of 14, page 2").
  *
  * Opened from Settings, or from the long press on a tile (then that tile is
- * highlighted and scrolled into view). Never while locked.
+ * highlighted and scrolled into view). Never while locked: closes at once
+ * when locked meanwhile (HelperActivity).
  */
-public final class ArrangeActivity extends Activity {
+public final class ArrangeActivity extends HelperActivity {
     private static final String EXTRA_ITEM = "item";
     private static final int ICON_DP = 48;
 
@@ -66,7 +66,6 @@ public final class ArrangeActivity extends Activity {
         }
     }
 
-    private Store store;
     private ScrollView scroll;
     private LinearLayout list;
     private TextView empty;
@@ -89,13 +88,8 @@ public final class ArrangeActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        Ui.applyTheme(this);
-        store = new Store(this);
-        if (store.locked()) { // a helper action: never while locked
-            finish();
-            return;
-        }
+        super.onCreate(savedInstanceState); // theme and store
+        if (closedByLock()) return; // a helper action: never while locked
         String extra = getIntent().getStringExtra(EXTRA_ITEM);
         if (extra != null) {
             List<HomeItem> one = HomeCodec.decode(extra);
@@ -121,12 +115,7 @@ public final class ArrangeActivity extends Activity {
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        if (store.locked()) {
-            finish();
-            return;
-        }
+    protected void onFront() {
         refresh(null); // an app may have been installed or removed meanwhile
     }
 
@@ -332,10 +321,7 @@ public final class ArrangeActivity extends Activity {
     }
 
     private void move(Row r, int steps) {
-        if (store.locked()) {
-            finish();
-            return;
-        }
+        if (closedByLock()) return;
         Set<HomeItem> visible = new HashSet<>(shown);
         int before = topInScroll(r.view) - scroll.getScrollY();
         if (!store.move(r.item, steps, visible::contains)) {

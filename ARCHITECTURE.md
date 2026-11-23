@@ -25,17 +25,18 @@ separate app, not part of this one.
 | `HomeActivity` | The home screen: header (time, date, `BatteryView`), helper bar or padlock, one page of the grid, pager bar. Rebuilds only when what is visible changed. |
 | `PageLayout` | A fixed `Pages.ROWS` x `Pages.COLUMNS` grid that always fills its space; places children by row, column and span. Reports the cell size after layout. |
 | `BatteryView` | The battery box: percent plus a word. On battery a light green gauge fills it up to the charge; low is solid red; charging is solid blue and full solid green, both with a lightning bolt (charging and full differ by colour, not only by word). |
+| `HelperActivity` | Base of the five helper screens: applies the theme, closes the screen when locked and rebuilds it in a new theme, on resume and at once while in front (it watches the store). |
 | `AppsActivity` | Every launchable app with an "Add" / "On home ✓" toggle. The only way to put an app on the home screen. Closes itself when locked. |
 | `WidgetsActivity` | Places widgets (bind, optional configure, store), resizes them (size buttons on each placed card) and removes them. Lists them grouped by app with previews, a size badge (small/wide) and a search over widget and app names. Offers the notifications card ("Messages") first, and manages it once placed (access, apps, size, remove). |
 | `NotificationCard` | The notifications card on home: entries newest first (icon, app · time in words, sender, text), "and N more messages" when they do not fit, or a setup line with one button for the helper. Live while attached. |
 | `NotificationListener` | The `NotificationListenerService`: hands the current notifications to `NotificationHub`. Bound by the system once the helper grants notification access. |
 | `NotificationHub` | In-memory, in-process store of the current notifications plus observers; whether access is granted, the screen to grant it, opening a notification like the shade, the first-time default apps. |
-| `NotificationAppsActivity` | The helper picks whose notifications the card shows ("Show" / "Shown ✓"). Closes itself while locked. |
+| `NotificationAppsActivity` | The helper picks whose notifications the card shows ("Show" / "Shown ✓"). Closes itself when locked. |
 | `Note`, `NoteList` | Pure: a notification as the card needs it; which ones are shown, in what order, merged per chat, how many fit, the default apps. Unit tested. |
 | `TimeWords` | Pure: "just now", "5 min ago", today, yesterday or earlier. Unit tested. |
 | `IconColor` | Pure: an icon's main colour for Colourful tiles, made readable under white text. Unit tested. |
 | `SettingsActivity` | Lock (choose a PIN), colours, arrange home screen, choose home app, phone settings. Closes itself when locked. |
-| `ArrangeActivity` | The home items in order, with "Page 1", "Page 2" headings from `Pages.layout`; ▲ Earlier / ▼ Later on each. From Settings, or from the long press on a tile (that tile marked). Never while locked. |
+| `ArrangeActivity` | The home items in order, with "Page 1", "Page 2" headings from `Pages.layout`; ▲ Earlier / ▼ Later on each. From Settings, or from the long press on a tile (that tile marked). Never while locked: closes itself when locked. |
 | `Widgets` | The one `AppWidgetHost`: creates, sizes and deletes widget views; turns a provider's declaration into a `WidgetRows.Spec` (dp). |
 | `AppInfo` | Label, icon, launchability and launch of an app tile, via `LauncherApps`. A tile whose launcher activity was disabled follows the app's only remaining one (SeniorLight swaps icon aliases to show the light's state). |
 | `DefaultApps` | On first run, adds tiles for the default phone, messages, camera, photos, contacts and browser apps. |
@@ -247,7 +248,9 @@ Code names colours by role (`R.color.green`, `R.color.text_black`, ...);
 resource values are the Light theme, used for the window before the first
 frame. `Ui.applyTheme` runs first in every `onCreate` and colours the window
 and system bars. `HomeActivity` recreates itself on resume when the theme
-changed.
+changed; so does every helper screen (`HelperActivity`), and at once while it
+is in front, so a theme set by automation never leaves Settings showing the
+old one ticked.
 
 ## Lock
 
@@ -257,9 +260,10 @@ by a small padlock (a 40dp row instead of the 64dp buttons, so the tiles get
 the space) and long-press on tiles does nothing (no Move, no Remove; the
 Arrange screen closes itself if it is ever opened locked), so the senior can
 only open things. A lock that arrives while a helper screen is open (from an
-automation app) closes it too: Apps, Widgets and Settings watch the store
-while in front, close on resume when locked, and check the lock again in
-every action (an add in progress on the Widgets screen is dropped). Each
+automation app) closes it too: every helper screen (Apps, Widgets, Settings,
+Arrange, Notification apps; `HelperActivity`) watches the store while in
+front, closes on resume when locked, and checks the lock again in every
+action (an add in progress on the Widgets screen is dropped). Each
 opens single-top, so a double tap opens it once. Holding the padlock asks for the PIN. The prompt never stays
 up: it closes after 10 s without typing and when the screen is left, so the
 senior is not left facing a code request. The PIN keeps a curious senior out,

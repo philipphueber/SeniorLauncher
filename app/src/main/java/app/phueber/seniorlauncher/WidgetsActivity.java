@@ -1,6 +1,5 @@
 package app.phueber.seniorlauncher;
 
-import android.app.Activity;
 import android.app.Dialog;
 import android.appwidget.AppWidgetHost;
 import android.appwidget.AppWidgetManager;
@@ -8,7 +7,6 @@ import android.appwidget.AppWidgetProviderInfo;
 import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
@@ -75,7 +73,7 @@ import java.util.concurrent.Executors;
  * half-made widget is left behind. The id in progress survives the activity
  * being recreated (rotation of a setup screen, low memory) via the saved state.
  */
-public class WidgetsActivity extends Activity {
+public class WidgetsActivity extends HelperActivity {
     private static final int REQ_BIND = 1;
     private static final int REQ_CONFIGURE = 2;
     private static final String S_ID = "pending_id";
@@ -94,7 +92,6 @@ public class WidgetsActivity extends Activity {
     private final Handler handler = new Handler(Looper.getMainLooper());
     private ExecutorService previews;
     private ExecutorService loader; // the provider query; apart from previews so they are not queued behind it
-    private Store store;
     private AppWidgetManager manager;
     private AppWidgetHost host;
     private LinearLayout placed;
@@ -115,13 +112,11 @@ public class WidgetsActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        Ui.applyTheme(this);
+        super.onCreate(savedInstanceState); // theme and store
         // The keyboard only when the search field is tapped, and the list shrinks
         // above it instead of being covered.
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN
                 | WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
-        store = new Store(this);
         manager = AppWidgetManager.getInstance(this);
         host = Widgets.host(this);
         if (savedInstanceState != null) {
@@ -164,31 +159,10 @@ public class WidgetsActivity extends Activity {
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        if (closedByLock()) return;
-        store.watch(lockWatch);
+    protected void onFront() {
         // Back from granting notification access or choosing apps.
         if (notesBox != null) showNotesRow();
     }
-
-    @Override
-    protected void onPause() {
-        store.unwatch(lockWatch);
-        super.onPause();
-    }
-
-    /**
-     * A helper screen: locked meanwhile (an automation app can lock at any
-     * time), it closes, and every action checks again before it changes anything.
-     */
-    private boolean closedByLock() {
-        if (!store.locked()) return false;
-        finish();
-        return true;
-    }
-
-    private final SharedPreferences.OnSharedPreferenceChangeListener lockWatch = (p, key) -> closedByLock();
 
     @Override
     protected void onSaveInstanceState(Bundle out) {
