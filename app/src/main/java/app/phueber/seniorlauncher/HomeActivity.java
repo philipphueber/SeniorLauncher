@@ -451,12 +451,14 @@ public class HomeActivity extends Activity {
      * Small and muted on purpose: it is for the helper, not the senior. A short
      * tap does nothing; only a long press asks for the PIN (see PinDialog).
      */
+    private static final int PADLOCK_DP = 40;
+
     private View padlock() {
         ImageView lock = new ImageView(this);
         lock.setImageResource(R.drawable.ic_home_lock);
         lock.setImageTintList(ColorStateList.valueOf(Ui.color(this, R.color.text_muted)));
         lock.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-        int pad = Ui.dp(this, 12);
+        int pad = Ui.dp(this, 8);
         lock.setPadding(pad, pad, pad, pad);
         lock.setBackground(Ui.ripple(this, R.color.press_dark, Color.TRANSPARENT, 0, 32));
         lock.setContentDescription(getString(R.string.home_locked_desc));
@@ -474,7 +476,10 @@ public class HomeActivity extends Activity {
                         getString(R.string.home_unlock)));
             }
         });
-        int size = Ui.dp(this, Ui.BUTTON_HEIGHT);
+        // Only the helper needs it, so it takes a small row (40dp, a 24dp icon)
+        // instead of the 64dp the three helper buttons need: the rows it frees
+        // go to the senior's tiles.
+        int size = Ui.dp(this, PADLOCK_DP);
         lock.setLayoutParams(new LinearLayout.LayoutParams(size, size));
         return lock;
     }

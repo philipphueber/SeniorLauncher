@@ -247,7 +247,8 @@ changed.
 
 The helper locks the home screen in Settings by choosing a PIN, like
 SeniorAlert's lock. Locked, the Apps, Widgets and Settings buttons are replaced
-by a padlock and long-press on tiles does nothing (no Move, no Remove; the
+by a small padlock (a 40dp row instead of the 64dp buttons, so the tiles get
+the space) and long-press on tiles does nothing (no Move, no Remove; the
 Arrange screen closes itself if it is ever opened locked), so the senior can
 only open things. A lock that arrives while a helper screen is open (from an
 automation app) closes it too: Apps, Widgets and Settings watch the store
