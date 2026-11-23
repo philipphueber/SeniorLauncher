@@ -26,7 +26,11 @@
     <!-- %1$s is the day (Mon 3 Nov), %2$s the time. -->
     <string name="notes_earlier">%1$s, %2$s</string>
     <!-- Read aloud for an entry: app, sender, text, time. Text and time come with their own full stop (NoteList.sentence). -->
-    <string name="notes_entry_cd">%1$s, %2$s: %3$s %4$s Tap to open.</string>
+    <string name="notes_entry_cd">%1$s, %2$s: %3$s %4$s</string>
+    <!-- TalkBack's "Double-tap to …" for an entry, as the helper chose what a tap does. -->
+    <string name="notes_action_open">Open</string>
+    <string name="notes_action_open_remove">Open and remove</string>
+    <string name="notes_action_remove">Remove</string>
     <!-- Shown to the helper only (never while locked). -->
     <string name="notes_need_access">Needs notification access once.</string>
     <string name="notes_allow">Allow notification access</string>
@@ -41,6 +45,10 @@
     <string name="notes_access_off">Notification access: not allowed yet.</string>
     <string name="notes_apps_list">Shows messages from: %1$s</string>
     <string name="notes_apps_none">No apps chosen yet.</string>
+    <string name="notes_tap_heading">When a message is tapped</string>
+    <string name="notes_tap_open">Open it</string>
+    <string name="notes_tap_open_remove">Open it and remove it</string>
+    <string name="notes_tap_remove">Remove it only</string>
 
     <!-- NotificationAppsActivity: whose notifications the card shows. -->
     <string name="notes_apps_title">Apps for messages</string>

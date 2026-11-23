@@ -2,6 +2,7 @@ package app.phueber.seniorlauncher;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -39,21 +40,28 @@ final class NoteList {
     static final class Entry {
         final Note note;
         final int count;
+        /** The keys of every notification merged into it, newest first (what a removal takes). */
+        final List<String> keys;
 
         Entry(Note note, int count) {
+            this(note, count, Collections.singletonList(note.key));
+        }
+
+        Entry(Note note, int count, List<String> keys) {
             this.note = note;
             this.count = count;
+            this.keys = keys;
         }
 
         @Override public boolean equals(Object o) {
             if (this == o) return true;
             if (!(o instanceof Entry)) return false;
             Entry e = (Entry) o;
-            return count == e.count && note.equals(e.note);
+            return count == e.count && note.equals(e.note) && keys.equals(e.keys);
         }
 
         @Override public int hashCode() {
-            return 31 * note.hashCode() + count;
+            return 31 * (31 * note.hashCode() + count) + keys.hashCode();
         }
     }
 
@@ -83,16 +91,17 @@ final class NoteList {
             return r != 0 ? r : String.valueOf(a.key).compareTo(String.valueOf(b.key));
         });
         Map<String, Note> newest = new LinkedHashMap<>();
-        Map<String, Integer> counts = new LinkedHashMap<>();
+        Map<String, List<String>> keys = new LinkedHashMap<>();
         for (Note n : shown) {
             // Without a title there is nothing to tell chats apart: one entry each.
             String group = n.title.isEmpty() ? "\u0000" + n.key : n.pkg + "\u0000" + n.title;
             newest.putIfAbsent(group, n);
-            counts.merge(group, 1, Integer::sum);
+            keys.computeIfAbsent(group, k -> new ArrayList<>()).add(n.key);
         }
         List<Entry> out = new ArrayList<>();
         for (Map.Entry<String, Note> e : newest.entrySet()) {
-            out.add(new Entry(e.getValue(), counts.get(e.getKey())));
+            List<String> k = keys.get(e.getKey());
+            out.add(new Entry(e.getValue(), k.size(), k));
         }
         return out;
     }

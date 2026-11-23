@@ -71,6 +71,15 @@ public final class AutomationReceiver extends BroadcastReceiver {
                 }
                 break;
             }
+            case Automation.MESSAGES_TAP: {
+                NoteTap.Choice choice = NoteTap.automation(intent.getStringExtra(Automation.EXTRA_ACTION));
+                if (choice == null) {
+                    Log.w(TAG, "MESSAGES_TAP needs extra action: open, open_remove or remove");
+                } else {
+                    store.setNoteTap(choice);
+                }
+                break;
+            }
             default:
                 break;
         }

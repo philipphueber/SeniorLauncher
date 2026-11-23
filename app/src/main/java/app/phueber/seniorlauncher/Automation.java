@@ -22,10 +22,13 @@ final class Automation {
     static final String SET_THEME = PREFIX + "SET_THEME";
     /** Sets the icon style from extra {@link #EXTRA_STYLE}. */
     static final String SET_ICONS = PREFIX + "SET_ICONS";
+    /** Sets what a tap on a messages-card entry does from extra {@link #EXTRA_ACTION} (NoteTap.automation). */
+    static final String MESSAGES_TAP = PREFIX + "MESSAGES_TAP";
 
     static final String EXTRA_PIN = "pin";
     static final String EXTRA_THEME = "theme";
     static final String EXTRA_STYLE = "style";
+    static final String EXTRA_ACTION = "action";
 
     private Automation() {}
 

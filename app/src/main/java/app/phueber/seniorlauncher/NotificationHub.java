@@ -151,12 +151,15 @@ final class NotificationHub {
         if ((n.flags & Notification.FLAG_ONGOING_EVENT) != 0) flags |= Note.ONGOING;
         if ((n.flags & Notification.FLAG_GROUP_SUMMARY) != 0) flags |= Note.GROUP_SUMMARY;
         if ((n.flags & Notification.FLAG_FOREGROUND_SERVICE) != 0) flags |= Note.FOREGROUND_SERVICE;
+        if ((n.flags & Notification.FLAG_NO_CLEAR) != 0 || !sbn.isClearable()) flags |= Note.NO_CLEAR;
         String template = x.getString(Notification.EXTRA_TEMPLATE);
         if (x.containsKey(Notification.EXTRA_MEDIA_SESSION) || Notification.CATEGORY_TRANSPORT.equals(n.category)
                 || (template != null && template.contains("MediaStyle"))) {
             flags |= Note.MEDIA;
         }
-        Note note = new Note(sbn.getKey(), sbn.getPackageName(), title, text, sbn.getPostTime(), flags);
+        // The system's own grouping (several loose notifications of one app) overrides the app's.
+        String group = sbn.getOverrideGroupKey() != null ? sbn.getOverrideGroupKey() : n.getGroup();
+        Note note = new Note(sbn.getKey(), sbn.getPackageName(), title, text, sbn.getPostTime(), flags, group);
         return new Live(note, n.contentIntent, (n.flags & Notification.FLAG_AUTO_CANCEL) != 0);
     }
 
@@ -273,11 +276,36 @@ final class NotificationHub {
     }
 
     /**
+     * A tap on a card entry, as the helper chose (NoteTap): open it, open and
+     * remove it, or only remove it. Removed entries leave the card at once,
+     * not when the system's callback arrives. What cannot be removed (ongoing,
+     * "no clear", listener not connected) stays: "open and remove" then only
+     * opens, "remove" does nothing but refresh the card.
+     */
+    static void tap(Activity a, NoteList.Entry entry, NoteTap.Choice choice) {
+        NoteTap.Plan plan = NoteTap.plan(choice, entry, notes(), isConnected());
+        if (plan.open) open(a, entry.note);
+        NotificationListener s = listener.get();
+        boolean gone = false;
+        if (s != null) {
+            for (String key : plan.cancel) {
+                try {
+                    s.cancelNotification(key);
+                    gone |= active.remove(key) != null;
+                } catch (RuntimeException e) {
+                    break; // access withdrawn meanwhile: nothing more can be removed
+                }
+            }
+        }
+        if (gone || !plan.open) changed();
+    }
+
+    /**
      * Opens a notification like the shade does: its own tap action (the chat,
      * the missed call), and if it was meant to go away when tapped, removes
      * it. Without a tap action, or if it fails, opens the app instead.
      */
-    static void open(Activity a, Note note) {
+    private static void open(Activity a, Note note) {
         Live l = active.get(note.key);
         boolean sent = false;
         if (l != null && l.open != null) {

@@ -177,6 +177,8 @@ public class HomeActivity extends Activity {
             rebuild(false);
             replaceLightTile(); // unlocked: now the helper may be asked
         }
+        // What a tap on the messages card does (its TalkBack label) may have changed.
+        if (notesCard != null && notesCard.isAttachedToWindow()) notesCard.refresh();
     };
 
     @Override

@@ -27,12 +27,13 @@ separate app, not part of this one.
 | `BatteryView` | The battery box: percent plus a word. On battery a light green gauge fills it up to the charge; low is solid red; charging is solid blue and full solid green, both with a lightning bolt (charging and full differ by colour, not only by word). |
 | `HelperActivity` | Base of the five helper screens: applies the theme, closes the screen when locked and rebuilds it in a new theme, on resume and at once while in front (it watches the store). |
 | `AppsActivity` | Every launchable app with an "Add" / "On home ✓" toggle. The only way to put an app on the home screen; taking one off asks first. Closes itself when locked. |
-| `WidgetsActivity` | Places widgets (bind, optional configure, store), resizes them (size buttons on each placed card) and removes them. Lists them grouped by app with previews, a size badge (small/wide) and a search over widget and app names. Offers the notifications card ("Messages") first, and manages it once placed (access, apps, size, remove). |
+| `WidgetsActivity` | Places widgets (bind, optional configure, store), resizes them (size buttons on each placed card) and removes them. Lists them grouped by app with previews, a size badge (small/wide) and a search over widget and app names. Offers the notifications card ("Messages") first, and manages it once placed (access, apps, size, tap, remove). |
 | `NotificationCard` | The notifications card on home: entries newest first (icon, app · time in words, sender, text), "and N more messages" when they do not fit, or a setup line with one button for the helper. Live while attached. |
 | `NotificationListener` | The `NotificationListenerService`: hands the current notifications to `NotificationHub`. Bound by the system once the helper grants notification access. |
 | `NotificationHub` | In-memory, in-process store of the current notifications plus observers; whether access is granted, the screen to grant it, opening a notification like the shade, the first-time default apps. |
 | `NotificationAppsActivity` | The helper picks whose notifications the card shows ("Show" / "Shown ✓"). Closes itself when locked. |
 | `Note`, `NoteList` | Pure: a notification as the card needs it; which ones are shown, in what order, merged per chat, how many fit, the default apps. Unit tested. |
+| `NoteTap` | Pure: what a tap on a card entry does (Open / Open and remove / Remove) and which notifications a removal cancels. Unit tested. |
 | `TimeWords` | Pure: "just now", "5 min ago", today, yesterday or earlier. Unit tested. |
 | `IconColor` | Pure: an icon's main colour for Colourful tiles, made readable under white text. Unit tested. |
 | `IconShape` | Pure: the icon styles (Round, As designed) and the Round geometry: adaptive layers at 108/72, whether a legacy icon is already a disc, where a legacy icon goes in its disc. Unit tested. |
@@ -51,9 +52,9 @@ separate app, not part of this one.
 | `Order` | Pure: moves one item to a place counted among the shown items; hidden items keep their place. Unit tested. |
 | `LockProvider` | Tells SeniorPhone, SeniorAlert and SeniorNav whether the home screen is locked and whether a PIN is set, lifts the lock for them when given the PIN, and locks/unlocks without the PIN for SeniorNav's volume-button pattern. |
 | `NavLock` | Pure: only SeniorNav may lock and unlock without the PIN, and locking needs a stored PIN. Unit tested. |
-| `AutomationReceiver` | Commands from automation apps (lock, unlock, theme, icon style) by broadcast; goes through `Store` like Settings. |
+| `AutomationReceiver` | Commands from automation apps (lock, unlock, theme, icon style, messages tap) by broadcast; goes through `Store` like Settings. |
 | `Automation` | Pure: the automation action and extra names, and the lenient parsing of their string extras. Unit tested. |
-| `Store` | The ordered home items (with the widgets sized by hand), whether the helper declined the Flashlight replacement, the lock flag with its PIN salt/hash (kept after unlocking), the theme and icon style, the first-run flag and the notification card's app list (package names only), in SharedPreferences. |
+| `Store` | The ordered home items (with the widgets sized by hand), whether the helper declined the Flashlight replacement, the lock flag with its PIN salt/hash (kept after unlocking), the theme and icon style, the first-run flag and the notification card's app list (package names only) and tap choice, in SharedPreferences. |
 | `Pin` | PIN validation (4-8 digits), salted SHA-256 hash, constant-time compare, and the fixed reset PIN. Same as SeniorAlert's and SeniorPhone's. Pure. |
 | `PinDialog` | Choose a PIN (twice) when locking; enter it when unlocking. The unlock prompt closes after 10 s without typing. |
 | `Ui` | Shared buttons, helper-screen frame and dialogs (`confirm`, and `choose` for more than one action; every dialog, the PIN prompt too, on `dialogCard`, outlined like the tiles so it has an edge on the dimmed screen), so every screen looks alike. Resolves every colour through the chosen theme (`Ui.color`, `Ui.applyTheme`). |
@@ -279,6 +280,14 @@ notifications.
   screen (on Android 14+ with the sender's background-start opt-in, which a
   `PendingIntent` from a visible app needs), and cancels it if it was
   auto-cancel, as the shade does. Without one, or if it fails, opens the app.
+  The helper can instead choose **Open it and remove it** or **Remove it
+  only** (`NoteTap`, in `Store`; Widgets screen, automation `MESSAGES_TAP`,
+  backup `"messagesTap"`, absent = Open). Removing cancels, through the
+  listener, every notification merged into the entry (the whole chat), then
+  a group summary left without messages; the entries leave the card at once,
+  not when the callback arrives. Never pretended: ongoing or "no clear"
+  ones, or a listener not connected, are not removed, so "open and remove"
+  only opens and "remove" does nothing. TalkBack's click label says which.
 - **Locked.** The card works as usual. If it cannot work (no access, no apps)
   it is hidden instead of showing a request meant for the helper, like a
   widget whose app is gone; the home screen re-checks when access changes.
@@ -410,8 +419,9 @@ permission. Installed without the launcher, each app keeps its own lock.
 ## Automation
 
 Automation apps (Trigly, Tasker) send `app.phueber.seniorlauncher.action.LOCK`
-/ `UNLOCK` (extra `pin`), `SET_THEME` (extra `theme`) and `SET_ICONS` (extra
-`style`: round or designed) to
+/ `UNLOCK` (extra `pin`), `SET_THEME` (extra `theme`), `SET_ICONS` (extra
+`style`: round or designed) and `MESSAGES_TAP` (extra `action`: open,
+open_remove or remove) to
 `AutomationReceiver`. Broadcasts, not activities: nothing needs to appear on
 screen, and a broadcast from the background needs no overlay permission. The
 extras are strings because that is all such apps can send; `Automation` drops
@@ -448,8 +458,9 @@ for itself, and the launcher can do all of them in one file.
   guessed at; an unreadable file, or a field of the wrong type, is refused
   with nothing changed. Missing fields take their defaults.
 - **The launcher's settings** (`LauncherBackup`): the home items in order,
-  the colours, the icon style (absent in older files: Round) and the
-  messages card's apps (absent when never chosen).
+  the colours, the icon style (absent in older files: Round), the
+  messages card's apps (absent when never chosen) and its tap choice
+  (absent: Open).
   Apps by launcher activity, with their name for the "not found" list; on
   restore an activity that is gone follows its app's only remaining one
   (`AppInfo.current`), and apps not installed are skipped and named.

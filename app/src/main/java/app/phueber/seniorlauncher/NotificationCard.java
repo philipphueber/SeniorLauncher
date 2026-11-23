@@ -35,7 +35,8 @@ import java.util.TimeZone;
 /**
  * The notifications card on the home screen: the current notifications of the
  * apps the helper picked, newest first, each with the app's icon and name, the
- * sender, the text and the time in words. A tap opens it like the shade does.
+ * sender, the text and the time in words. A tap opens it like the shade does,
+ * or opens and removes it, or only removes it, as the helper chose (NoteTap).
  * What does not fit the card's rows is counted in words ("and 3 more
  * messages"). Same rounded card as a wide widget, colours from the theme.
  *
@@ -60,6 +61,8 @@ final class NotificationCard extends FrameLayout implements NotificationHub.Obse
     private final Map<String, CharSequence> appNames = new HashMap<>();
     private int rows = 2;
     private boolean locked;
+    /** What a tap on an entry does; part of what is shown (TalkBack's label). */
+    private NoteTap.Choice tap = NoteTap.Choice.OPEN;
     /** What the card shows now (state, rows, lock, entries), to skip rebuilding the same. */
     private List<Object> shownKey;
     /** The built entries, so the minute tick only updates their times. */
@@ -152,7 +155,8 @@ final class NotificationCard extends FrameLayout implements NotificationHub.Obse
             entries = NoteList.select(NotificationHub.notes(), apps, getContext().getPackageName());
             state = entries.isEmpty() ? NONE : ENTRIES;
         }
-        List<Object> key = Arrays.asList(state, rows, locked, entries);
+        tap = store.noteTap();
+        List<Object> key = Arrays.asList(state, rows, locked, entries, tap);
         if (key.equals(shownKey)) {
             updateTimes();
             return;
@@ -242,7 +246,8 @@ final class NotificationCard extends FrameLayout implements NotificationHub.Obse
         int p = Ui.dp(c, 10);
         row.setPadding(p, Ui.dp(c, 8), p, Ui.dp(c, 8));
         row.setBackground(Ui.ripple(c, R.color.press_dark, Ui.color(c, R.color.card), 0, 18));
-        row.setOnClickListener(v -> NotificationHub.open(activity, n));
+        NoteTap.Choice choice = tap;
+        row.setOnClickListener(v -> NotificationHub.tap(activity, e, choice));
 
         ImageView icon = new ImageView(c);
         icon.setImageDrawable(icon(n.pkg));
@@ -284,9 +289,20 @@ final class NotificationCard extends FrameLayout implements NotificationHub.Obse
             @Override public void onInitializeAccessibilityNodeInfo(View host, AccessibilityNodeInfo info) {
                 super.onInitializeAccessibilityNodeInfo(host, info);
                 info.setClassName(Button.class.getName());
+                info.addAction(new AccessibilityNodeInfo.AccessibilityAction(
+                        AccessibilityNodeInfo.ACTION_CLICK, c.getString(actionLabel(choice))));
             }
         });
         return row;
+    }
+
+    /** TalkBack's "Double-tap to …": what a tap does. */
+    private static int actionLabel(NoteTap.Choice choice) {
+        switch (choice) {
+            case OPEN_REMOVE: return R.string.notes_action_open_remove;
+            case REMOVE: return R.string.notes_action_remove;
+            default: return R.string.notes_action_open;
+        }
     }
 
     /** "App · 5 min ago · 3 messages" and the spoken text, set only when they changed. */

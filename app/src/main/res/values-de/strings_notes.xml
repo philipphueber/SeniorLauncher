@@ -19,7 +19,10 @@
     <string name="notes_today">heute %1$s</string>
     <string name="notes_yesterday">gestern %1$s</string>
     <string name="notes_earlier">%1$s, %2$s</string>
-    <string name="notes_entry_cd">%1$s, %2$s: %3$s %4$s Tippen zum Öffnen.</string>
+    <string name="notes_entry_cd">%1$s, %2$s: %3$s %4$s</string>
+    <string name="notes_action_open">Öffnen</string>
+    <string name="notes_action_open_remove">Öffnen und entfernen</string>
+    <string name="notes_action_remove">Entfernen</string>
     <string name="notes_need_access">Braucht einmal den Benachrichtigungszugriff.</string>
     <string name="notes_allow">Benachrichtigungszugriff erlauben</string>
     <string name="notes_need_apps">Noch keine Apps gewählt.</string>
@@ -32,6 +35,10 @@
     <string name="notes_access_off">Benachrichtigungszugriff: noch nicht erlaubt.</string>
     <string name="notes_apps_list">Zeigt Nachrichten von: %1$s</string>
     <string name="notes_apps_none">Noch keine Apps gewählt.</string>
+    <string name="notes_tap_heading">Wenn eine Nachricht angetippt wird</string>
+    <string name="notes_tap_open">Öffnen</string>
+    <string name="notes_tap_open_remove">Öffnen und entfernen</string>
+    <string name="notes_tap_remove">Nur entfernen</string>
 
     <string name="notes_apps_title">Apps für Nachrichten</string>
     <string name="notes_apps_intro">Nachrichten bleiben auf diesem Telefon und werden nie gespeichert.</string>

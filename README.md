@@ -38,7 +38,8 @@ English and German. The app follows the phone's language.
   so the launcher uses the app's own button instead.
 - **Messages** (if the helper adds it): a wide card with the newest
   messages from the apps the helper chose, each with the app, the sender, the
-  text and when it came ("5 min ago"). A tap opens the message. If not all
+  text and when it came ("5 min ago"). A tap opens the message (or removes
+  it, if the helper chose so). If not all
   fit, the card says how many more there are.
 - **Page 1 of 3** with **Previous** and **Next**, only when there is more
   than one page. Pressing Home always goes back to page 1.
@@ -92,7 +93,8 @@ Needs Android 8.0 or newer.
      SMS, WhatsApp, Signal and Telegram are picked already if installed. Tap
      **Show** / **Shown ✓** to change it. Nothing else appears on the card.
   Size it there too (**1 row**, **2 rows**, **Full page**) and move it like
-  a tile. While locked, a card that is not set up is hidden.
+  a tile. **When a message is tapped**: **Open it**, **Open it and remove it**
+  or **Remove it only** (ongoing ones are never removed). While locked, a card that is not set up is hidden.
   Privacy: the messages stay on the phone and are only kept in memory while
   shown; only the list of chosen apps is saved.
 - **Settings → Colours**: Light, Dark, High contrast (white on black), or
@@ -114,7 +116,7 @@ Needs Android 8.0 or newer.
 - **Settings → Backup** saves the settings to a file you choose (Downloads,
   Google Drive, …) and loads them back, after a reset or on a new phone.
   **Save settings to a file** keeps the home screen (tiles in order, sizes,
-  the messages card and its apps), the colours and the icon style. **Save all Senior apps'
+  the messages card, its apps and what a tap does), the colours and the icon style. **Save all Senior apps'
   settings** puts those of the Phone, Alarm and Back & Home apps in the same
   file (SeniorLight has no settings). Loading asks first and then replaces
   the current settings; it says what it could not restore: apps that are not
@@ -127,7 +129,7 @@ Needs Android 8.0 or newer.
 
 ## Automation (Trigly, Tasker, …)
 
-Automation apps can lock, unlock, recolour the home screen and change its icons with a
+Automation apps can lock, unlock, recolour the home screen, change its icons and what a tap on a message does with a
 broadcast to package `app.phueber.seniorlauncher`. All extras are text.
 
 | Send mode | Action | Extras | What it does |
@@ -136,6 +138,7 @@ broadcast to package `app.phueber.seniorlauncher`. All extras are text.
 | Broadcast | `app.phueber.seniorlauncher.action.UNLOCK` | `pin`: the PIN, or the reset PIN | Unlocks, if the PIN is right. |
 | Broadcast | `app.phueber.seniorlauncher.action.SET_THEME` | `theme`: `light`, `dark`, `high_contrast` or `colourful` | Picks the colours, like Settings → Colours. |
 | Broadcast | `app.phueber.seniorlauncher.action.SET_ICONS` | `style`: `round` or `designed` | Picks the icon style, like Settings → App icons. |
+| Broadcast | `app.phueber.seniorlauncher.action.MESSAGES_TAP` | `action`: `open`, `open_remove` or `remove` | Picks what a tap on a message does, like Widgets → Messages. |
 
 Spaces and upper/lower case do not matter; anything unreadable is ignored.
 Example in Trigly, lock every night at 22:00: trigger *Time 22:00*, action
@@ -177,7 +180,7 @@ während das Telefon lädt, steht dort deutlich **Lädt**.
 - **Nachrichten** (wenn der Helfer sie hinzufügt): eine breite Karte mit den
   neuesten Nachrichten der Apps, die der Helfer gewählt hat, jeweils mit App,
   Absender, Text und wann sie kam („vor 5 Min.“). Ein Tipp öffnet die
-  Nachricht. Passen nicht alle hin, steht da, wie viele noch da sind.
+  Nachricht (oder entfernt sie, wenn der Helfer das so gewählt hat). Passen nicht alle hin, steht da, wie viele noch da sind.
 - **Seite 1 von 3** mit **Vorige** und **Weiter**, nur wenn es mehr als eine
   Seite gibt. Die Home-Taste führt immer zu Seite 1 zurück.
 
@@ -231,7 +234,9 @@ Benötigt Android 8.0 oder neuer.
      installiert. **Zeigen** / **Gezeigt ✓** ändert das. Andere Apps
      erscheinen nicht.
   Dort lässt sich auch die Größe wählen (**1 Zeile**, **2 Zeilen**,
-  **Ganze Seite**); verschoben wird sie wie eine Kachel. Gesperrt ist eine
+  **Ganze Seite**); verschoben wird sie wie eine Kachel. **Wenn eine Nachricht
+  angetippt wird**: **Öffnen**, **Öffnen und entfernen** oder **Nur entfernen**
+  (laufende werden nie entfernt). Gesperrt ist eine
   nicht eingerichtete Karte ausgeblendet.
   Datenschutz: Die Nachrichten bleiben auf dem Telefon und werden nur im
   Arbeitsspeicher gehalten, solange sie angezeigt werden; gespeichert wird
@@ -260,7 +265,7 @@ Benötigt Android 8.0 oder neuer.
   Sie wählen (Downloads, Google Drive, …), und lädt sie wieder, nach einem
   Zurücksetzen oder auf einem neuen Telefon. **Einstellungen in eine Datei
   speichern** bewahrt die Startseite (Kacheln in ihrer Reihenfolge, Größen,
-  die Nachrichten-Karte und ihre Apps), die Farben und die App-Symbole auf. **Einstellungen
+  die Nachrichten-Karte, ihre Apps und was ein Tipp tut), die Farben und die App-Symbole auf. **Einstellungen
   aller Senior-Apps speichern** legt die der Telefon-, Wecker- und
   Zurück-/Start-App mit in dieselbe Datei (SeniorLight hat keine
   Einstellungen). Laden fragt zuerst und ersetzt dann die aktuellen
@@ -276,7 +281,7 @@ Benötigt Android 8.0 oder neuer.
 ### Automatisierung (Trigly, Tasker, …)
 
 Automatisierungs-Apps können die Startseite per Broadcast an das Paket
-`app.phueber.seniorlauncher` sperren, entsperren, umfärben und ihre App-Symbole ändern. Alle Extras sind
+`app.phueber.seniorlauncher` sperren, entsperren, umfärben, ihre App-Symbole ändern und festlegen, was ein Tipp auf eine Nachricht tut. Alle Extras sind
 Text.
 
 | Sendeart | Aktion | Extras | Was passiert |
@@ -285,6 +290,7 @@ Text.
 | Broadcast | `app.phueber.seniorlauncher.action.UNLOCK` | `pin`: die PIN oder die Reset-PIN | Entsperrt, wenn die PIN stimmt. |
 | Broadcast | `app.phueber.seniorlauncher.action.SET_THEME` | `theme`: `light`, `dark`, `high_contrast` oder `colourful` (auch `hell`, `dunkel`, `kontrast`, `bunt`) | Wählt die Farben wie Einstellungen → Farben. |
 | Broadcast | `app.phueber.seniorlauncher.action.SET_ICONS` | `style`: `round` oder `designed` (auch `rund`, `original`) | Wählt die App-Symbole wie Einstellungen → App-Symbole. |
+| Broadcast | `app.phueber.seniorlauncher.action.MESSAGES_TAP` | `action`: `open`, `open_remove` oder `remove` (auch `öffnen`, `entfernen`) | Wählt, was ein Tipp auf eine Nachricht tut, wie Widgets → Nachrichten. |
 
 Leerzeichen und Groß-/Kleinschreibung sind egal; Unlesbares wird ignoriert.
 Beispiel in Trigly, jeden Abend um 22:00 sperren: Auslöser *Zeit 22:00*,
