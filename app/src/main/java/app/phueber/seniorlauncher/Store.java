@@ -33,6 +33,8 @@ public final class Store {
     private static final String K_NOTE_APPS = "notification_apps";
     /** What a tap on a messages-card entry does (NoteTap.Choice); absent means Open. */
     private static final String K_NOTE_TAP = "note_tap";
+    /** How the home screen turns pages (Paging.Mode); absent means Buttons. */
+    private static final String K_PAGING = "paging";
     /** The helper said no to turning the Flashlight tile into its button: do not ask again. */
     private static final String K_LIGHT_DECLINED = "light_declined";
 
@@ -165,14 +167,14 @@ public final class Store {
     }
 
     /**
-     * Replaces the home screen, the colours, the icon style, the notification card's apps and tap
+     * Replaces the home screen, the colours, the icon style, the paging, the notification card's apps and tap
      * at once with a restored backup (null apps: never chosen). The lock and
      * its PIN stay as they are. Marks the first run as done, so the default
      * tiles are not added on top.
      */
     public synchronized void restore(List<HomeItem> items, Set<Integer> sizedByHand, Palette.Theme theme,
                                      IconShape.Style icons, Set<String> notificationApps,
-                                     NoteTap.Choice noteTap) {
+                                     NoteTap.Choice noteTap, Paging.Mode paging) {
         StringBuilder sizedIds = new StringBuilder();
         for (int id : new TreeSet<>(sizedByHand)) {
             if (sizedIds.length() > 0) sizedIds.append(',');
@@ -184,6 +186,7 @@ public final class Store {
                 .putString(K_THEME, theme.name())
                 .putString(K_ICONS, icons.name())
                 .putString(K_NOTE_TAP, noteTap.name())
+                .putString(K_PAGING, paging.name())
                 .putBoolean(K_SEEDED, true);
         if (notificationApps == null) e.remove(K_NOTE_APPS);
         else e.putString(K_NOTE_APPS, joinPackages(notificationApps));
@@ -358,6 +361,14 @@ public final class Store {
 
     public synchronized void setIconStyle(IconShape.Style style) {
         prefs.edit().putString(K_ICONS, style.name()).commit();
+    }
+
+    public synchronized Paging.Mode paging() {
+        return Paging.parse(prefs.getString(K_PAGING, null));
+    }
+
+    public synchronized void setPaging(Paging.Mode mode) {
+        prefs.edit().putString(K_PAGING, mode.name()).commit();
     }
 
     /**

@@ -156,7 +156,7 @@ final class SettingsBackup {
     private static Map<String, Object> exportOwn(Context c) {
         Store store = new Store(c);
         return LauncherBackup.export(store.items(), store.sizedWidgets(), store.theme().name(),
-                store.iconStyle(), store.notificationApps(), store.noteTap(), new LauncherBackup.Lookup() {
+                store.iconStyle(), store.paging(), store.notificationApps(), store.noteTap(), new LauncherBackup.Lookup() {
                     @Override public String appLabel(String component) {
                         return AppInfo.label(c, component).toString();
                     }
@@ -184,7 +184,7 @@ final class SettingsBackup {
         }
         // An unknown name (a theme from a later version) keeps this phone's.
         Palette.Theme theme = s.theme == null ? store.theme() : Palette.parse(s.theme);
-        store.restore(plan.items, plan.sizedByHand, theme, s.icons, s.notificationApps, s.noteTap);
+        store.restore(plan.items, plan.sizedByHand, theme, s.icons, s.notificationApps, s.noteTap, s.paging);
         List<String> out = new ArrayList<>();
         out.add(c.getString(R.string.backup_restored));
         if (!plan.missingApps.isEmpty()) {

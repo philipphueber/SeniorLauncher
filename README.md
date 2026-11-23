@@ -42,7 +42,8 @@ English and German. The app follows the phone's language.
   it, if the helper chose so). If not all
   fit, the card says how many more there are.
 - **Page 1 of 3** with **Previous** and **Next**, only when there is more
-  than one page. Pressing Home always goes back to page 1.
+  than one page. Pressing Home always goes back to page 1. If the helper
+  prefers, a swipe turns the pages instead (small dots show which page).
 
 ## Install
 
@@ -105,6 +106,8 @@ Needs Android 8.0 or newer.
   Colourful (each tile in its app's colour). Pick whatever is easiest to read.
 - **Settings → App icons**: Round (every app icon a filled circle, the
   default) or As designed (each app's own shape).
+- **Settings → Turn pages**: Buttons (Previous / Next, the default) or Swipe
+  (swipe left or right; a tap still only opens, holding still works).
 - **Settings → Lock**: choose a PIN (4 to 8 digits). Afterwards only the
   tiles are left, so nothing can be changed by accident. To unlock, press and
   hold the padlock at the top and enter the PIN; the Phone and Alarm apps
@@ -120,7 +123,7 @@ Needs Android 8.0 or newer.
 - **Settings → Backup** saves the settings to a file you choose (Downloads,
   Google Drive, …) and loads them back, after a reset or on a new phone.
   **Save settings to a file** keeps the home screen (tiles in order, sizes,
-  the messages card, its apps and what a tap does), the colours and the icon style. **Save all Senior apps'
+  the messages card, its apps and what a tap does), the colours, the icon style and how pages turn. **Save all Senior apps'
   settings** puts those of the Phone, Alarm and Back & Home apps in the same
   file (SeniorLight has no settings). Loading asks first and then replaces
   the current settings; it says what it could not restore: apps that are not
@@ -133,7 +136,7 @@ Needs Android 8.0 or newer.
 
 ## Automation (Trigly, Tasker, …)
 
-Automation apps can lock, unlock, recolour the home screen, change its icons and what a tap on a message does with a
+Automation apps can lock, unlock, recolour the home screen, change its icons, how pages turn and what a tap on a message does with a
 broadcast to package `app.phueber.seniorlauncher`. All extras are text.
 
 | Send mode | Action | Extras | What it does |
@@ -143,6 +146,7 @@ broadcast to package `app.phueber.seniorlauncher`. All extras are text.
 | Broadcast | `app.phueber.seniorlauncher.action.SET_THEME` | `theme`: `light`, `dark`, `high_contrast` or `colourful` | Picks the colours, like Settings → Colours. |
 | Broadcast | `app.phueber.seniorlauncher.action.SET_ICONS` | `style`: `round` or `designed` | Picks the icon style, like Settings → App icons. |
 | Broadcast | `app.phueber.seniorlauncher.action.MESSAGES_TAP` | `action`: `open`, `open_remove` or `remove` | Picks what a tap on a message does, like Widgets → Messages. |
+| Broadcast | `app.phueber.seniorlauncher.action.SET_PAGING` | `mode`: `buttons` or `swipe` | Picks how pages turn, like Settings → Turn pages. |
 
 Spaces and upper/lower case do not matter; anything unreadable is ignored.
 Example in Trigly, lock every night at 22:00: trigger *Time 22:00*, action
@@ -186,7 +190,9 @@ während das Telefon lädt, steht dort deutlich **Lädt**.
   Absender, Text und wann sie kam („vor 5 Min.“). Ein Tipp öffnet die
   Nachricht (oder entfernt sie, wenn der Helfer das so gewählt hat). Passen nicht alle hin, steht da, wie viele noch da sind.
 - **Seite 1 von 3** mit **Vorige** und **Weiter**, nur wenn es mehr als eine
-  Seite gibt. Die Home-Taste führt immer zu Seite 1 zurück.
+  Seite gibt. Die Home-Taste führt immer zu Seite 1 zurück. Wenn der Helfer
+  es so einstellt, blättert stattdessen ein Wischen (kleine Punkte zeigen die
+  Seite).
 
 ### Installieren
 
@@ -255,6 +261,9 @@ Benötigt Android 8.0 oder neuer.
   ist.
 - **Einstellungen → App-Symbole**: Rund (jedes App-Symbol ein gefüllter
   Kreis, die Voreinstellung) oder Original (die eigene Form jeder App).
+- **Einstellungen → Seiten blättern**: Tasten (Vorige / Weiter, die
+  Voreinstellung) oder Wischen (nach links oder rechts wischen; ein Tipp
+  öffnet weiterhin nur, Gedrückthalten funktioniert weiter).
 - **Einstellungen → Sperren**: eine PIN wählen (4 bis 8 Ziffern). Danach sind
   nur noch die Kacheln da, sodass nichts aus Versehen geändert wird. Zum
   Entsperren das Schloss oben gedrückt halten und die PIN eingeben; die
@@ -274,7 +283,7 @@ Benötigt Android 8.0 oder neuer.
   Sie wählen (Downloads, Google Drive, …), und lädt sie wieder, nach einem
   Zurücksetzen oder auf einem neuen Telefon. **Einstellungen in eine Datei
   speichern** bewahrt die Startseite (Kacheln in ihrer Reihenfolge, Größen,
-  die Nachrichten-Karte, ihre Apps und was ein Tipp tut), die Farben und die App-Symbole auf. **Einstellungen
+  die Nachrichten-Karte, ihre Apps und was ein Tipp tut), die Farben, die App-Symbole und das Blättern auf. **Einstellungen
   aller Senior-Apps speichern** legt die der Telefon-, Wecker- und
   Zurück-/Start-App mit in dieselbe Datei (SeniorLight hat keine
   Einstellungen). Laden fragt zuerst und ersetzt dann die aktuellen
@@ -290,7 +299,7 @@ Benötigt Android 8.0 oder neuer.
 ### Automatisierung (Trigly, Tasker, …)
 
 Automatisierungs-Apps können die Startseite per Broadcast an das Paket
-`app.phueber.seniorlauncher` sperren, entsperren, umfärben, ihre App-Symbole ändern und festlegen, was ein Tipp auf eine Nachricht tut. Alle Extras sind
+`app.phueber.seniorlauncher` sperren, entsperren, umfärben, ihre App-Symbole und das Blättern ändern und festlegen, was ein Tipp auf eine Nachricht tut. Alle Extras sind
 Text.
 
 | Sendeart | Aktion | Extras | Was passiert |
@@ -300,6 +309,7 @@ Text.
 | Broadcast | `app.phueber.seniorlauncher.action.SET_THEME` | `theme`: `light`, `dark`, `high_contrast` oder `colourful` (auch `hell`, `dunkel`, `kontrast`, `bunt`) | Wählt die Farben wie Einstellungen → Farben. |
 | Broadcast | `app.phueber.seniorlauncher.action.SET_ICONS` | `style`: `round` oder `designed` (auch `rund`, `original`) | Wählt die App-Symbole wie Einstellungen → App-Symbole. |
 | Broadcast | `app.phueber.seniorlauncher.action.MESSAGES_TAP` | `action`: `open`, `open_remove` oder `remove` (auch `öffnen`, `entfernen`) | Wählt, was ein Tipp auf eine Nachricht tut, wie Widgets → Nachrichten. |
+| Broadcast | `app.phueber.seniorlauncher.action.SET_PAGING` | `mode`: `buttons` oder `swipe` (auch `tasten`, `wischen`) | Wählt, wie geblättert wird, wie Einstellungen → Seiten blättern. |
 
 Leerzeichen und Groß-/Kleinschreibung sind egal; Unlesbares wird ignoriert.
 Beispiel in Trigly, jeden Abend um 22:00 sperren: Auslöser *Zeit 22:00*,

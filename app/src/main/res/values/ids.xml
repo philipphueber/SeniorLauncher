@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- TalkBack actions on the page dots (swipe mode): turn the page without a gesture. -->
+    <item name="page_next" type="id" />
+    <item name="page_previous" type="id" />
+</resources>

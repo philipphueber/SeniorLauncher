@@ -15,7 +15,7 @@ import java.util.function.IntFunction;
 
 /**
  * The launcher's part of a settings backup: the home screen in order, the
- * colours, the icon style, the notification card's apps and what a tap on it does. Pure (no android.* imports), unit
+ * colours, the icon style, how pages turn, the notification card's apps and what a tap on it does. Pure (no android.* imports), unit
  * tested; LauncherSettingsBackup does the Android side.
  *
  * <pre>
@@ -43,6 +43,7 @@ import java.util.function.IntFunction;
  * a tile or as its widget, it comes back as its widget when one is placed,
  * else as its tile, which the home screen replaces with the widget.
  * "icons" is absent in files from before the setting; they load as ROUND.
+ * "paging" likewise; they load as BUTTONS.
  * "notificationApps" is absent while none were ever chosen. "messagesTap" is absent
  * in older files; they load as OPEN. The lock and its PIN are never part of a backup.
  */
@@ -62,11 +63,12 @@ final class LauncherBackup {
     }
 
     static Map<String, Object> export(List<HomeItem> items, Set<Integer> sizedByHand, String theme,
-                                      IconShape.Style icons, Set<String> notificationApps,
+                                      IconShape.Style icons, Paging.Mode paging, Set<String> notificationApps,
                                       NoteTap.Choice noteTap, Lookup lookup) {
         Map<String, Object> s = new LinkedHashMap<>();
         s.put("theme", theme);
         s.put("icons", icons.name());
+        s.put("paging", paging.name());
         if (notificationApps != null) s.put("notificationApps", new ArrayList<Object>(new TreeSet<>(notificationApps)));
         s.put("messagesTap", noteTap.name());
         List<Object> home = new ArrayList<>();
@@ -117,16 +119,19 @@ final class LauncherBackup {
         final String theme;
         /** ROUND when the file has none (made before the setting) or one this version does not know. */
         final IconShape.Style icons;
+        /** BUTTONS when the file has none (made before the setting) or one this version does not know. */
+        final Paging.Mode paging;
         /** Null: never chosen. */
         final Set<String> notificationApps;
         /** OPEN when the file has none (made before the setting) or one this version does not know. */
         final NoteTap.Choice noteTap;
         final List<Saved> home;
 
-        Settings(String theme, IconShape.Style icons, Set<String> notificationApps, NoteTap.Choice noteTap,
-                 List<Saved> home) {
+        Settings(String theme, IconShape.Style icons, Paging.Mode paging, Set<String> notificationApps,
+                 NoteTap.Choice noteTap, List<Saved> home) {
             this.theme = theme;
             this.icons = icons;
+            this.paging = paging;
             this.notificationApps = notificationApps;
             this.noteTap = noteTap;
             this.home = home;
@@ -137,6 +142,7 @@ final class LauncherBackup {
     static Settings read(Map<String, Object> s) throws Backup.Failure {
         String theme = Backup.string(s, "theme", null);
         IconShape.Style icons = IconShape.parse(Backup.string(s, "icons", null));
+        Paging.Mode paging = Paging.parse(Backup.string(s, "paging", null));
         NoteTap.Choice noteTap = NoteTap.parse(Backup.string(s, "messagesTap", null));
         Set<String> apps = null;
         if (s.get("notificationApps") != null) {
@@ -168,7 +174,7 @@ final class LauncherBackup {
                 throw new Backup.Failure(Backup.ERROR_MALFORMED, "home item " + (n - 1) + " of no known kind");
             }
         }
-        return new Settings(theme, icons, apps, noteTap, home);
+        return new Settings(theme, icons, paging, apps, noteTap, home);
     }
 
     /** What a restore does to this phone's home screen. */

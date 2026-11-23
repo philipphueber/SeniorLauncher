@@ -98,6 +98,7 @@
                 <action android:name="app.phueber.seniorlauncher.action.SET_THEME" />
                 <action android:name="app.phueber.seniorlauncher.action.SET_ICONS" />
                 <action android:name="app.phueber.seniorlauncher.action.MESSAGES_TAP" />
+                <action android:name="app.phueber.seniorlauncher.action.SET_PAGING" />
             </intent-filter>
         </receiver>
         <!-- The lock state for the other Senior apps; unlock with the PIN, and lock/unlock
