@@ -4,4 +4,5 @@
     <string name="back">Zurück</string>
     <string name="cancel">Abbrechen</string>
     <string name="remove">Entfernen</string>
+    <string name="remove_from_home_question">„%1$s“ von der Startseite entfernen?</string>
 </resources>

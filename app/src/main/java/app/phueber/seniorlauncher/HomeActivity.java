@@ -820,8 +820,9 @@ public class HomeActivity extends Activity {
             t.setLongClickable(false); // the senior can only open things
         } else {
             // For the helper: move the tile (on the Arrange screen, with this tile
-            // marked) or take it off. Remove needs no second question: it is
-            // already the second step after the long press, as before.
+            // marked) or take it off. Removing anything from the home screen
+            // always asks first, with the same question everywhere (Apps,
+            // Widgets, the messages card).
             t.setOnLongClickListener(v -> {
                 if (store.locked()) return true;
                 dismissDialog();
@@ -831,10 +832,14 @@ public class HomeActivity extends Activity {
                                 startActivity(ArrangeActivity.intent(this, HomeItem.app(component)));
                             }
                         }),
-                        new Ui.Choice(getString(R.string.remove), R.color.red, () -> {
-                            store.removeApp(component);
-                            rebuild(false);
-                        }));
+                        new Ui.Choice(getString(R.string.remove), R.color.red, () ->
+                                dialog = Ui.confirm(this,
+                                        getString(R.string.remove_from_home_question, name),
+                                        getString(R.string.remove), R.color.red, () -> {
+                                            if (store.locked()) return;
+                                            store.removeApp(component);
+                                            rebuild(false);
+                                        })));
                 return true;
             });
         }

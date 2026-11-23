@@ -1,5 +1,6 @@
 package app.phueber.seniorlauncher;
 
+import android.app.Dialog;
 import android.content.Context;
 import android.content.pm.LauncherActivityInfo;
 import android.graphics.Color;
@@ -75,6 +76,7 @@ public final class AppsActivity extends HelperActivity {
     private TextView status;
     private LinearLayout list;
     private boolean loaded;
+    private Dialog dialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,6 +111,19 @@ public final class AppsActivity extends HelperActivity {
         // The home screen may have removed a tile (long-press) while we were away.
         Set<String> onHome = onHome();
         for (Row r : rows) styleToggle(r, onHome.contains(r.component));
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        dismissDialog(); // a question does not wait for the next visit
+    }
+
+    private void dismissDialog() {
+        if (dialog != null) {
+            dialog.dismiss();
+            dialog = null;
+        }
     }
 
     /** Labels and icons come from the package manager, which is slow with many apps. */
@@ -204,10 +219,19 @@ public final class AppsActivity extends HelperActivity {
             // Read back from the store rather than trusting the button, so a
             // double tap cannot add the same app twice.
             if (closedByLock()) return;
-            boolean add = !store.containsApp(r.component);
-            if (add) store.addApp(r.component);
-            else store.removeApp(r.component);
-            styleToggle(r, add);
+            if (!store.containsApp(r.component)) {
+                store.addApp(r.component);
+                styleToggle(r, true);
+                return;
+            }
+            // Taking it off asks first, like every removal from the home screen.
+            dismissDialog();
+            dialog = Ui.confirm(this, getString(R.string.remove_from_home_question, r.label),
+                    getString(R.string.remove), R.color.red, () -> {
+                        if (closedByLock()) return;
+                        store.removeApp(r.component);
+                        styleToggle(r, false);
+                    });
         });
         return r;
     }

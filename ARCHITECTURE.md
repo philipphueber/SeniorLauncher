@@ -26,7 +26,7 @@ separate app, not part of this one.
 | `PageLayout` | A fixed `Pages.ROWS` x `Pages.COLUMNS` grid that always fills its space; places children by row, column and span. Reports the cell size after layout. |
 | `BatteryView` | The battery box: percent plus a word. On battery a light green gauge fills it up to the charge; low is solid red; charging is solid blue and full solid green, both with a lightning bolt (charging and full differ by colour, not only by word). |
 | `HelperActivity` | Base of the five helper screens: applies the theme, closes the screen when locked and rebuilds it in a new theme, on resume and at once while in front (it watches the store). |
-| `AppsActivity` | Every launchable app with an "Add" / "On home ✓" toggle. The only way to put an app on the home screen. Closes itself when locked. |
+| `AppsActivity` | Every launchable app with an "Add" / "On home ✓" toggle. The only way to put an app on the home screen; taking one off asks first. Closes itself when locked. |
 | `WidgetsActivity` | Places widgets (bind, optional configure, store), resizes them (size buttons on each placed card) and removes them. Lists them grouped by app with previews, a size badge (small/wide) and a search over widget and app names. Offers the notifications card ("Messages") first, and manages it once placed (access, apps, size, remove). |
 | `NotificationCard` | The notifications card on home: entries newest first (icon, app · time in words, sender, text), "and N more messages" when they do not fit, or a setup line with one button for the helper. Live while attached. |
 | `NotificationListener` | The `NotificationListenerService`: hands the current notifications to `NotificationHub`. Bound by the system once the helper grants notification access. |
@@ -97,6 +97,11 @@ buttons as everywhere else.
   helper sees the result at once instead of the page the item left. Home
   still always goes to page 1 (it drops that hand-over). The hand-over is one
   static slot, `HomeActivity.showNext`, which adding a widget uses too.
+
+Removing is one rule everywhere: anything that leaves the home screen (a tile
+from its long-press menu or the Apps screen, a widget, the messages card)
+is asked about first with the same `Ui.confirm` question, "Remove “Name” from
+the home screen?", Remove in red.
 
 ## Widgets
 

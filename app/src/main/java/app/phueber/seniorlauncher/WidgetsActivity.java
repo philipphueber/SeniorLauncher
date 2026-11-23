@@ -267,7 +267,7 @@ public class WidgetsActivity extends HelperActivity {
         remove.setOnClickListener(v -> {
             if (closedByLock()) return;
             if (dialog != null) dialog.dismiss();
-            dialog = Ui.confirm(this, label != null ? getString(R.string.widgets_remove_question_named, label)
+            dialog = Ui.confirm(this, label != null ? getString(R.string.remove_from_home_question, label)
                     : getString(R.string.widgets_remove_question),
                     getString(R.string.remove), R.color.red, () -> {
                         if (closedByLock()) return;
@@ -398,7 +398,7 @@ public class WidgetsActivity extends HelperActivity {
         remove.setOnClickListener(v -> {
             if (closedByLock()) return;
             if (dialog != null) dialog.dismiss();
-            dialog = Ui.confirm(this, getString(R.string.widgets_remove_question_named, name),
+            dialog = Ui.confirm(this, getString(R.string.remove_from_home_question, name),
                     getString(R.string.remove), R.color.red, () -> {
                         if (closedByLock()) return;
                         store.removeNotificationsCard();
