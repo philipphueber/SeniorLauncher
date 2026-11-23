@@ -8,6 +8,7 @@ import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.RippleDrawable;
 import android.os.Build;
@@ -77,6 +78,7 @@ public final class Ui {
         if (res == R.color.red) return Palette.Role.RED;
         if (res == R.color.red_light) return Palette.Role.RED_LIGHT;
         if (res == R.color.red_text) return Palette.Role.RED_TEXT;
+        if (res == R.color.outline) return Palette.Role.OUTLINE;
         if (res == R.color.disabled_bg) return Palette.Role.DISABLED_BG;
         if (res == R.color.disabled_text) return Palette.Role.DISABLED_TEXT;
         if (res == R.color.press_dark) return Palette.Role.PRESS_ON_CARD;
@@ -163,7 +165,7 @@ public final class Ui {
         Button b = button(c, label, R.color.card);
         b.setTextColor(color(c, R.color.text_black));
         b.setBackground(ripple(c, R.color.press_dark, color(c, R.color.card),
-                color(c, R.color.text_black), 20));
+                color(c, R.color.outline), 20));
         return b;
     }
 
@@ -195,7 +197,8 @@ public final class Ui {
         b.setGravity(Gravity.CENTER);
         b.setMinimumHeight(dp(a, BUTTON_HEIGHT));
         b.setPadding(dp(a, 16), dp(a, 8), dp(a, 16), dp(a, 8));
-        b.setBackground(ripple(a, R.color.press_dark, color(a, R.color.card), fg, 20));
+        b.setBackground(ripple(a, R.color.press_dark, color(a, R.color.card),
+                color(a, R.color.outline), 20));
         b.setClickable(true);
         b.setFocusable(true);
         b.setContentDescription(a.getString(R.string.back));
@@ -273,6 +276,50 @@ public final class Ui {
         bg.setCornerRadius(dp(c, 24));
         bg.setStroke(dp(c, 2), color(c, R.color.card_border));
         return bg;
+    }
+
+    /**
+     * An app icon as every list and tile shows it: on the theme's icon disc
+     * (Palette.iconDisc), so icons have the same round shape in every theme.
+     * Returns d itself when the theme has no disc.
+     */
+    public static Drawable appIcon(Context c, Drawable d) {
+        int disc = Palette.iconDisc(currentTheme(c));
+        if (d == null || disc == 0) return d;
+        return new IconOnDisc(d, disc);
+    }
+
+    /** A filled circle, centred, with the icon inset inside it. */
+    private static final class IconOnDisc extends Drawable {
+        private final Drawable icon;
+        private final android.graphics.Paint paint =
+                new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
+
+        IconOnDisc(Drawable icon, int color) {
+            this.icon = icon;
+            paint.setColor(color);
+        }
+
+        @Override protected void onBoundsChange(android.graphics.Rect b) {
+            int side = Math.min(b.width(), b.height());
+            int inset = Math.round(side * 0.09f);
+            int l = b.centerX() - side / 2 + inset, t = b.centerY() - side / 2 + inset;
+            icon.setBounds(l, t, l + side - 2 * inset, t + side - 2 * inset);
+        }
+
+        @Override public void draw(android.graphics.Canvas canvas) {
+            android.graphics.Rect b = getBounds();
+            canvas.drawCircle(b.exactCenterX(), b.exactCenterY(),
+                    Math.min(b.width(), b.height()) / 2f, paint);
+            icon.draw(canvas);
+        }
+
+        @Override public int getIntrinsicWidth() { return icon.getIntrinsicWidth(); }
+        @Override public int getIntrinsicHeight() { return icon.getIntrinsicHeight(); }
+        @Override public void setAlpha(int alpha) { paint.setAlpha(alpha); icon.setAlpha(alpha); }
+        @Override public void setColorFilter(android.graphics.ColorFilter f) { icon.setColorFilter(f); }
+        @SuppressWarnings("deprecation")
+        @Override public int getOpacity() { return android.graphics.PixelFormat.TRANSLUCENT; }
     }
 
     /** One button of a {@link #choose} dialog. */
