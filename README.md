@@ -90,6 +90,8 @@ Needs Android 8.0 or newer.
   unlocks; it locks with the last PIN, so a PIN has to be chosen here once.
 - To move a tile or take it off, press and hold it (only when unlocked) and
   choose **Move** or **Remove**.
+- **Back** at the bottom of every helper screen goes straight back to the
+  home screen in one tap, to the page it showed.
 
 ## Automation (Trigly, Tasker, …)
 
@@ -193,6 +195,8 @@ Benötigt Android 8.0 oder neuer.
   mit der letzten PIN, deshalb muss hier einmal eine PIN gewählt worden sein.
 - Um eine Kachel zu verschieben oder herunterzunehmen, halten Sie sie gedrückt
   (nur entsperrt) und wählen **Verschieben** oder **Entfernen**.
+- **Zurück** unten auf jeder Seite für Helfer führt mit einem Tipp direkt
+  zur Startseite, auf die Seite, die sie zeigte.
 
 ### Automatisierung (Trigly, Tasker, …)
 

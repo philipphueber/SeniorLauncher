@@ -3,6 +3,7 @@ package app.phueber.seniorlauncher;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -181,7 +182,12 @@ public final class Ui {
         return lp;
     }
 
-    /** The pinned "← Back" button of every helper screen: closes the activity. */
+    /**
+     * The pinned "← Back" button of every helper screen: one tap to the home
+     * screen, however deep the helper went (Settings → Arrange, Widgets →
+     * Choose apps), closing every helper screen on the way. The system Back
+     * still steps back one screen.
+     */
     public static View backButton(Activity a) {
         int fg = color(a, R.color.text_black);
         LinearLayout b = new LinearLayout(a);
@@ -192,7 +198,7 @@ public final class Ui {
         b.setClickable(true);
         b.setFocusable(true);
         b.setContentDescription(a.getString(R.string.back));
-        b.setOnClickListener(v -> a.finish());
+        b.setOnClickListener(v -> goHome(a));
 
         TextView label = bold(a, a.getString(R.string.back), TEXT_BUTTON);
         label.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
@@ -207,6 +213,19 @@ public final class Ui {
         b.addView(label);
         NavBar.hideWhileOn(b); // SeniorNav's bar already has Back and Home
         return b;
+    }
+
+    /**
+     * Back to the home screen from a helper screen. HomeActivity is singleTask
+     * at the root of this task, so starting it clears every screen above it;
+     * the extra tells it this is Back, not Home, so it keeps its page (and
+     * turns to the item moved or added last) instead of going to page 1.
+     */
+    public static void goHome(Activity a) {
+        a.startActivity(new Intent(a, HomeActivity.class)
+                .putExtra(HomeActivity.EXTRA_BACK, true)
+                .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP));
+        a.finish();
     }
 
     /**

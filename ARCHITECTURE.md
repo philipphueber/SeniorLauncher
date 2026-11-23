@@ -66,7 +66,12 @@ spans the full width and starts on a new row; if its rows do not fit on the
 current page, it starts the next one. Tiles never move
 on their own: a page only changes when an item is added, removed or resized
 (or an automatic widget re-fits after a font or display size change). Home always
-goes back to page 1. A recreate (new colours, or any configuration change) keeps
+goes back to page 1. The pinned Back of every helper screen is one tap to the
+home screen, however deep the helper went (Settings → Arrange, Widgets →
+Choose apps): `Ui.goHome` starts `HomeActivity` (singleTask, the task's root),
+which clears every helper screen above it, with `EXTRA_BACK`, so it keeps the
+page it showed instead of going to page 1 (Back is a return, not Home). The
+system Back still steps back one screen. A recreate (new colours, or any configuration change) keeps
 the page shown: `HomeActivity` saves it only while `isChangingConfigurations()`,
 so a start after the process died still opens on page 1.
 
