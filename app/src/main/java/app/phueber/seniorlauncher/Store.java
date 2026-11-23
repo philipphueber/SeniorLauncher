@@ -240,14 +240,14 @@ public final class Store {
     }
 
     /**
-     * Moves the item {@code steps} places among the shown items (negative is
-     * earlier), see {@link Order#moveAmong}. Returns false if it is not stored.
+     * Moves the item so that it becomes the {@code to}-th of the shown items,
+     * see {@link Order#moveAmongShown}. Returns false if it is not stored.
      */
-    public synchronized boolean move(HomeItem item, int steps, Predicate<HomeItem> shown) {
+    public synchronized boolean moveTo(HomeItem item, int to, Predicate<HomeItem> shown) {
         List<HomeItem> list = items();
         int from = list.indexOf(item);
         if (from < 0) return false;
-        setItems(Order.moveAmong(list, from, steps, shown));
+        setItems(Order.moveAmongShown(list, from, to, shown));
         return true;
     }
 

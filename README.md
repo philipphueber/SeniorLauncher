@@ -60,9 +60,12 @@ Needs Android 8.0 or newer.
 
 - **Apps** lists every app. **Add** puts it on the home screen, **On home ✓**
   takes it off again (after asking). New tiles go to the end.
-- **Settings → Arrange home screen** puts the tiles in the order you want:
-  **▲ Earlier** and **▼ Later** move a tile one place; headings show where each
-  page begins.
+- **Settings → Arrange home screen** shows the home screen as it looks. Tap a
+  tile, then tap where it should go: on another tile (it takes that place) or
+  on a free spot. **Previous** / **Next** reach the other pages, with the tile
+  still picked. Tap it again to leave it where it is; **Remove** takes it off.
+  Wide widgets and the messages card always take whole rows: dropped next to
+  a tile they start the next row, or the next page if they do not fit.
 - **Widgets** lists the widgets your apps offer. Tap one to put it on the home
   screen; Android asks once whether to allow it. Afterwards the home screen
   opens on the page with the new widget. Each placed widget can be made
@@ -93,7 +96,7 @@ Needs Android 8.0 or newer.
   helper can also record a pattern of volume-button presses that locks and
   unlocks; it locks with the last PIN, so a PIN has to be chosen here once.
 - To move a tile or take it off, press and hold it (only when unlocked) and
-  choose **Move** or **Remove**. Removing anything from the home screen (a
+  choose **Move** (Arrange opens with that tile picked) or **Remove**. Removing anything from the home screen (a
   tile, a widget, the messages card) always asks first.
 - **Back** at the bottom of every helper screen goes straight back to the
   home screen in one tap, to the page it showed.
@@ -176,9 +179,14 @@ Benötigt Android 8.0 oder neuer.
 
 - **Apps** zeigt alle Apps. **Hinzufügen** legt sie auf die Startseite,
   **Auf Start ✓** nimmt sie (nach einer Rückfrage) wieder herunter. Neue Kacheln kommen ans Ende.
-- **Einstellungen → Startseite ordnen** bringt die Kacheln in die gewünschte
-  Reihenfolge: **▲ Nach vorne** und **▼ Nach hinten** verschieben eine Kachel
-  um einen Platz; Überschriften zeigen, wo jede Seite beginnt.
+- **Einstellungen → Startseite ordnen** zeigt die Startseite, wie sie
+  aussieht. Tippen Sie auf eine Kachel, dann auf ihren neuen Platz: auf eine
+  andere Kachel (sie nimmt deren Platz ein) oder auf einen freien Platz.
+  **Vorige** / **Weiter** führen zu den anderen Seiten, die Kachel bleibt
+  ausgewählt. Nochmals antippen lässt sie, wo sie ist; **Entfernen** nimmt sie
+  herunter. Breite Widgets und die Nachrichten-Karte nehmen immer ganze
+  Reihen ein: Neben einer Kachel abgelegt, beginnen sie die nächste Reihe,
+  oder die nächste Seite, wenn sie nicht mehr passen.
 - **Widgets** zeigt die Widgets Ihrer Apps. Tippen Sie eines an, um es auf die
   Startseite zu legen; Android fragt einmal, ob das erlaubt ist. Danach öffnet
   die Startseite die Seite mit dem neuen Widget. Dort lässt sich jedes
@@ -216,7 +224,8 @@ Benötigt Android 8.0 oder neuer.
   aus Lautstärketasten-Drücken aufnehmen, das sperrt und entsperrt; es sperrt
   mit der letzten PIN, deshalb muss hier einmal eine PIN gewählt worden sein.
 - Um eine Kachel zu verschieben oder herunterzunehmen, halten Sie sie gedrückt
-  (nur entsperrt) und wählen **Verschieben** oder **Entfernen**. Bevor etwas
+  (nur entsperrt) und wählen **Verschieben** („Startseite ordnen“ öffnet sich
+  mit dieser Kachel ausgewählt) oder **Entfernen**. Bevor etwas
   von der Startseite entfernt wird (Kachel, Widget, Nachrichten-Karte), kommt
   immer eine Rückfrage.
 - **Zurück** unten auf jeder Seite für Helfer führt mit einem Tipp direkt

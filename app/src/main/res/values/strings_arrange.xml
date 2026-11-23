@@ -1,18 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- ArrangeActivity: the order of the home screen. -->
+    <!-- ArrangeActivity: a picture of the home screen; tap a tile, then tap where it goes. -->
     <string name="arrange_title">Arrange home screen</string>
-    <string name="arrange_intro">Tap “▲ Earlier” or “▼ Later” to move a tile. The home screen shows them in this order, two side by side; the headings show where each page begins.</string>
-    <string name="arrange_empty">There is nothing on the home screen yet.</string>
-    <string name="arrange_page">Page %1$d</string>
-    <string name="arrange_earlier">▲ Earlier</string>
-    <string name="arrange_later">▼ Later</string>
-    <string name="arrange_earlier_cd">Move %1$s earlier</string>
-    <string name="arrange_later_cd">Move %1$s later</string>
-    <string name="arrange_widget_small">Small widget</string>
-    <string name="arrange_widget_wide">Wide widget, takes a whole row</string>
-    <!-- Read aloud by TalkBack for a row, e.g. "Phone, place 3 of 14, page 2". -->
-    <string name="arrange_place_cd">%1$s, place %2$d of %3$d, page %4$d</string>
+    <string name="arrange_hint">Tap a tile, then tap where it should go.</string>
+    <string name="arrange_hint_picked">Tap where “%1$s” should go.</string>
+    <string name="arrange_empty">Nothing on the home screen yet.</string>
+    <!-- Read aloud by TalkBack, e.g. "Clock, wide widget". -->
+    <string name="arrange_widget_small">%1$s, small widget</string>
+    <string name="arrange_widget_wide">%1$s, wide widget</string>
+    <string name="arrange_picked_cd">%1$s, picked</string>
+    <string name="arrange_free_cd">Free place</string>
+    <!-- TalkBack's "Double-tap to …" for the taps. -->
+    <string name="arrange_pick">Pick to move</string>
+    <string name="arrange_put_down">Leave it here</string>
+    <string name="arrange_move_here">Move “%1$s” here</string>
+    <string name="arrange_remove_cd">Remove “%1$s”</string>
     <!-- Read aloud by TalkBack after a move. -->
-    <string name="arrange_moved">%1$s, now place %2$d of %3$d, page %4$d</string>
+    <string name="arrange_moved">%1$s, now on page %2$d</string>
 </resources>

@@ -8,8 +8,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
@@ -784,20 +782,7 @@ public class HomeActivity extends Activity {
     private int iconTileColor(String component, Drawable icon, int index) {
         Integer cached = iconColors.get(component);
         if (cached == null) {
-            int c = 0;
-            if (icon != null) {
-                int s = 48;
-                Bitmap bm = Bitmap.createBitmap(s, s, Bitmap.Config.ARGB_8888);
-                Drawable d = icon.getConstantState() != null
-                        ? icon.getConstantState().newDrawable().mutate() : icon;
-                d.setBounds(0, 0, s, s);
-                d.draw(new Canvas(bm));
-                int[] px = new int[s * s];
-                bm.getPixels(px, 0, s, 0, 0, s, s);
-                bm.recycle();
-                c = IconColor.tileColor(px);
-            }
-            cached = c;
+            cached = AppInfo.tileColor(icon);
             iconColors.put(component, cached);
         }
         return cached != 0 ? cached : Palette.tileColor(index);

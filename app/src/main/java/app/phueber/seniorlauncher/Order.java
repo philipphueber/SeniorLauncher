@@ -12,9 +12,9 @@ import java.util.function.Predicate;
  *
  * The helper only sees the items the home screen shows: an app that is being
  * updated, or whose widget's app is gone, is hidden but keeps its place
- * (HomeActivity hides such items instead of deleting them). So a step moves an
- * item past the next shown item, not merely to the next list index; otherwise
- * a tap on "Later" next to a hidden item would seem to do nothing.
+ * (HomeActivity hides such items instead of deleting them). So a place is
+ * counted among the shown items only, and hidden items keep their order
+ * among the others.
  */
 final class Order {
     private Order() {}
@@ -32,28 +32,27 @@ final class Order {
         return out;
     }
 
-    /** {@link #move} by {@code delta} places: negative is earlier, positive later. */
-    static <T> List<T> moveBy(List<T> list, int index, int delta) {
-        return moveAmong(list, index, delta, x -> true);
-    }
-
     /**
-     * Moves the item at {@code from} past {@code steps} shown items: negative
-     * earlier, positive later. Hidden items are stepped over and keep their
-     * order among the others. With fewer shown items left than steps, the item
-     * goes as far as there are; with none, nothing changes.
+     * Moves the item at {@code from} so that it becomes the {@code to}-th
+     * shown item (0 is first), counting only the items {@code shown} accepts.
+     * It goes right before the shown item that is now at that place, or right
+     * after the last shown one when {@code to} is past the end. Hidden items
+     * stay where they are among the others. With no other shown item, or an
+     * invalid {@code from}, nothing changes.
      */
-    static <T> List<T> moveAmong(List<T> list, int from, int steps, Predicate<? super T> shown) {
-        if (from < 0 || from >= list.size() || steps == 0) return new ArrayList<>(list);
-        int dir = steps < 0 ? -1 : 1;
-        int left = Math.abs(steps);
-        int to = from;
-        for (int i = from + dir; left > 0 && i >= 0 && i < list.size(); i += dir) {
-            if (shown.test(list.get(i))) {
-                to = i;
-                left--;
-            }
+    static <T> List<T> moveAmongShown(List<T> list, int from, int to, Predicate<? super T> shown) {
+        List<T> out = new ArrayList<>(list);
+        if (from < 0 || from >= out.size()) return out;
+        T item = out.remove(from);
+        int count = 0, before = -1, last = -1;
+        for (int i = 0; i < out.size(); i++) {
+            if (!shown.test(out.get(i))) continue;
+            if (count == Math.max(0, to) && before < 0) before = i;
+            count++;
+            last = i;
         }
-        return move(list, from, to);
+        if (last < 0) return new ArrayList<>(list); // nothing to move past
+        out.add(before >= 0 ? before : last + 1, item);
+        return out;
     }
 }

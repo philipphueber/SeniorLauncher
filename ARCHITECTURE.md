@@ -41,11 +41,11 @@ separate app, not part of this one.
 | `Backup` | Pure: the backup file's envelope (format, version, one entry per app), typed reads that make a wrong type a malformed file, the providers' method and error names, the caller check. The same class in every Senior app. Unit tested. |
 | `Json` | Pure: a small JSON reader and writer for `Backup` (the platform's org.json is only a stub in JVM tests). The same class in every Senior app. Unit tested. |
 | `BackupFiles` | The system file picker's save and open intents, reading and writing the chosen file, the date for the name. The same class in every Senior app. |
-| `ArrangeActivity` | The home items in order, with "Page 1", "Page 2" headings from `Pages.layout`; ▲ Earlier / ▼ Later on each. From Settings, or from the long press on a tile (that tile marked). Never while locked: closes itself when locked. |
+| `ArrangeActivity` | A picture of the home screen, one page at a time (`PageLayout`, `Pages.layout`): tap an item to pick it, tap another item or a free cell to put it there, Previous / Next to reach another page, Remove while something is picked. From Settings, or from Move on a tile's long press (that tile starts picked). Never while locked: closes itself when locked. |
 | `Widgets` | The one `AppWidgetHost`: creates, sizes and deletes widget views; turns a provider's declaration into a `WidgetRows.Spec` (dp). |
 | `AppInfo` | Label, icon, launchability and launch of an app tile, via `LauncherApps`. A tile whose launcher activity was disabled follows the app's only remaining one (SeniorLight swaps icon aliases to show the light's state). |
 | `DefaultApps` | On first run, adds tiles for the default phone, messages, camera, photos, contacts and browser apps. |
-| `Order` | Pure: moves one item earlier or later in a list, stepping over hidden items; clamps at the ends. Unit tested. |
+| `Order` | Pure: moves one item to a place counted among the shown items; hidden items keep their place. Unit tested. |
 | `LockProvider` | Tells SeniorPhone, SeniorAlert and SeniorNav whether the home screen is locked and whether a PIN is set, lifts the lock for them when given the PIN, and locks/unlocks without the PIN for SeniorNav's volume-button pattern. |
 | `NavLock` | Pure: only SeniorNav may lock and unlock without the PIN, and locking needs a stored PIN. Unit tested. |
 | `AutomationReceiver` | Commands from automation apps (lock, unlock, theme) by broadcast; goes through `Store` like Settings. |
@@ -58,7 +58,7 @@ separate app, not part of this one.
 | `Palette` | Pure: the four colour themes (Light, Dark, High contrast, Colourful) as roles, the Colourful tile colours, and the WCAG contrast check. Unit tested for readability. |
 | `HomeItem` | Pure: an app tile, a widget (id and rows) or the notifications card (rows). |
 | `HomeCodec` | Pure: the item list to and from one string (`a:`, `w:`, `s:`, `n:`). Unit tested. |
-| `Pages` | Pure: splits the items into pages of placements. Unit tested. |
+| `Pages` | Pure: splits the items into pages of placements; the free cells of a page, and where an item tapped into a free cell lands. Unit tested. |
 | `WidgetRows` | Pure: how many rows a widget spans automatically, whether it is 1x1, and which sizes the helper may choose. Unit tested. |
 | `BatteryState` | Pure: normal, low, charging or full, and the percent. Unit tested. |
 
@@ -84,22 +84,38 @@ so a start after the process died still opens on page 1.
 ## Order
 
 New items go to the end. The helper changes the order on the Arrange screen
-(Settings, or hold a tile and choose Move, which marks that tile with a
-thick outline, green or in High contrast white, `Palette.markBorder`, so it
-is the most visible row in every theme): every item the home screen shows,
-with page headings computed by `Pages.layout`, so a wide widget that pushes
-things to the next page is visible there too. Each tile has two buttons,
-▲ Earlier and ▼ Later, greyed out at the ends; there is no drag and drop,
-because the senior's phone has no gestures and the helper gets the same big
-buttons as everywhere else.
+(Settings, or hold a tile and choose Move): a picture of the home screen, one
+page at a time, built with the same `PageLayout` and `Pages.layout`, with the
+same tiles; wide widgets and the messages card are blocks with their icon and
+name across their rows. There is no drag and drop and no long press, because
+the senior's phone has no gestures and the helper gets the same taps as
+everywhere else: **tap to pick, tap to place**.
 
-- A move is one step past the next *shown* item (`Order.moveAmong`): an app
-  that is briefly missing (being updated) keeps its place, but is not a place
-  a tap could seem to stop at.
-- Every tap is stored at once. The moved row stays under the finger while the
-  others flow past it (its scroll offset is restored before drawing), and it
-  is never detached, so TalkBack keeps its focus and announces "Phone, now
-  place 3 of 14, page 2".
+- Tap an item: it is picked, with a thick outline, green or in High contrast
+  white (`Palette.markBorder`), so it is the most visible item in every
+  theme. The one line above the grid says "Tap where “Phone” should go."
+  Tap it again: put down, nothing changes.
+- Tap another item: the picked one takes its place (its index among the
+  shown items); the others shift in list order. Tap a free cell (dashed): it
+  goes right after every item before that cell in reading order
+  (`Pages.targetForCell`).
+- Only the order is stored, so the picture after the move is exactly the
+  home screen: tiles fill from the top, so a tile tapped into a gap fills the
+  first free cell there; a wide item always starts a row (dropped into half a
+  row it starts the next one) and goes to the next page when its rows do not
+  fit, as in `Pages.layout`. The screen turns to the page the item landed on.
+- Previous / Next ("Page 2 of 3") turn the page with the item still picked,
+  so it can be moved to another page.
+- While something is picked a red Remove shows, with the same question as
+  everywhere (below). It is invisible, not gone, otherwise, and the hint is
+  always two lines high, so the grid never shifts when picking.
+- A place counts only *shown* items (`Order.moveAmongShown`): an app that is
+  briefly missing (being updated) keeps its place among the others.
+- Every tap is stored at once, so Back or Home leave nothing half-done.
+  TalkBack reads each item ("Clock, wide widget", "Phone, picked", "Free
+  place") as a button whose double tap says what it does ("Pick to move",
+  "Move “Phone” here", "Leave it here"), and announces "Phone, now on page 2"
+  after a move.
 - Back to the home screen, it shows the page of the item moved last, so the
   helper sees the result at once instead of the page the item left. Home
   still always goes to page 1 (it drops that hand-over). The hand-over is one

@@ -32,7 +32,6 @@
     <string name="notes_access_off">Benachrichtigungszugriff: noch nicht erlaubt, darum kann nichts erscheinen.</string>
     <string name="notes_apps_list">Zeigt Nachrichten von: %1$s</string>
     <string name="notes_apps_none">Noch keine Apps gewählt, darum erscheint nichts.</string>
-    <string name="notes_arrange_kind">Nachrichten-Karte, nimmt ganze Reihen ein</string>
 
     <string name="notes_apps_title">Apps für Nachrichten</string>
     <string name="notes_apps_intro">Neue Benachrichtigungen der Apps mit „Gezeigt ✓“ erscheinen auf der Startseite. Sie bleiben auf diesem Telefon und werden nie gespeichert.</string>

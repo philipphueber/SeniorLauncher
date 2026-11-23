@@ -1,6 +1,7 @@
 package app.phueber.seniorlauncher;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -68,5 +69,47 @@ final class Pages {
         }
         if (pages.isEmpty()) pages.add(new ArrayList<Placement>());
         return pages;
+    }
+
+    /** The page the item is on, or -1 if it is not on any. */
+    static int pageOf(List<List<Placement>> pages, HomeItem item) {
+        for (int p = 0; p < pages.size(); p++) {
+            for (Placement pl : pages.get(p)) if (pl.item.equals(item)) return p;
+        }
+        return -1;
+    }
+
+    /** Which cells of a page no item covers: [row][col], true when free. */
+    static boolean[][] freeCells(List<Placement> page, int rows, int columns) {
+        boolean[][] free = new boolean[Math.max(1, rows)][Math.max(1, columns)];
+        for (boolean[] r : free) Arrays.fill(r, true);
+        for (Placement pl : page) {
+            for (int r = pl.row; r < pl.row + pl.rowSpan && r < free.length; r++) {
+                for (int c = pl.col; c < pl.col + pl.colSpan && c < free[r].length; c++) free[r][c] = false;
+            }
+        }
+        return free;
+    }
+
+    /**
+     * Where an item lands, as an index among all shown items, when the helper
+     * taps a free cell (page, row, col) on the Arrange screen: right after
+     * every item before that cell in reading order (earlier pages, rows above,
+     * cells to the left). {@code from} is the moved item's own index; it no
+     * longer counts once taken out. Since the order alone decides the layout,
+     * the item then fills the first free cell from there, exactly as on the
+     * home screen: a tile tapped into a gap left before a wide widget fills
+     * that gap; a wide widget dropped into half a row starts the next row, or
+     * the next page when its rows do not fit.
+     */
+    static int targetForCell(List<List<Placement>> pages, int from, int page, int row, int col) {
+        int before = 0;
+        for (int p = 0; p < page && p < pages.size(); p++) before += pages.get(p).size();
+        if (page >= 0 && page < pages.size()) {
+            for (Placement pl : pages.get(page)) {
+                if (pl.row < row || (pl.row == row && pl.col < col)) before++;
+            }
+        }
+        return from >= 0 && from < before ? before - 1 : before;
     }
 }
