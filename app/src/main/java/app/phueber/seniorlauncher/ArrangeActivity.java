@@ -296,8 +296,10 @@ public final class ArrangeActivity extends HelperActivity {
         boolean coloured = Palette.colouredTiles(Ui.currentTheme(this));
         if (item.isApp()) {
             String current = AppInfo.current(this, item.component);
-            Drawable d = AppInfo.icon(this, current != null ? current : item.component);
-            icon.setImageDrawable(d != null ? d : getDrawable(android.R.drawable.sym_def_app_icon));
+            if (current == null) current = item.component;
+            Drawable d = AppInfo.icon(this, current);
+            icon.setImageDrawable(RoundIcon.of(d != null ? d : getDrawable(android.R.drawable.sym_def_app_icon),
+                    store.iconStyle(), current));
             if (coloured) fill = iconColor(item.component, d, index);
         } else {
             setWidgetIcon(icon, item.widgetId);

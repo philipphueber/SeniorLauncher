@@ -62,4 +62,16 @@ public class AutomationTest {
         assertEquals("app.phueber.seniorlauncher.action.UNLOCK", Automation.UNLOCK);
         assertEquals("app.phueber.seniorlauncher.action.SET_THEME", Automation.SET_THEME);
     }
+
+    @Test public void iconStyleNames() {
+        assertEquals(IconShape.Style.ROUND, Automation.iconStyle("round"));
+        assertEquals(IconShape.Style.ROUND, Automation.iconStyle(" Rund "));
+        assertEquals(IconShape.Style.DESIGNED, Automation.iconStyle("designed"));
+        assertEquals(IconShape.Style.DESIGNED, Automation.iconStyle("As designed"));
+        assertEquals(IconShape.Style.DESIGNED, Automation.iconStyle("as_designed"));
+        assertEquals(IconShape.Style.DESIGNED, Automation.iconStyle("Original"));
+        assertNull(Automation.iconStyle("square"));
+        assertNull(Automation.iconStyle(""));
+        assertNull(Automation.iconStyle(null));
+    }
 }

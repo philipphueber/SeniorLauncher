@@ -20,9 +20,12 @@ final class Automation {
     static final String UNLOCK = PREFIX + "UNLOCK";
     /** Sets the colour theme from extra {@link #EXTRA_THEME}. */
     static final String SET_THEME = PREFIX + "SET_THEME";
+    /** Sets the icon style from extra {@link #EXTRA_STYLE}. */
+    static final String SET_ICONS = PREFIX + "SET_ICONS";
 
     static final String EXTRA_PIN = "pin";
     static final String EXTRA_THEME = "theme";
+    static final String EXTRA_STYLE = "style";
 
     private Automation() {}
 
@@ -60,6 +63,20 @@ final class Automation {
             case "highcontrast": case "contrast": case "kontrast": case "hoherkontrast":
                 return Palette.Theme.HIGH_CONTRAST;
             case "colourful": case "colorful": case "bunt": return Palette.Theme.COLOURFUL;
+            default: return null;
+        }
+    }
+
+    /**
+     * The icon style named by raw: round or designed (also "as designed",
+     * "original", and the German rund), else null.
+     */
+    static IconShape.Style iconStyle(String raw) {
+        if (raw == null) return null;
+        String s = raw.trim().toLowerCase(Locale.ROOT).replaceAll("[\\s_-]+", "");
+        switch (s) {
+            case "round": case "rund": return IconShape.Style.ROUND;
+            case "designed": case "asdesigned": case "original": return IconShape.Style.DESIGNED;
             default: return null;
         }
     }

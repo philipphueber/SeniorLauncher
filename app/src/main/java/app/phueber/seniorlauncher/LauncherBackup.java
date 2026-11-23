@@ -15,12 +15,13 @@ import java.util.function.IntFunction;
 
 /**
  * The launcher's part of a settings backup: the home screen in order, the
- * colours and the notification card's apps. Pure (no android.* imports), unit
+ * colours, the icon style and the notification card's apps. Pure (no android.* imports), unit
  * tested; LauncherSettingsBackup does the Android side.
  *
  * <pre>
  * "settings": {
  *   "theme": "DARK",
+ *   "icons": "ROUND",
  *   "notificationApps": ["com.whatsapp", "org.thoughtcrime.securesms"],
  *   "home": [
  *     {"app": "com.whatsapp/com.whatsapp.Main", "label": "WhatsApp"},
@@ -40,6 +41,7 @@ import java.util.function.IntFunction;
  * helper to add again. SeniorLight (Flashlight) is the exception: saved as
  * a tile or as its widget, it comes back as its widget when one is placed,
  * else as its tile, which the home screen replaces with the widget.
+ * "icons" is absent in files from before the setting; they load as ROUND.
  * "notificationApps" is absent while none were ever chosen. The lock and its PIN are never part of a backup.
  */
 final class LauncherBackup {
@@ -58,9 +60,10 @@ final class LauncherBackup {
     }
 
     static Map<String, Object> export(List<HomeItem> items, Set<Integer> sizedByHand, String theme,
-                                      Set<String> notificationApps, Lookup lookup) {
+                                      IconShape.Style icons, Set<String> notificationApps, Lookup lookup) {
         Map<String, Object> s = new LinkedHashMap<>();
         s.put("theme", theme);
+        s.put("icons", icons.name());
         if (notificationApps != null) s.put("notificationApps", new ArrayList<Object>(new TreeSet<>(notificationApps)));
         List<Object> home = new ArrayList<>();
         for (HomeItem i : items) {
@@ -108,12 +111,15 @@ final class LauncherBackup {
     /** A file's launcher settings, checked; nothing applied yet. */
     static final class Settings {
         final String theme;
+        /** ROUND when the file has none (made before the setting) or one this version does not know. */
+        final IconShape.Style icons;
         /** Null: never chosen. */
         final Set<String> notificationApps;
         final List<Saved> home;
 
-        Settings(String theme, Set<String> notificationApps, List<Saved> home) {
+        Settings(String theme, IconShape.Style icons, Set<String> notificationApps, List<Saved> home) {
             this.theme = theme;
+            this.icons = icons;
             this.notificationApps = notificationApps;
             this.home = home;
         }
@@ -122,6 +128,7 @@ final class LauncherBackup {
     /** Reads the whole entry first, so a bad field changes nothing. */
     static Settings read(Map<String, Object> s) throws Backup.Failure {
         String theme = Backup.string(s, "theme", null);
+        IconShape.Style icons = IconShape.parse(Backup.string(s, "icons", null));
         Set<String> apps = null;
         if (s.get("notificationApps") != null) {
             apps = new TreeSet<>();
@@ -152,7 +159,7 @@ final class LauncherBackup {
                 throw new Backup.Failure(Backup.ERROR_MALFORMED, "home item " + (n - 1) + " of no known kind");
             }
         }
-        return new Settings(theme, apps, home);
+        return new Settings(theme, icons, apps, home);
     }
 
     /** What a restore does to this phone's home screen. */

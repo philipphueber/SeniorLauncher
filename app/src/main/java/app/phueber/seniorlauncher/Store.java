@@ -12,7 +12,7 @@ import java.util.function.Predicate;
 
 /**
  * All persistent state: the ordered list of home items, the lock flag and its
- * PIN hash (kept after unlocking, see unlock), the colour theme, whether the first-run default tiles were added,
+ * PIN hash (kept after unlocking, see unlock), the colour theme, the icon style, whether the first-run default tiles were added,
  * and which apps' notifications the notifications card shows (package names
  * only: notification content is never stored). Every change is written at
  * once (commit), so a killed process never loses a tile.
@@ -25,6 +25,8 @@ public final class Store {
     private static final String K_HASH = "pin_hash";
     private static final String K_SEEDED = "seeded";
     private static final String K_THEME = "theme";
+    /** How app icons are shown (IconShape.Style); absent means Round. */
+    private static final String K_ICONS = "icon_style";
     /** Widget ids the helper sized by hand, comma-separated; the others re-fit automatically. */
     private static final String K_SIZED = "sized_widgets";
     /** Packages whose notifications the card shows, comma-separated; absent until first set. */
@@ -161,13 +163,13 @@ public final class Store {
     }
 
     /**
-     * Replaces the home screen, the colours and the notification card's apps
+     * Replaces the home screen, the colours, the icon style and the notification card's apps
      * at once with a restored backup (null apps: never chosen). The lock and
      * its PIN stay as they are. Marks the first run as done, so the default
      * tiles are not added on top.
      */
     public synchronized void restore(List<HomeItem> items, Set<Integer> sizedByHand, Palette.Theme theme,
-                                     Set<String> notificationApps) {
+                                     IconShape.Style icons, Set<String> notificationApps) {
         StringBuilder sizedIds = new StringBuilder();
         for (int id : new TreeSet<>(sizedByHand)) {
             if (sizedIds.length() > 0) sizedIds.append(',');
@@ -177,6 +179,7 @@ public final class Store {
                 .putString(K_ITEMS, HomeCodec.encode(items))
                 .putString(K_SIZED, sizedIds.toString())
                 .putString(K_THEME, theme.name())
+                .putString(K_ICONS, icons.name())
                 .putBoolean(K_SEEDED, true);
         if (notificationApps == null) e.remove(K_NOTE_APPS);
         else e.putString(K_NOTE_APPS, joinPackages(notificationApps));
@@ -335,6 +338,14 @@ public final class Store {
 
     public synchronized void setTheme(Palette.Theme theme) {
         prefs.edit().putString(K_THEME, theme.name()).commit();
+    }
+
+    public synchronized IconShape.Style iconStyle() {
+        return IconShape.parse(prefs.getString(K_ICONS, null));
+    }
+
+    public synchronized void setIconStyle(IconShape.Style style) {
+        prefs.edit().putString(K_ICONS, style.name()).commit();
     }
 
     /**

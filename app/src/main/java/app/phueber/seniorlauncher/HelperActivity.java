@@ -11,14 +11,16 @@ import android.os.Bundle;
  *
  * - Locked: the screen closes (closedByLock), on resume and at once while in
  *   front; every action checks again before it changes anything.
- * - Another theme: the screen is rebuilt in it (recreate), on resume and at
- *   once while in front, like HomeActivity, so it never shows a stale choice.
+ * - Another theme or icon style: the screen is rebuilt in it (recreate), on
+ *   resume and at once while in front, like HomeActivity, so it never shows a
+ *   stale choice.
  *
  * Subclasses call super.onCreate first; it applies the theme and sets store.
  */
 abstract class HelperActivity extends Activity {
     protected Store store;
     private Palette.Theme builtTheme;
+    private IconShape.Style builtIcons;
     private boolean recreating;
 
     @Override
@@ -26,6 +28,7 @@ abstract class HelperActivity extends Activity {
         super.onCreate(savedInstanceState);
         builtTheme = Ui.applyTheme(this);
         store = new Store(this);
+        builtIcons = store.iconStyle();
     }
 
     @Override
@@ -56,12 +59,12 @@ abstract class HelperActivity extends Activity {
     }
 
     /**
-     * Closes on a lock, rebuilds in a new theme. Returns whether the screen
+     * Closes on a lock, rebuilds in a new theme or icon style. Returns whether the screen
      * stays as it is.
      */
     protected final boolean followStore() {
         if (closedByLock()) return false;
-        if (store.theme() != builtTheme) {
+        if (store.theme() != builtTheme || store.iconStyle() != builtIcons) {
             if (!recreating) {
                 recreating = true;
                 recreate();

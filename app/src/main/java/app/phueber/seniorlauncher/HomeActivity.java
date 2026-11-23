@@ -100,6 +100,7 @@ public class HomeActivity extends Activity {
     private LinearLayout nextButton;
     private TextView pageLabel;
     private Palette.Theme shownTheme;
+    private IconShape.Style shownIcons;
 
     private List<List<Pages.Placement>> pages = Collections.emptyList();
     private int page;
@@ -154,16 +155,22 @@ public class HomeActivity extends Activity {
     };
     private final Runnable forcedRebuild = () -> {
         iconColors.clear();
+        RoundIcon.forget();
         if (notesCard != null) notesCard.forgetApps();
         rebuild(true);
     };
 
-    // An automation app locked, unlocked or changed the colours while the home
-    // screen is showing (AutomationReceiver): show it at once, not at the next resume.
+    // An automation app locked, unlocked or changed the colours or icons while the
+    // home screen is showing (AutomationReceiver): show it at once, not at the next resume.
     private final SharedPreferences.OnSharedPreferenceChangeListener storeListener = (p, key) -> {
         if (store.theme() != shownTheme) {
             followTheme();
             return;
+        }
+        if (store.iconStyle() != shownIcons) {
+            shownIcons = store.iconStyle();
+            if (notesCard != null) notesCard.forgetApps();
+            rebuild(true);
         }
         if (store.locked() != locked) {
             dismissDialog(); // an unlock prompt or tile menu no longer fits
@@ -186,6 +193,7 @@ public class HomeActivity extends Activity {
         shownTheme = Ui.applyTheme(this);
         Widgets.followTheme(this, shownTheme);
         store = new Store(this);
+        shownIcons = store.iconStyle();
         prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
         DefaultApps.seedIfNeeded(this, store);
 
@@ -272,11 +280,14 @@ public class HomeActivity extends Activity {
         // time home comes back, not only when the card is first attached.
         NotificationHub.ensureBound(this);
         showItem = takeShowNext();
-        if (stopped) {
+        if (stopped || store.iconStyle() != shownIcons) {
             // Apps may have been updated, disabled or enabled while the package
-            // receiver was not registered; only the forced path redraws icons and labels.
+            // receiver was not registered, or the icon style changed in Settings;
+            // only the forced path redraws icons and labels.
             stopped = false;
+            shownIcons = store.iconStyle();
             iconColors.clear();
+            RoundIcon.forget();
             if (notesCard != null) notesCard.forgetApps();
             rebuild(true);
         } else {
@@ -941,8 +952,9 @@ public class HomeActivity extends Activity {
         asButton(t, locked ? null : getString(R.string.home_tile_action));
 
         ImageView icon = new ImageView(this);
-        icon.setImageDrawable(
-                d != null ? d : getDrawable(android.R.drawable.sym_def_app_icon));
+        // Colourful sampled d as the app made it (above); the tile shows it in the chosen style.
+        icon.setImageDrawable(RoundIcon.of(
+                d != null ? d : getDrawable(android.R.drawable.sym_def_app_icon), shownIcons, shown));
         icon.setScaleType(ImageView.ScaleType.FIT_CENTER);
         icon.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         t.addView(icon, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));

@@ -35,7 +35,9 @@ separate app, not part of this one.
 | `Note`, `NoteList` | Pure: a notification as the card needs it; which ones are shown, in what order, merged per chat, how many fit, the default apps. Unit tested. |
 | `TimeWords` | Pure: "just now", "5 min ago", today, yesterday or earlier. Unit tested. |
 | `IconColor` | Pure: an icon's main colour for Colourful tiles, made readable under white text. Unit tested. |
-| `SettingsActivity` | Lock (choose a PIN), colours, arrange home screen, choose home app, phone settings, backup (save/load this app's or all Senior apps' settings). Closes itself when locked. |
+| `IconShape` | Pure: the icon styles (Round, As designed) and the Round geometry: adaptive layers at 108/72, whether a legacy icon is already a disc, where a legacy icon goes in its disc. Unit tested. |
+| `RoundIcon` | Every app icon on every screen goes through `RoundIcon.of`: as it is (As designed) or as a filled circle (Round), see "Icons". Caches a legacy icon's measurement per app. |
+| `SettingsActivity` | Lock (choose a PIN), colours, app icons, arrange home screen, choose home app, phone settings, backup (save/load this app's or all Senior apps' settings). Closes itself when locked. |
 | `SettingsBackup` | Saves and restores the launcher's settings, and every Senior app's through its `BackupProvider`; builds the result texts. Off the main thread. |
 | `LauncherBackup` | Pure: the launcher's settings to and from the backup's map, and the restore plan (apps that are here, widgets reused by provider or listed to add again, ids to free). Unit tested. |
 | `Backup` | Pure: the backup file's envelope (format, version, one entry per app), typed reads that make a wrong type a malformed file, the providers' method and error names, the caller check. The same class in every Senior app. Unit tested. |
@@ -49,9 +51,9 @@ separate app, not part of this one.
 | `Order` | Pure: moves one item to a place counted among the shown items; hidden items keep their place. Unit tested. |
 | `LockProvider` | Tells SeniorPhone, SeniorAlert and SeniorNav whether the home screen is locked and whether a PIN is set, lifts the lock for them when given the PIN, and locks/unlocks without the PIN for SeniorNav's volume-button pattern. |
 | `NavLock` | Pure: only SeniorNav may lock and unlock without the PIN, and locking needs a stored PIN. Unit tested. |
-| `AutomationReceiver` | Commands from automation apps (lock, unlock, theme) by broadcast; goes through `Store` like Settings. |
+| `AutomationReceiver` | Commands from automation apps (lock, unlock, theme, icon style) by broadcast; goes through `Store` like Settings. |
 | `Automation` | Pure: the automation action and extra names, and the lenient parsing of their string extras. Unit tested. |
-| `Store` | The ordered home items (with the widgets sized by hand), whether the helper declined the Flashlight replacement, the lock flag with its PIN salt/hash (kept after unlocking), the first-run flag and the notification card's app list (package names only), in SharedPreferences. |
+| `Store` | The ordered home items (with the widgets sized by hand), whether the helper declined the Flashlight replacement, the lock flag with its PIN salt/hash (kept after unlocking), the theme and icon style, the first-run flag and the notification card's app list (package names only), in SharedPreferences. |
 | `Pin` | PIN validation (4-8 digits), salted SHA-256 hash, constant-time compare, and the fixed reset PIN. Same as SeniorAlert's and SeniorPhone's. Pure. |
 | `PinDialog` | Choose a PIN (twice) when locking; enter it when unlocking. The unlock prompt closes after 10 s without typing. |
 | `Ui` | Shared buttons, helper-screen frame and dialogs (`confirm`, and `choose` for more than one action; every dialog, the PIN prompt too, on `dialogCard`, outlined like the tiles so it has an edge on the dimmed screen), so every screen looks alike. Resolves every colour through the chosen theme (`Ui.color`, `Ui.applyTheme`). |
@@ -306,9 +308,11 @@ card). Outlined controls (helper bar, Back, outlined buttons, search fields)
 draw their edge in `OUTLINE`, at least 3:1 on card and page: white in Dark
 and High contrast, a soft mid navy in Light rather than a heavy black line.
 
-App icons are drawn as they are in every theme, with no backing of our own.
+App icons have no backing of our own in any theme; their shape is the icon
+style (see "Icons").
 
-In Colourful, an app tile takes the main colour of its icon (`IconColor`):
+In Colourful, an app tile takes the main colour of its icon as the app made
+it, not of its Round circle (`IconColor`):
 the most common clearly coloured hue of a 48x48 rendering, ignoring white,
 grey, black and very dark pixels, then darkened until the white label reads
 at 4.5:1. A colour counts less the more it would need darkening, so
@@ -324,6 +328,35 @@ and system bars. `HomeActivity` recreates itself on resume when the theme
 changed; so does every helper screen (`HelperActivity`), and at once while it
 is in front, so a theme set by automation never leaves Settings showing the
 old one ticked.
+
+## Icons
+
+Settings → App icons: **Round** (the default) or **As designed**, like the
+icon shape of other launchers. Round shows every app icon as a filled circle,
+like Pixel's round icons, never a ring or disc behind an unchanged icon (the
+disc tried in Light read as an outline on the white tiles). It applies
+wherever app icons show: home tiles, Apps, Arrange, the messages card and
+Choose apps. Widgets are not icons and stay as they are.
+
+- **Adaptive icons** (Android 8+): both layers drawn at 108/72 of the icon,
+  as Android does, and clipped to a circle of the full size, so the app's own
+  background fills it. "As designed" leaves the phone's own mask (a circle
+  on Pixel, a squircle elsewhere).
+- **Legacy icons**: rendered once at 96x96 to find the solid part. Already a
+  filled disc (all Senior apps, older round icons): scaled so the disc fills
+  the circle, so the Senior apps look the same in both styles. Anything else:
+  fitted, never stretched, into a white disc at 0.66 of its diameter, about
+  the square that fits in the circle. White in every theme, as on Pixel; on
+  Light's white tiles the disc does not stand out, only the icon.
+- **Drawing.** A `Drawable` that draws vectors at the view's size into a
+  layer and cuts away everything outside the circle (anti-aliased, unlike a
+  clip path). The legacy measurement is cached per app and forgotten when
+  apps change (the home screen's package path).
+- **Live.** The style is in `Store`, so a change from Settings or automation
+  redraws the home screen at once (a forced rebuild, the messages card
+  forgets its icons) and rebuilds any helper screen in front, like a theme.
+- Saved in the backup as `"icons"`; files from before the setting load as
+  Round. Monochrome (themed) icons are not used.
 
 ## Lock
 
@@ -377,7 +410,8 @@ permission. Installed without the launcher, each app keeps its own lock.
 ## Automation
 
 Automation apps (Trigly, Tasker) send `app.phueber.seniorlauncher.action.LOCK`
-/ `UNLOCK` (extra `pin`) and `SET_THEME` (extra `theme`) to
+/ `UNLOCK` (extra `pin`), `SET_THEME` (extra `theme`) and `SET_ICONS` (extra
+`style`: round or designed) to
 `AutomationReceiver`. Broadcasts, not activities: nothing needs to appear on
 screen, and a broadcast from the background needs no overlay permission. The
 extras are strings because that is all such apps can send; `Automation` drops
@@ -414,7 +448,8 @@ for itself, and the launcher can do all of them in one file.
   guessed at; an unreadable file, or a field of the wrong type, is refused
   with nothing changed. Missing fields take their defaults.
 - **The launcher's settings** (`LauncherBackup`): the home items in order,
-  the colours and the messages card's apps (absent when never chosen).
+  the colours, the icon style (absent in older files: Round) and the
+  messages card's apps (absent when never chosen).
   Apps by launcher activity, with their name for the "not found" list; on
   restore an activity that is gone follows its app's only remaining one
   (`AppInfo.current`), and apps not installed are skipped and named.
