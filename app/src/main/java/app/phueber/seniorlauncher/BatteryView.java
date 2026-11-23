@@ -26,7 +26,7 @@ import android.widget.TextView;
  *
  *   NORMAL    green-bordered box, light green fill up to the level, dark text
  *                                         "35 %"  / "Battery"
- *   LOW       solid red, white text       "12 %"  / "Battery low" / "Please charge"
+ *   LOW       solid red, white text       "12 %"  / "Please charge"
  *   CHARGING  solid blue, white text, bolt  "35 %" / "Charging"
  *   FULL      solid green, white text, bolt "100 %" / "Full"
  *
@@ -36,7 +36,6 @@ final class BatteryView extends LinearLayout {
     private final ImageView bolt;
     private final TextView percent;
     private final TextView word;
-    private final TextView hint;
     private BatteryState.Kind shownKind;
     private int shownPercent = Integer.MIN_VALUE;
 
@@ -67,11 +66,8 @@ final class BatteryView extends LinearLayout {
         word = Ui.bold(c, "", 18);
         word.setGravity(Gravity.CENTER);
         addView(word);
-        hint = Ui.bold(c, c.getString(R.string.home_battery_charge_hint), 18);
-        hint.setGravity(Gravity.CENTER);
-        addView(hint);
 
-        for (View v : new View[] {top, bolt, percent, word, hint}) {
+        for (View v : new View[] {top, bolt, percent, word}) {
             v.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
         }
         set(-1, false, false);
@@ -111,8 +107,12 @@ final class BatteryView extends LinearLayout {
                 wordRes = R.string.home_battery_full;
                 break;
             case LOW:
+                // One line like every other state ("Please charge" on red), so
+                // the box, and with it the header, keeps its height and the
+                // tiles below never shrink. "Battery low" stays in the spoken
+                // description.
                 fill = Ui.color(c, R.color.red); fg = Color.WHITE; stroke = 0;
-                wordRes = R.string.home_battery_low;
+                wordRes = R.string.home_battery_charge_hint;
                 break;
             default:
                 fill = Ui.color(c, R.color.card); fg = Ui.color(c, R.color.text_black);
@@ -153,11 +153,9 @@ final class BatteryView extends LinearLayout {
         word.setText(w);
         word.setTextColor(fg);
         boolean low = kind == BatteryState.Kind.LOW;
-        hint.setVisibility(low ? VISIBLE : GONE);
-        hint.setTextColor(fg);
-
-        String sentence = number.isEmpty() ? w : c.getString(R.string.home_battery_desc, w, number);
-        if (low) sentence = c.getString(R.string.home_battery_desc, sentence, hint.getText());
+        String spoken = low ? c.getString(R.string.home_battery_low) : w;
+        String sentence = number.isEmpty() ? spoken : c.getString(R.string.home_battery_desc, spoken, number);
+        if (low) sentence = c.getString(R.string.home_battery_desc, sentence, w);
         setContentDescription(sentence);
         // A TalkBack user hears it when the cable goes in or out, not on every percent.
         if (before != null && before != kind) announceForAccessibility(sentence);
