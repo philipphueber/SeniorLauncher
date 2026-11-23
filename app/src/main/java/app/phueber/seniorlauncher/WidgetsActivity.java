@@ -954,7 +954,12 @@ public class WidgetsActivity extends HelperActivity {
             fail();
             return;
         }
-        Widgets.place(this, pendingId, info);
+        // SeniorLight's button goes where its tile was, as the home screen would put it.
+        HomeItem lightTile = info.provider != null && Flashlight.isWidget(info.provider.flattenToString())
+                ? Flashlight.tile(store.items()) : null;
+        if (lightTile == null || !store.replaceLightTile(lightTile, pendingId)) {
+            Widgets.place(this, pendingId, info);
+        }
         for (HomeItem item : store.items()) {
             if (item.isWidget() && item.widgetId == pendingId) HomeActivity.showNext(item);
         }

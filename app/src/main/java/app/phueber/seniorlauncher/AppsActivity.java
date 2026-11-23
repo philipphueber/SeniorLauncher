@@ -1,7 +1,11 @@
 package app.phueber.seniorlauncher;
 
 import android.app.Dialog;
+import android.appwidget.AppWidgetManager;
+import android.appwidget.AppWidgetProviderInfo;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.LauncherActivityInfo;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
@@ -36,10 +40,14 @@ import java.util.Set;
  * Every app on the phone, alphabetical, with a search field. This is the only
  * place to put apps on the home screen (as in Bleta): a tap on the app opens
  * it, the button on the right adds it to the home screen or takes it off.
+ * SeniorLight (Flashlight) is added as its widget, its live button, rather
+ * than as a tile (see Flashlight).
  */
 public final class AppsActivity extends HelperActivity {
     private static final int ICON_DP = 56;
     private static final int TOGGLE_DP = 128;
+    private static final int REQ_BIND_LIGHT = 1;
+    private static final String S_LIGHT_ID = "light_id";
 
     /** One app as loaded off the main thread. */
     private static final class Entry {
@@ -77,10 +85,15 @@ public final class AppsActivity extends HelperActivity {
     private LinearLayout list;
     private boolean loaded;
     private Dialog dialog;
+    /** The id offered in the system's bind prompt for SeniorLight's widget, while it is up. */
+    private int lightId = AppWidgetManager.INVALID_APPWIDGET_ID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState); // theme and store
+        if (savedInstanceState != null) {
+            lightId = savedInstanceState.getInt(S_LIGHT_ID, AppWidgetManager.INVALID_APPWIDGET_ID);
+        }
         // The keyboard only when the search field is tapped, and the list shrinks
         // above it instead of being covered.
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN
@@ -109,6 +122,16 @@ public final class AppsActivity extends HelperActivity {
     @Override
     protected void onFront() {
         // The home screen may have removed a tile (long-press) while we were away.
+        restyle();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle out) {
+        super.onSaveInstanceState(out);
+        out.putInt(S_LIGHT_ID, lightId);
+    }
+
+    private void restyle() {
         Set<String> onHome = onHome();
         for (Row r : rows) styleToggle(r, onHome.contains(r.component));
     }
@@ -156,13 +179,12 @@ public final class AppsActivity extends HelperActivity {
     }
 
     private void show(List<Entry> entries) {
-        Set<String> onHome = onHome();
         for (Entry e : entries) {
             Row r = row(e);
             rows.add(r);
-            styleToggle(r, onHome.contains(e.component));
             list.addView(r.view, Ui.fullWidth(this, 12));
         }
+        restyle();
         loaded = true;
         status.setText(R.string.apps_none);
         filter();
@@ -219,6 +241,10 @@ public final class AppsActivity extends HelperActivity {
             // Read back from the store rather than trusting the button, so a
             // double tap cannot add the same app twice.
             if (closedByLock()) return;
+            if (Flashlight.isApp(r.component)) {
+                toggleLight(r);
+                return;
+            }
             if (!store.containsApp(r.component)) {
                 store.addApp(r.component);
                 styleToggle(r, true);
@@ -234,6 +260,82 @@ public final class AppsActivity extends HelperActivity {
                     });
         });
         return r;
+    }
+
+    /**
+     * SeniorLight: added as its widget (silently once "Always allow" was
+     * ticked, else through the system's prompt); its tile only when the
+     * SeniorLight here has no widget yet, or the helper refuses the prompt
+     * (then the home screen does not ask about it again). Taken off as a
+     * whole, tile and widget.
+     */
+    private void toggleLight(Row r) {
+        if (lightId != AppWidgetManager.INVALID_APPWIDGET_ID) return; // a double tap
+        if (lightOnHome()) {
+            dismissDialog();
+            dialog = Ui.confirm(this, getString(R.string.remove_from_home_question, r.label),
+                    getString(R.string.remove), R.color.red, () -> {
+                        if (closedByLock()) return;
+                        store.removeLightTiles();
+                        for (HomeItem i : store.items()) {
+                            if (i.isWidget() && Flashlight.isWidget(Widgets.provider(this, i.widgetId))) {
+                                Widgets.delete(this, i.widgetId);
+                            }
+                        }
+                        restyle();
+                    });
+            return;
+        }
+        AppWidgetProviderInfo info = Widgets.lightProvider(this);
+        if (info == null) {
+            store.addApp(r.component);
+            restyle();
+            return;
+        }
+        int id = Widgets.bindSilently(this, info);
+        if (id != AppWidgetManager.INVALID_APPWIDGET_ID) {
+            store.addSmallWidget(id);
+            restyle();
+            return;
+        }
+        lightId = Widgets.host(this).allocateAppWidgetId();
+        try {
+            startActivityForResult(Widgets.bindIntent(lightId, info), REQ_BIND_LIGHT);
+        } catch (ActivityNotFoundException | SecurityException e) {
+            Widgets.host(this).deleteAppWidgetId(lightId);
+            lightId = AppWidgetManager.INVALID_APPWIDGET_ID;
+            store.addApp(r.component);
+            restyle();
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode != REQ_BIND_LIGHT || lightId == AppWidgetManager.INVALID_APPWIDGET_ID) return;
+        int id = lightId;
+        lightId = AppWidgetManager.INVALID_APPWIDGET_ID;
+        if (store.locked()) { // locked while the prompt was up
+            Widgets.host(this).deleteAppWidgetId(id);
+            closedByLock();
+            return;
+        }
+        if (resultCode == RESULT_OK && Flashlight.isWidget(Widgets.provider(this, id))) {
+            store.addSmallWidget(id);
+        } else {
+            Widgets.host(this).deleteAppWidgetId(id);
+            if (resultCode != RESULT_OK) {
+                // Refused: the app still goes on the home screen, as a tile, and
+                // the home screen does not ask about it again.
+                store.setLightDeclined();
+                for (Row r : rows) if (Flashlight.isApp(r.component)) store.addApp(r.component);
+            }
+        }
+        restyle();
+    }
+
+    private boolean lightOnHome() {
+        return Flashlight.onHome(store.items(), id -> Widgets.provider(this, id));
     }
 
     /** Green "On home ✓" when the app has a tile, white "Add" when not. Changes only this button. */
@@ -305,6 +407,8 @@ public final class AppsActivity extends HelperActivity {
     private Set<String> onHome() {
         Set<String> set = new HashSet<>();
         for (HomeItem i : store.items()) if (i.isApp()) set.add(i.component);
+        // SeniorLight counts as on home as its tile (any of its two icons) or its widget.
+        if (lightOnHome()) for (Row r : rows) if (Flashlight.isApp(r.component)) set.add(r.component);
         return set;
     }
 

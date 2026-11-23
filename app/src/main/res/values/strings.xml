@@ -7,4 +7,7 @@
     <string name="remove">Remove</string>
     <!-- Asked before anything leaves the home screen: tile, widget or messages card. -->
     <string name="remove_from_home_question">Remove “%1$s” from the home screen?</string>
+    <!-- Home: SeniorLight's tile becomes its widget. %1$s = its name ("Flashlight"). -->
+    <string name="light_replace_question">“%1$s” works better as its live button, which always shows whether the light is on. Replace the tile?</string>
+    <string name="light_replace">Replace</string>
 </resources>

@@ -37,8 +37,10 @@ import java.util.function.IntFunction;
  * system's "Allow" prompt. So a widget is saved as its provider and size; a
  * restore reuses a widget of the same provider that is already on this home
  * screen (same phone, or added again by hand) and lists the others for the
- * helper to add again. "notificationApps" is absent while none were ever
- * chosen. The lock and its PIN are never part of a backup.
+ * helper to add again. SeniorLight (Flashlight) is the exception: saved as
+ * a tile or as its widget, it comes back as its widget when one is placed,
+ * else as its tile, which the home screen replaces with the widget.
+ * "notificationApps" is absent while none were ever chosen. The lock and its PIN are never part of a backup.
  */
 final class LauncherBackup {
     private LauncherBackup() {}
@@ -177,19 +179,36 @@ final class LauncherBackup {
         for (HomeItem i : current) {
             if (!i.isWidget()) continue;
             String p = providerOf.apply(i.widgetId);
-            if (p != null) placed.computeIfAbsent(p, k -> new ArrayDeque<>()).add(i.widgetId);
+            if (p != null) placed.computeIfAbsent(key(p), k -> new ArrayDeque<>()).add(i.widgetId);
         }
         Plan plan = new Plan();
         Set<String> apps = new LinkedHashSet<>();
         Set<Integer> reused = new TreeSet<>();
         boolean messages = false;
+        boolean light = false;
         for (Saved e : s.home) {
-            if (e.type == HomeItem.APP) {
+            if (isLight(e)) {
+                // SeniorLight, saved as a tile or as its widget: its widget if
+                // one is placed here, else the tile, which the home screen then
+                // turns into the widget (silently, or after asking the helper).
+                if (light) continue;
+                light = true;
+                Deque<Integer> ids = placed.get(Flashlight.PROVIDER);
+                Integer id = ids == null ? null : ids.poll();
+                if (id != null) {
+                    reused.add(id);
+                    plan.items.add(HomeItem.smallWidget(id));
+                    continue;
+                }
+                String c = installed.apply(e.type == HomeItem.APP ? e.component : Flashlight.LAUNCHER);
+                if (c == null) plan.missingApps.add(e.label);
+                else if (apps.add(c)) plan.items.add(HomeItem.app(c));
+            } else if (e.type == HomeItem.APP) {
                 String c = installed.apply(e.component);
                 if (c == null) plan.missingApps.add(e.label);
                 else if (apps.add(c)) plan.items.add(HomeItem.app(c));
             } else if (e.type == HomeItem.WIDGET) {
-                Deque<Integer> ids = placed.get(e.component);
+                Deque<Integer> ids = placed.get(key(e.component));
                 Integer id = ids == null ? null : ids.poll();
                 if (id == null) {
                     plan.widgetsToAdd.add(e.label);
@@ -209,6 +228,16 @@ final class LauncherBackup {
             }
         }
         return plan;
+    }
+
+    private static boolean isLight(Saved e) {
+        return e.type == HomeItem.APP ? Flashlight.isApp(e.component)
+                : e.type == HomeItem.WIDGET && Flashlight.isWidget(e.component);
+    }
+
+    /** Providers by one spelling, so the short and full form of SeniorLight's match. */
+    private static String key(String provider) {
+        return Flashlight.isWidget(provider) ? Flashlight.PROVIDER : provider;
     }
 
     private static String packageOf(String component) {
