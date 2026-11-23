@@ -426,7 +426,8 @@ public class HomeActivity extends Activity {
         b.setGravity(Gravity.CENTER);
         b.setMinimumHeight(Ui.dp(this, Ui.BUTTON_HEIGHT));
         b.setPadding(Ui.dp(this, 4), Ui.dp(this, 6), Ui.dp(this, 4), Ui.dp(this, 6));
-        b.setBackground(Ui.ripple(this, R.color.press_dark, Ui.color(this, R.color.card), fg, 20));
+        b.setBackground(Ui.ripple(this, R.color.press_dark, Ui.color(this, R.color.card),
+                Ui.color(this, R.color.outline), 20));
         String label = getString(labelRes);
         b.setContentDescription(label);
         // Single top: a double tap opens the screen once, not twice on top of itself.
@@ -846,7 +847,8 @@ public class HomeActivity extends Activity {
         asButton(t, locked ? null : getString(R.string.home_tile_action));
 
         ImageView icon = new ImageView(this);
-        icon.setImageDrawable(d != null ? d : getDrawable(android.R.drawable.sym_def_app_icon));
+        icon.setImageDrawable(
+                d != null ? d : getDrawable(android.R.drawable.sym_def_app_icon));
         icon.setScaleType(ImageView.ScaleType.FIT_CENTER);
         icon.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         t.addView(icon, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));

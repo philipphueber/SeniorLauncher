@@ -244,7 +244,7 @@ public final class AppsActivity extends HelperActivity {
         b.setBackground(on
                 ? Ui.ripple(this, R.color.press_light, Ui.color(this, R.color.green), 0, 20)
                 : Ui.ripple(this, R.color.press_dark, Ui.color(this, R.color.card),
-                        Ui.color(this, R.color.text_black), 20));
+                        Ui.color(this, R.color.outline), 20));
         b.setContentDescription(getString(on ? R.string.apps_on_home_cd : R.string.apps_add_cd,
                 r.label));
     }
@@ -263,7 +263,7 @@ public final class AppsActivity extends HelperActivity {
         s.setPadding(p, Ui.dp(this, 8), p, Ui.dp(this, 8));
         GradientDrawable bg = new GradientDrawable();
         bg.setColor(Ui.color(this, R.color.card));
-        bg.setStroke(Ui.dp(this, 2), Ui.color(this, R.color.text_black));
+        bg.setStroke(Ui.dp(this, 2), Ui.color(this, R.color.outline));
         bg.setCornerRadius(Ui.dp(this, 32));
         s.setBackground(bg);
 

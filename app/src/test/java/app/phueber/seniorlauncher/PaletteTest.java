@@ -90,6 +90,14 @@ public class PaletteTest {
         assertEquals(Palette.color(Theme.LIGHT, Role.GREEN), Palette.markBorder(Theme.LIGHT));
     }
 
+    @Test public void outlinesAreVisibleOnCardAndPage() {
+        // WCAG 1.4.11: a control's boundary at 3:1 against what is next to it.
+        for (Theme t : Theme.values()) {
+            atLeast(3.0, c(t, Role.OUTLINE, Role.CARD), t + " outline/card");
+            atLeast(3.0, c(t, Role.OUTLINE, Role.PAGE), t + " outline/page");
+        }
+    }
+
     @Test public void everyRoleIsDefinedAndOpaqueExceptRipples() {
         for (Theme t : Theme.values()) {
             for (Role r : Role.values()) {

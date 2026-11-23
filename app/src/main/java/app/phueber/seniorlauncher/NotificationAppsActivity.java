@@ -203,7 +203,7 @@ public final class NotificationAppsActivity extends HelperActivity {
         b.setBackground(on
                 ? Ui.ripple(this, R.color.press_light, Ui.color(this, R.color.green), 0, 20)
                 : Ui.ripple(this, R.color.press_dark, Ui.color(this, R.color.card),
-                        Ui.color(this, R.color.text_black), 20));
+                        Ui.color(this, R.color.outline), 20));
         b.setContentDescription(getString(on ? R.string.notes_apps_shown_cd : R.string.notes_apps_show_cd,
                 label));
     }
