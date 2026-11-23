@@ -28,24 +28,23 @@
     <!-- Read aloud for an entry: app, sender, text, time. Text and time come with their own full stop (NoteList.sentence). -->
     <string name="notes_entry_cd">%1$s, %2$s: %3$s %4$s Tap to open.</string>
     <!-- Shown to the helper only (never while locked). -->
-    <string name="notes_need_access">To show new messages here, this home screen needs “Notification access” once.</string>
+    <string name="notes_need_access">Needs notification access once.</string>
     <string name="notes_allow">Allow notification access</string>
-    <string name="notes_need_apps">Choose whose messages are shown here.</string>
+    <string name="notes_need_apps">No apps chosen yet.</string>
     <string name="notes_choose_apps">Choose apps</string>
 
-    <!-- Widgets screen and Arrange. -->
+    <!-- Widgets screen. -->
     <string name="notes_builtin">Built into this home screen</string>
-    <string name="notes_add_explain">New messages from the apps you choose, newest first. A tap opens the message.</string>
+    <string name="notes_add_explain">New messages from the apps you choose.</string>
     <string name="notes_add_cd">Messages, built into this home screen: new messages from the apps you choose. Tap to add it to the home screen.</string>
     <string name="notes_access_on">Notification access: allowed ✓</string>
-    <string name="notes_access_off">Notification access: not allowed yet, so nothing can be shown.</string>
+    <string name="notes_access_off">Notification access: not allowed yet.</string>
     <string name="notes_apps_list">Shows messages from: %1$s</string>
-    <string name="notes_apps_none">No apps chosen yet, so nothing is shown.</string>
-    <string name="notes_arrange_kind">Messages card, takes whole rows</string>
+    <string name="notes_apps_none">No apps chosen yet.</string>
 
     <!-- NotificationAppsActivity: whose notifications the card shows. -->
     <string name="notes_apps_title">Apps for messages</string>
-    <string name="notes_apps_intro">New notifications of the apps marked “Shown ✓” appear on the home screen. They stay on this phone and are never saved.</string>
+    <string name="notes_apps_intro">Messages stay on this phone and are never saved.</string>
     <string name="notes_apps_show">Show</string>
     <string name="notes_apps_shown">Shown ✓</string>
     <string name="notes_apps_show_cd">Show messages from %1$s on the home screen</string>

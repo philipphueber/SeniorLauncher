@@ -7,6 +7,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.LauncherActivityInfo;
 import android.content.pm.LauncherApps;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.os.Process;
 
@@ -85,6 +87,25 @@ public final class AppInfo {
         } catch (RuntimeException e) {
             return null;
         }
+    }
+
+    /**
+     * The icon's main colour for a Colourful tile (IconColor, from a 48x48
+     * rendering), or 0 when it has no clear colour. The home screen and the
+     * Arrange screen both use it, so a tile has the same colour on both.
+     */
+    public static int tileColor(Drawable icon) {
+        if (icon == null) return 0;
+        int s = 48;
+        Bitmap bm = Bitmap.createBitmap(s, s, Bitmap.Config.ARGB_8888);
+        Drawable d = icon.getConstantState() != null
+                ? icon.getConstantState().newDrawable().mutate() : icon;
+        d.setBounds(0, 0, s, s);
+        d.draw(new Canvas(bm));
+        int[] px = new int[s * s];
+        bm.getPixels(px, 0, s, 0, 0, s, s);
+        bm.recycle();
+        return IconColor.tileColor(px);
     }
 
     /** Opens the app like any launcher does; if it is gone, nothing happens. */

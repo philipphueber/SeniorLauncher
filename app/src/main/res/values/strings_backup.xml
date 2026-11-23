@@ -4,10 +4,10 @@
     <string name="backup_title">Backup</string>
     <string name="backup_save">Save settings to a file</string>
     <string name="backup_load">Load settings from a file</string>
-    <string name="backup_explain">Keeps the home screen, colours and messages card in a file you choose, for example in Downloads or on Google Drive. Load the file again after a reset or on a new phone.</string>
+    <string name="backup_explain">For a new phone or after a reset.</string>
     <string name="backup_save_all">Save all Senior apps\' settings</string>
     <string name="backup_load_all">Load all Senior apps\' settings</string>
-    <string name="backup_all_explain">The same for every Senior app on this phone in one file: home screen, phone, alarms and Back &amp; Home bar. The lock and its PIN are never saved.</string>
+    <string name="backup_all_explain">Also the Phone, Alarm and Back &amp; Home apps. The PIN is never saved.</string>
     <string name="backup_confirm">Replace the current settings with the ones from the file?</string>
     <string name="backup_confirm_all">Replace the current settings of the Senior apps with the ones from the file?</string>
     <string name="backup_replace">Replace</string>
@@ -16,16 +16,16 @@
     <string name="backup_restored">Restored.</string>
     <string name="backup_not_found">Not found on this phone: %1$s</string>
     <string name="backup_add_widgets">Add these widgets again on the Widgets screen: %1$s</string>
-    <string name="backup_error_malformed">This file is not a readable settings file. Nothing was changed.</string>
-    <string name="backup_error_newer">This file comes from a newer version of the app. Please update the app first. Nothing was changed.</string>
-    <string name="backup_error_no_entry">This file holds no settings for %1$s. Nothing was changed.</string>
-    <string name="backup_error_read">The file could not be read. Nothing was changed.</string>
-    <string name="backup_error_save">The file could not be saved.</string>
+    <string name="backup_error_malformed">Not a settings file. Nothing was changed.</string>
+    <string name="backup_error_newer">Made by a newer version: update the app first. Nothing was changed.</string>
+    <string name="backup_error_no_entry">No settings for %1$s in this file. Nothing was changed.</string>
+    <string name="backup_error_read">Could not read the file. Nothing was changed.</string>
+    <string name="backup_error_save">Could not save the file.</string>
     <string name="backup_no_picker">This phone cannot choose files.</string>
     <!-- Load all: one line per app, "SeniorAlert: Restored." -->
     <string name="backup_app_line">%1$s: %2$s</string>
     <string name="backup_app_not_installed">not installed, skipped.</string>
-    <string name="backup_app_too_old">needs an update to take part, skipped.</string>
+    <string name="backup_app_too_old">needs an update, skipped.</string>
     <string name="backup_app_locked">locked, nothing was changed.</string>
     <string name="backup_app_failed">could not be reached, nothing was changed.</string>
     <string name="backup_app_not_in_file">not in the file, left as it is.</string>

@@ -9,9 +9,9 @@
     <string name="home_next">Next</string>
     <string name="home_previous_desc">Previous page</string>
     <string name="home_next_desc">Next page</string>
-    <string name="home_empty">No apps here yet.\nTap “Apps” to add some.</string>
+    <string name="home_empty">No apps yet. Tap “Apps”.</string>
     <string name="home_empty_locked">No apps here yet.</string>
-    <string name="home_tile_question">What do you want to do with “%1$s”?</string>
+    <string name="home_tile_question">“%1$s”</string>
     <string name="home_move">Move</string>
     <string name="home_tile_action">Move or remove</string>
     <string name="home_locked_desc">Settings are locked. Press and hold to unlock with the PIN.</string>
