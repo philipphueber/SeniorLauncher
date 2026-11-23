@@ -32,7 +32,7 @@ import java.util.function.Predicate;
  * stay up asking the senior for a code. Each digit restarts the countdown.
  */
 final class PinDialog {
-    static final long IDLE_MS = 10_000L;
+    static final long IDLE_MS = 5_000L;
 
     private PinDialog() {}
 

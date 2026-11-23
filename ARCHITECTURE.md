@@ -61,7 +61,7 @@ separate app, not part of this one.
 | `Automation` | Pure: the automation action and extra names, and the lenient parsing of their string extras. Unit tested. |
 | `Store` | The ordered home items (with the widgets sized by hand), whether the helper declined the Flashlight replacement, the lock flag with its PIN salt/hash (kept after unlocking), the theme, icon style and paging, the first-run flag and the notification card's app list (package names only) and tap choice, in SharedPreferences. |
 | `Pin` | PIN validation (4-8 digits), salted SHA-256 hash, constant-time compare, and the fixed reset PIN. Same as SeniorAlert's and SeniorPhone's. Pure. |
-| `PinDialog` | Choose a PIN (twice) when locking; enter it when unlocking. The unlock prompt closes after 10 s without typing. |
+| `PinDialog` | Choose a PIN (twice) when locking; enter it when unlocking. The unlock prompt closes after 5 s without typing. |
 | `Ui` | Shared buttons, helper-screen frame and dialogs (`confirm`, and `choose` for more than one action; every dialog, the PIN prompt too, on `dialogCard`, outlined like the tiles so it has an edge on the dimmed screen), so every screen looks alike. Resolves every colour through the chosen theme (`Ui.color`, `Ui.applyTheme`). |
 | `NavBar` | Whether SeniorNav's Back & Home bar is on screen: SeniorNav's `content://app.phueber.seniornav.bar/state` (`visible`: running, attached, not paused), else (older SeniorNav) whether the enabled accessibility services list it. While it is, the pinned Back button is hidden, since the bar already has Back and Home; shown while the bar is paused or not running. Re-checked whenever a screen gets focus and on every change of that uri while attached. Pure part unit tested. |
 | `Palette` | Pure: the four colour themes (Light, Dark, High contrast, Colourful) as roles, the Colourful tile colours, and the WCAG contrast check. Unit tested for readability. |
@@ -427,7 +427,7 @@ Arrange, Notification apps; `HelperActivity`) watches the store while in
 front, closes on resume when locked, and checks the lock again in every
 action (an add in progress on the Widgets screen is dropped). Each
 opens single-top, so a double tap opens it once. Holding the padlock asks for the PIN. The prompt never stays
-up: it closes after 10 s without typing and when the screen is left, so the
+up: it closes after 5 s without typing and when the screen is left, so the
 senior is not left facing a code request. The PIN keeps a curious senior out,
 not a determined person. A forgotten PIN is no problem: the fixed reset PIN
 (`Pin.RESET`, 506614, the same in every Senior app) opens any lock, also through
