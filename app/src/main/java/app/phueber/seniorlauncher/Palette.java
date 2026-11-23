@@ -96,6 +96,20 @@ final class Palette {
         return TILES.length;
     }
 
+    /**
+     * The outline of the marked row on the Arrange screen: green, unless green
+     * stands out less from the page than the ordinary card outline (High
+     * contrast: dark green on black next to white outlines), then the text
+     * colour. Drawn thicker than the card outline, so the marked row is always
+     * the most visible one.
+     */
+    static int markBorder(Theme theme) {
+        int page = color(theme, Role.PAGE);
+        int green = color(theme, Role.GREEN);
+        return contrast(green, page) >= contrast(color(theme, Role.CARD_BORDER), page)
+                ? green : color(theme, Role.TEXT);
+    }
+
     /** Light status- and navigation-bar backgrounds need dark icons. */
     static boolean isLight(Theme theme) {
         return theme == Theme.LIGHT;

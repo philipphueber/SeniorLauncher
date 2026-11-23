@@ -79,7 +79,9 @@ so a start after the process died still opens on page 1.
 ## Order
 
 New items go to the end. The helper changes the order on the Arrange screen
-(Settings, or hold a tile and choose Move): every item the home screen shows,
+(Settings, or hold a tile and choose Move, which marks that tile with a
+thick outline, green or in High contrast white, `Palette.markBorder`, so it
+is the most visible row in every theme): every item the home screen shows,
 with page headings computed by `Pages.layout`, so a wide widget that pushes
 things to the next page is visible there too. Each tile has two buttons,
 ▲ Earlier and ▼ Later, greyed out at the ends; there is no drag and drop,

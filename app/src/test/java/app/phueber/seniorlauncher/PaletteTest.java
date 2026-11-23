@@ -79,6 +79,17 @@ public class PaletteTest {
         atLeast(AAA, c(Theme.HIGH_CONTRAST, Role.CARD_BORDER, Role.PAGE), "high contrast outline");
     }
 
+    @Test public void theMarkedArrangeRowStandsOutMostInEveryTheme() {
+        for (Theme t : Theme.values()) {
+            int page = Palette.color(t, Role.PAGE);
+            double mark = Palette.contrast(Palette.markBorder(t), page);
+            atLeast(c(t, Role.CARD_BORDER, Role.PAGE), mark, t + " mark vs card outline");
+            atLeast(3.0, mark, t + " mark/page");
+        }
+        assertEquals(Palette.color(Theme.HIGH_CONTRAST, Role.TEXT), Palette.markBorder(Theme.HIGH_CONTRAST));
+        assertEquals(Palette.color(Theme.LIGHT, Role.GREEN), Palette.markBorder(Theme.LIGHT));
+    }
+
     @Test public void everyRoleIsDefinedAndOpaqueExceptRipples() {
         for (Theme t : Theme.values()) {
             for (Role r : Role.values()) {

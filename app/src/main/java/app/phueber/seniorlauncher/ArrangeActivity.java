@@ -315,8 +315,10 @@ public final class ArrangeActivity extends HelperActivity {
         GradientDrawable bg = new GradientDrawable();
         bg.setCornerRadius(Ui.dp(this, 20));
         bg.setColor(Ui.color(this, mark ? R.color.green_light : R.color.card));
-        bg.setStroke(Ui.dp(this, mark ? 4 : 2),
-                Ui.color(this, mark ? R.color.green : R.color.card_border));
+        // Marked: a 5dp outline that stands out at least as much as the 2dp
+        // card outlines (green, or white in High contrast; Palette.markBorder).
+        bg.setStroke(Ui.dp(this, mark ? 5 : 2), mark
+                ? Palette.markBorder(Ui.currentTheme(this)) : Ui.color(this, R.color.card_border));
         r.view.setBackground(bg);
     }
 
