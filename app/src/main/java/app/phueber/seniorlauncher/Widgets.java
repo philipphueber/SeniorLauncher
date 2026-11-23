@@ -141,6 +141,12 @@ public final class Widgets {
         return label == null ? null : label.toString();
     }
 
+    /** The widget's provider as a flattened ComponentName, or null if its app is gone. */
+    static String provider(Context c, int widgetId) {
+        AppWidgetProviderInfo info = info(c, widgetId);
+        return info == null || info.provider == null ? null : info.provider.flattenToString();
+    }
+
     /** The widget's icon (its own, or its app's), or null if its app is gone. */
     static Drawable icon(Context c, int widgetId) {
         AppWidgetProviderInfo info = info(c, widgetId);

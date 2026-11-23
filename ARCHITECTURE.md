@@ -35,7 +35,12 @@ separate app, not part of this one.
 | `Note`, `NoteList` | Pure: a notification as the card needs it; which ones are shown, in what order, merged per chat, how many fit, the default apps. Unit tested. |
 | `TimeWords` | Pure: "just now", "5 min ago", today, yesterday or earlier. Unit tested. |
 | `IconColor` | Pure: an icon's main colour for Colourful tiles, made readable under white text. Unit tested. |
-| `SettingsActivity` | Lock (choose a PIN), colours, arrange home screen, choose home app, phone settings. Closes itself when locked. |
+| `SettingsActivity` | Lock (choose a PIN), colours, arrange home screen, choose home app, phone settings, backup (save/load this app's or all Senior apps' settings). Closes itself when locked. |
+| `SettingsBackup` | Saves and restores the launcher's settings, and every Senior app's through its `BackupProvider`; builds the result texts. Off the main thread. |
+| `LauncherBackup` | Pure: the launcher's settings to and from the backup's map, and the restore plan (apps that are here, widgets reused by provider or listed to add again, ids to free). Unit tested. |
+| `Backup` | Pure: the backup file's envelope (format, version, one entry per app), typed reads that make a wrong type a malformed file, the providers' method and error names, the caller check. The same class in every Senior app. Unit tested. |
+| `Json` | Pure: a small JSON reader and writer for `Backup` (the platform's org.json is only a stub in JVM tests). The same class in every Senior app. Unit tested. |
+| `BackupFiles` | The system file picker's save and open intents, reading and writing the chosen file, the date for the name. The same class in every Senior app. |
 | `ArrangeActivity` | The home items in order, with "Page 1", "Page 2" headings from `Pages.layout`; ▲ Earlier / ▼ Later on each. From Settings, or from the long press on a tile (that tile marked). Never while locked: closes itself when locked. |
 | `Widgets` | The one `AppWidgetHost`: creates, sizes and deletes widget views; turns a provider's declaration into a `WidgetRows.Spec` (dp). |
 | `AppInfo` | Label, icon, launchability and launch of an app tile, via `LauncherApps`. A tile whose launcher activity was disabled follows the app's only remaining one (SeniorLight swaps icon aliases to show the light's state). |
@@ -331,6 +336,67 @@ the same reason the lock provider is: the lock is a guard rail, not security.
 Unlocking still needs the PIN, and LOCK is ignored while locked, so a sender
 cannot replace the helper's PIN. The arrangement of tiles and widgets is not
 automated.
+
+## Backup
+
+A helper saves the settings to a file and loads them back, after a reset or
+on a new phone; Settings → Backup. Every Senior app with settings
+(SeniorPhone, SeniorAlert, SeniorNav; SeniorLight has none) does the same
+for itself, and the launcher can do all of them in one file.
+
+- **File.** Chosen in the system's file picker (`ACTION_CREATE_DOCUMENT` /
+  `ACTION_OPEN_DOCUMENT`), so the helper decides where (Downloads, Drive)
+  and no storage permission is needed. Suggested names
+  `SeniorLauncher-settings-<date>.json` (own) and
+  `SeniorLauncher-backup-<date>.json` (all). UTF-8 JSON, indented:
+
+      {"format": "seniorphonekit-backup", "version": 1, "created": "2026-11-23T10:15:00Z",
+       "apps": {"app.phueber.seniorlauncher": {"appVersion": "0.0.3", "settings": {...}},
+                "app.phueber.senioralert": {"appVersion": "0.1.3", "settings": {...}}}}
+
+  One envelope for both kinds: an app's own file has one entry, the
+  launcher's has one per app. An app loading an all-apps file takes its
+  own entry; "Load all" with one app's file restores that app and leaves
+  the others. A newer `version` is refused ("update the app first"), not
+  guessed at; an unreadable file, or a field of the wrong type, is refused
+  with nothing changed. Missing fields take their defaults.
+- **The launcher's settings** (`LauncherBackup`): the home items in order,
+  the colours and the messages card's apps (absent when never chosen).
+  Apps by launcher activity, with their name for the "not found" list; on
+  restore an activity that is gone follows its app's only remaining one
+  (`AppInfo.current`), and apps not installed are skipped and named.
+  Widgets cannot be restored by themselves: their ids belong to this
+  installation and binding needs the system's prompt. So a widget is saved
+  as its provider, name and size (small, rows, sized by hand); a restore
+  reuses, in order, widgets of the same provider already on this home
+  screen (the same phone) with the saved size, frees the other placed
+  widgets, and names the rest for the helper to add again on the Widgets
+  screen. The first-run defaults are marked done, so they are not added on
+  top.
+- **Replace, after a question.** Loading reads and checks the file first
+  (a wrong file is refused before anything is asked), then asks "Replace
+  the current settings with the ones from the file?", then replaces; all
+  or nothing per app (`Store.restore` is one commit). The result names
+  what was not restored. With other colours the screen rebuilds, and the
+  result is shown on the new one (`SettingsActivity.pendingMessage`).
+- **All apps.** Each sibling has an exported `BackupProvider` at
+  `content://<package>.backup`: `call("export")` answers `json` (its
+  one-entry file), `call("import", json)` answers `ok` and either
+  `skipped` (names of what is not on this phone) or `error` (`malformed`,
+  `newer_version`, `no_entry`, `locked`, `not_allowed`). It answers only
+  this launcher and the app itself (`getCallingPackage()`,
+  `Backup.callerAllowed`): a sanity check so not every app can read the
+  settings, not security, like the lock. The launcher restores the
+  siblings first and itself last, one line per app: restored (and what was
+  not found), not installed, too old to take part (installed without the
+  provider), locked or failed. `<queries>` names the three providers
+  (`QUERY_ALL_PACKAGES` already shows them).
+- **Lock.** Never saved, never changed by a restore. The backup buttons
+  are on Settings, which is closed while locked; every step checks the
+  lock again, and each sibling refuses an import while it is locked.
+- **No automation command.** A backup's file is the helper's pick in the
+  file picker, and a restore replaces only after a question; a command
+  would need a second, fixed storage path for a rare task.
 
 ## Permissions
 

@@ -278,6 +278,39 @@ public final class Ui {
         return bg;
     }
 
+    /**
+     * A message with one OK button, e.g. the result of a backup. Long texts
+     * scroll. Returns the shown dialog so the caller can dismiss it.
+     */
+    public static Dialog message(Activity a, CharSequence text) {
+        Dialog d = new Dialog(a);
+        d.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        LinearLayout box = new LinearLayout(a);
+        box.setOrientation(LinearLayout.VERTICAL);
+        int p = dp(a, 24);
+        box.setPadding(p, p, p, p);
+        box.setBackground(dialogCard(a));
+
+        android.widget.ScrollView scroll = new android.widget.ScrollView(a);
+        TextView t = text(a, text, TEXT_BODY);
+        scroll.addView(t);
+        box.addView(scroll, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
+        Button ok = button(a, a.getString(R.string.backup_ok), R.color.green);
+        ok.setOnClickListener(v -> d.dismiss());
+        box.addView(ok, fullWidth(a, 24));
+
+        d.setContentView(box);
+        Window w = d.getWindow();
+        if (w != null) {
+            w.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            w.setLayout(a.getResources().getDisplayMetrics().widthPixels - dp(a, 32),
+                    ViewGroup.LayoutParams.WRAP_CONTENT);
+        }
+        d.show();
+        return d;
+    }
+
     /** One button of a {@link #choose} dialog. */
     public static final class Choice {
         final CharSequence label;
