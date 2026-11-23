@@ -15,6 +15,7 @@ English and German. The app follows the phone's language.
 
 <p>
   <img src="docs/screenshots/home.png" width="30%" alt="The home screen in the dark theme, locked: time, date and battery at the top, a missed call from Anna in the messages card, big tiles for Phone, Contacts, Alarm and Flashlight, and SeniorNav's Back and Home bar at the bottom">
+  <img src="docs/screenshots/home-unlocked.png" width="30%" alt="The same home screen unlocked, for the helper: Apps, Widgets and Settings buttons appear under the time and battery">
 </p>
 
 - **Time and date** in large letters.
@@ -22,7 +23,8 @@ English and German. The app follows the phone's language.
   - green-bordered box that fills with light green as far as the charge goes,
     "Battery": on battery
   - red box, "Battery low – Please charge": 20 % or less
-  - green box with a lightning bolt, "Charging" or "Full": plugged in
+  - blue box with a lightning bolt, "Charging": plugged in and charging
+  - green box with a lightning bolt, "Full": plugged in and full
 - **Tiles**, two side by side, three rows per page. A tap opens the app.
 - **Widgets** from other apps (a clock, the weather…) can sit between the
   tiles: small ones in a tile like an app, bigger ones across the full width.
@@ -45,6 +47,12 @@ English and German. The app follows the phone's language.
 Needs Android 8.0 or newer.
 
 ## Setting it up (for the helper)
+
+<p>
+  <img src="docs/screenshots/apps.png" width="30%" alt="Apps screen: search, and every app with Add or On home">
+  <img src="docs/screenshots/widgets.png" width="30%" alt="Widgets screen: the widgets on the home screen with their size and Remove, and Add a widget below">
+  <img src="docs/screenshots/settings.png" width="30%" alt="Settings screen: Lock at the top, then the four colour themes">
+</p>
 
 - **Apps** lists every app. **Add** puts it on the home screen, **On home ✓**
   takes it off again. New tiles go to the end.
@@ -114,7 +122,8 @@ während das Telefon lädt, steht dort deutlich **Lädt**.
   - grün umrandetes Feld, das sich so weit hellgrün füllt, wie der Akku
     geladen ist, „Akku“: läuft mit Akku
   - rotes Feld, „Akku schwach – Bitte aufladen“: 20 % oder weniger
-  - grünes Feld mit Blitz, „Lädt“ oder „Voll“: am Ladegerät
+  - blaues Feld mit Blitz, „Lädt“: am Ladegerät, lädt
+  - grünes Feld mit Blitz, „Voll“: am Ladegerät, voll
 - **Kacheln**, zwei nebeneinander, drei Reihen pro Seite. Ein Tipp öffnet die
   App.
 - **Widgets** anderer Apps (eine Uhr, das Wetter …) können zwischen den Kacheln

@@ -21,13 +21,13 @@ import android.widget.TextView;
  *
  * Charging has to be readable at a glance (see ARCHITECTURE.md), so it changes
  * three things at once: the word ("Charging" instead of "Battery"), the colour
- * (the whole box turns solid green) and a lightning bolt in front of the number.
+ * (the whole box turns solid blue) and a lightning bolt in front of the number.
  * Bleta only swapped the "%" for a small bolt, which is easy to miss.
  *
  *   NORMAL    green-bordered box, light green fill up to the level, dark text
  *                                         "35 %"  / "Battery"
  *   LOW       solid red, white text       "12 %"  / "Battery low" / "Please charge"
- *   CHARGING  solid green, white text, bolt "35 %" / "Charging"
+ *   CHARGING  solid blue, white text, bolt  "35 %" / "Charging"
  *   FULL      solid green, white text, bolt "100 %" / "Full"
  *
  * The decision itself is {@link BatteryState} (pure, tested); this class only draws it.
@@ -101,7 +101,9 @@ final class BatteryView extends LinearLayout {
         int wordRes;
         switch (kind) {
             case CHARGING:
-                fill = Ui.color(c, R.color.green); fg = Color.WHITE; stroke = 0;
+                // Blue, not green: Full is green, and the two must differ by
+                // colour as well as by word.
+                fill = Ui.color(c, R.color.blue); fg = Color.WHITE; stroke = 0;
                 wordRes = R.string.home_battery_charging;
                 break;
             case FULL:
