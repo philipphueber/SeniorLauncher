@@ -128,6 +128,34 @@ public final class Store {
         return changed;
     }
 
+    /** Widget ids the helper sized by hand (for the settings backup). A fresh set. */
+    public synchronized Set<Integer> sizedWidgets() {
+        return sized();
+    }
+
+    /**
+     * Replaces the home screen, the colours and the notification card's apps
+     * at once with a restored backup (null apps: never chosen). The lock and
+     * its PIN stay as they are. Marks the first run as done, so the default
+     * tiles are not added on top.
+     */
+    public synchronized void restore(List<HomeItem> items, Set<Integer> sizedByHand, Palette.Theme theme,
+                                     Set<String> notificationApps) {
+        StringBuilder sizedIds = new StringBuilder();
+        for (int id : new TreeSet<>(sizedByHand)) {
+            if (sizedIds.length() > 0) sizedIds.append(',');
+            sizedIds.append(id);
+        }
+        SharedPreferences.Editor e = prefs.edit()
+                .putString(K_ITEMS, HomeCodec.encode(items))
+                .putString(K_SIZED, sizedIds.toString())
+                .putString(K_THEME, theme.name())
+                .putBoolean(K_SEEDED, true);
+        if (notificationApps == null) e.remove(K_NOTE_APPS);
+        else e.putString(K_NOTE_APPS, joinPackages(notificationApps));
+        e.commit();
+    }
+
     private Set<Integer> sized() {
         Set<Integer> ids = new TreeSet<>();
         for (String part : prefs.getString(K_SIZED, "").split(",")) {
@@ -198,13 +226,17 @@ public final class Store {
 
     /** Package names cannot contain ',', so a plain join is safe. */
     public synchronized void setNotificationApps(Set<String> packages) {
+        prefs.edit().putString(K_NOTE_APPS, joinPackages(packages)).commit();
+    }
+
+    private static String joinPackages(Set<String> packages) {
         StringBuilder b = new StringBuilder();
         for (String p : new TreeSet<>(packages)) {
             if (p == null || p.isEmpty() || p.contains(",")) continue;
             if (b.length() > 0) b.append(',');
             b.append(p);
         }
-        prefs.edit().putString(K_NOTE_APPS, b.toString()).commit();
+        return b.toString();
     }
 
     /**

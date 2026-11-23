@@ -8,6 +8,15 @@
         android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
 
+    <!-- The other Senior apps' settings, for "Save/Load all Senior apps' settings"
+         (SettingsBackup). QUERY_ALL_PACKAGES already shows them; named here so
+         the dependency is visible and survives if that permission ever goes. -->
+    <queries>
+        <provider android:authorities="app.phueber.seniorphone.backup" />
+        <provider android:authorities="app.phueber.senioralert.backup" />
+        <provider android:authorities="app.phueber.seniornav.backup" />
+    </queries>
+
     <application
         android:allowBackup="false"
         android:icon="@drawable/ic_launcher"

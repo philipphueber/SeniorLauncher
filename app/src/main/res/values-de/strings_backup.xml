@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="backup_title">Sicherung</string>
+    <string name="backup_save">Einstellungen in eine Datei speichern</string>
+    <string name="backup_load">Einstellungen aus einer Datei laden</string>
+    <string name="backup_explain">Bewahrt Startseite, Farben und Nachrichten-Karte in einer Datei auf, die Sie wählen, zum Beispiel unter Downloads oder in Google Drive. Laden Sie die Datei nach einem Zurücksetzen oder auf einem neuen Telefon wieder.</string>
+    <string name="backup_save_all">Einstellungen aller Senior-Apps speichern</string>
+    <string name="backup_load_all">Einstellungen aller Senior-Apps laden</string>
+    <string name="backup_all_explain">Dasselbe für jede Senior-App auf diesem Telefon in einer Datei: Startseite, Telefon, Wecker und Zurück-&amp;-Start-Leiste. Die Sperre und ihre PIN werden nie gespeichert.</string>
+    <string name="backup_confirm">Die aktuellen Einstellungen durch die aus der Datei ersetzen?</string>
+    <string name="backup_confirm_all">Die aktuellen Einstellungen der Senior-Apps durch die aus der Datei ersetzen?</string>
+    <string name="backup_replace">Ersetzen</string>
+    <string name="backup_ok">OK</string>
+    <string name="backup_saved">Gespeichert.</string>
+    <string name="backup_restored">Wiederhergestellt.</string>
+    <string name="backup_not_found">Auf diesem Telefon nicht gefunden: %1$s</string>
+    <string name="backup_add_widgets">Fügen Sie diese Widgets unter „Widgets“ wieder hinzu: %1$s</string>
+    <string name="backup_error_malformed">Diese Datei ist keine lesbare Einstellungsdatei. Es wurde nichts geändert.</string>
+    <string name="backup_error_newer">Diese Datei stammt von einer neueren Version der App. Bitte aktualisieren Sie zuerst die App. Es wurde nichts geändert.</string>
+    <string name="backup_error_no_entry">Diese Datei enthält keine Einstellungen für %1$s. Es wurde nichts geändert.</string>
+    <string name="backup_error_read">Die Datei konnte nicht gelesen werden. Es wurde nichts geändert.</string>
+    <string name="backup_error_save">Die Datei konnte nicht gespeichert werden.</string>
+    <string name="backup_no_picker">Dieses Telefon kann keine Dateien auswählen.</string>
+    <string name="backup_app_line">%1$s: %2$s</string>
+    <string name="backup_app_not_installed">nicht installiert, übersprungen.</string>
+    <string name="backup_app_too_old">braucht ein Update, um teilzunehmen, übersprungen.</string>
+    <string name="backup_app_locked">gesperrt, es wurde nichts geändert.</string>
+    <string name="backup_app_failed">nicht erreichbar, es wurde nichts geändert.</string>
+    <string name="backup_app_not_in_file">nicht in der Datei, bleibt wie es ist.</string>
+    <string name="backup_saved_apps">Gespeichert: %1$s.</string>
+    <string name="backup_skipped_apps">Nicht gespeichert: %1$s.</string>
+</resources>

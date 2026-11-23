@@ -93,6 +93,18 @@ Needs Android 8.0 or newer.
   tile, a widget, the messages card) always asks first.
 - **Back** at the bottom of every helper screen goes straight back to the
   home screen in one tap, to the page it showed.
+- **Settings → Backup** saves the settings to a file you choose (Downloads,
+  Google Drive, …) and loads them back, after a reset or on a new phone.
+  **Save settings to a file** keeps the home screen (tiles in order, sizes,
+  the messages card and its apps) and the colours. **Save all Senior apps'
+  settings** puts those of the Phone, Alarm and Back & Home apps in the same
+  file (SeniorLight has no settings). Loading asks first and then replaces
+  the current settings; it says what it could not restore: apps that are not
+  installed are skipped and named, and widgets have to be added again by
+  hand (Android asks for each), the list says which. The lock and its PIN
+  are never saved; a load leaves this phone's lock as it is. Each Senior app
+  can also save and load just its own settings; either kind of file loads
+  either way.
 
 ## Automation (Trigly, Tasker, …)
 
@@ -110,6 +122,10 @@ Example in Trigly, lock every night at 22:00: trigger *Time 22:00*, action
 *Fire intent* with send mode *Broadcast*, action
 `app.phueber.seniorlauncher.action.LOCK`, package `app.phueber.seniorlauncher`,
 extra `pin` = `1234`.
+
+The settings backup has no automation command: saving and loading go through
+the file picker, where the helper chooses the file, and a load replaces
+settings only after a question.
 
 ## SeniorLauncher (Deutsch)
 
@@ -200,6 +216,21 @@ Benötigt Android 8.0 oder neuer.
   immer eine Rückfrage.
 - **Zurück** unten auf jeder Seite für Helfer führt mit einem Tipp direkt
   zur Startseite, auf die Seite, die sie zeigte.
+- **Einstellungen → Sicherung** speichert die Einstellungen in eine Datei, die
+  Sie wählen (Downloads, Google Drive, …), und lädt sie wieder, nach einem
+  Zurücksetzen oder auf einem neuen Telefon. **Einstellungen in eine Datei
+  speichern** bewahrt die Startseite (Kacheln in ihrer Reihenfolge, Größen,
+  die Nachrichten-Karte und ihre Apps) und die Farben auf. **Einstellungen
+  aller Senior-Apps speichern** legt die der Telefon-, Wecker- und
+  Zurück-/Start-App mit in dieselbe Datei (SeniorLight hat keine
+  Einstellungen). Laden fragt zuerst und ersetzt dann die aktuellen
+  Einstellungen; es sagt, was es nicht wiederherstellen konnte: Nicht
+  installierte Apps werden übersprungen und genannt, und Widgets müssen von
+  Hand wieder hinzugefügt werden (Android fragt bei jedem), die Liste sagt,
+  welche. Die Sperre und ihre PIN werden nie gespeichert; Laden lässt die
+  Sperre dieses Telefons, wie sie ist. Jede Senior-App kann auch nur ihre
+  eigenen Einstellungen speichern und laden; beide Arten von Datei lassen
+  sich auf beiden Wegen laden.
 
 ### Automatisierung (Trigly, Tasker, …)
 
@@ -218,6 +249,10 @@ Beispiel in Trigly, jeden Abend um 22:00 sperren: Auslöser *Zeit 22:00*,
 Aktion *Intent senden* mit Sendeart *Broadcast*, Aktion
 `app.phueber.seniorlauncher.action.LOCK`, Paket `app.phueber.seniorlauncher`,
 Extra `pin` = `1234`.
+
+Für die Sicherung der Einstellungen gibt es keinen Befehl: Speichern und
+Laden laufen über die Dateiauswahl, in der Helfer die Datei wählen, und
+Laden ersetzt Einstellungen erst nach einer Rückfrage.
 
 ## Contributing
 
