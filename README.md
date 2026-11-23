@@ -32,7 +32,7 @@ English and German. The app follows the phone's language.
 ## Install
 
 1. Download the latest `SeniorLauncher-*.apk` from the
-   [Releases](https://github.com/philipphueber/SeniorLauncher/releases) page on
+   [Releases](https://github.com/SeniorPhoneKit/SeniorLauncher/releases) page on
    the phone.
 2. Open it. Android asks whether to allow installing from this source; allow it
    once.
@@ -125,7 +125,7 @@ während das Telefon lädt, steht dort deutlich **Lädt**.
 ### Installieren
 
 1. Laden Sie auf dem Telefon die neueste `SeniorLauncher-*.apk` von der Seite
-   [Releases](https://github.com/philipphueber/SeniorLauncher/releases).
+   [Releases](https://github.com/SeniorPhoneKit/SeniorLauncher/releases).
 2. Öffnen Sie sie. Android fragt, ob aus dieser Quelle installiert werden darf;
    erlauben Sie es einmal.
 3. Öffnen Sie **Startseite**, tippen Sie auf **Einstellungen**, dann auf
