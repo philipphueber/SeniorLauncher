@@ -13,6 +13,10 @@ English and German. The app follows the phone's language.
 
 ## What you see
 
+<p>
+  <img src="docs/screenshots/home.png" width="30%" alt="The home screen in the dark theme, locked: time, date and battery at the top, a missed call from Anna in the messages card, big tiles for Phone, Contacts, Alarm and Flashlight, and SeniorNav's Back and Home bar at the bottom">
+</p>
+
 - **Time and date** in large letters.
 - **Battery** with the percent, in words:
   - green-bordered box that fills with light green as far as the charge goes,
