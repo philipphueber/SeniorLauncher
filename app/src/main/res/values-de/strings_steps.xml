@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="steps_button">Wie? Schritte zeigen</string>
+    <string name="steps_app_info">App-Info öffnen</string>
+
+    <string name="steps_home_title">„Startseite“ als Startbildschirm wählen</string>
+    <string-array name="steps_home">
+        <item>Unten auf „Startbildschirm wählen“ tippen.</item>
+        <item>Auf „Startseite“ tippen.</item>
+        <item>Die Start-Taste des Telefons drücken: Diese großen Kacheln erscheinen.</item>
+    </string-array>
+    <string-array name="steps_home_notes">
+        <item>Nur die Liste der Einstellungen geöffnet? Auf „Apps“ tippen, dann „Standard-Apps“, dann „Start-App“.</item>
+        <item>Samsung: unter „Apps“, „Standard-Apps auswählen“.</item>
+    </string-array>
+
+    <string name="steps_notes_title">Benachrichtigungszugriff erlauben</string>
+    <string-array name="steps_notes">
+        <item>Unten auf „Benachrichtigungszugriff erlauben“ tippen.</item>
+        <item>„Benachrichtigungszugriff erlauben“ einschalten.</item>
+        <item>Auf „Zulassen“ tippen.</item>
+        <item>Mit Zurück hierher: Die Karte „Nachrichten“ zeigt die Nachrichten.</item>
+    </string-array>
+    <string-array name="steps_notes_notes">
+        <item>Hat sich die Liste aller Apps geöffnet? Zuerst auf „Startseite“ tippen.</item>
+    </string-array>
+    <string-array name="steps_notes_notes_restricted">
+        <item>Ist der Schalter ausgegraut oder meldet Android „Eingeschränkte Einstellung“? Unten auf „App-Info öffnen“ tippen, oben rechts auf ⋮ tippen, „Eingeschränkte Einstellungen zulassen“ wählen und wieder bei Schritt 1 beginnen. Nötig, wenn die App nicht aus Google Play installiert wurde.</item>
+        <item>Hat sich die Liste aller Apps geöffnet? Zuerst auf „Startseite“ tippen.</item>
+    </string-array>
+</resources>

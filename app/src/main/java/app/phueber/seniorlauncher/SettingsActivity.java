@@ -110,9 +110,13 @@ public final class SettingsActivity extends HelperActivity {
         content.addView(arrange, Ui.fullWidth(this, 36));
 
         Button home = Ui.button(this, getString(R.string.settings_home_app), R.color.blue);
-        home.setOnClickListener(v -> open(new Intent(Settings.ACTION_HOME_SETTINGS),
-                new Intent(Settings.ACTION_SETTINGS)));
+        home.setOnClickListener(v -> chooseHome());
         content.addView(home, Ui.fullWidth(this, 36));
+        if (!isDefaultHome()) {
+            content.addView(Steps.button(this, R.string.steps_home_title, R.array.steps_home,
+                    R.array.steps_home_notes, new Steps.Action(R.string.settings_home_app, this::chooseHome)),
+                    Ui.fullWidth(this, 12));
+        }
         content.addView(explanation(getString(R.string.settings_home_app_explain,
                 getString(R.string.app_name))), Ui.fullWidth(this, 8));
 
@@ -269,6 +273,22 @@ public final class SettingsActivity extends HelperActivity {
         t.setTextColor(Ui.color(this, R.color.text_muted));
         t.setTypeface(Typeface.defaultFromStyle(Typeface.ITALIC));
         return t;
+    }
+
+    private void chooseHome() {
+        open(new Intent(Settings.ACTION_HOME_SETTINGS), new Intent(Settings.ACTION_SETTINGS));
+    }
+
+    /** Whether pressing Home opens this app: then the steps to choose it are not needed. */
+    private boolean isDefaultHome() {
+        try {
+            android.content.pm.ResolveInfo r = getPackageManager().resolveActivity(
+                    new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME),
+                    android.content.pm.PackageManager.MATCH_DEFAULT_ONLY);
+            return r != null && r.activityInfo != null && getPackageName().equals(r.activityInfo.packageName);
+        } catch (RuntimeException e) {
+            return false;
+        }
     }
 
     /** Opens a system screen; some vendors lack some screens, hence the fallback. */

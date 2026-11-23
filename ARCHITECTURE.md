@@ -37,7 +37,8 @@ separate app, not part of this one.
 | `IconColor` | Pure: an icon's main colour for Colourful tiles, made readable under white text. Unit tested. |
 | `IconShape` | Pure: the icon styles (Round, As designed) and the Round geometry: adaptive layers at 108/72, whether a legacy icon is already a disc, where a legacy icon goes in its disc. Unit tested. |
 | `RoundIcon` | Every app icon on every screen goes through `RoundIcon.of`: as it is (As designed) or as a filled circle (Round), see "Icons". Caches a legacy icon's measurement per app. |
-| `SettingsActivity` | Lock (choose a PIN), colours, app icons, arrange home screen, choose home app, phone settings, backup (save/load this app's or all Senior apps' settings). Closes itself when locked. |
+| `SettingsActivity` | Lock (choose a PIN), colours, app icons, arrange home screen, choose home app (with its steps while this is not the home app), phone settings, backup (save/load this app's or all Senior apps' settings). Closes itself when locked. |
+| `Steps` | "How? Show the steps" and the card it opens (a dialog on `dialogCard`, in the chosen theme): numbered steps (string arrays, in the words Android shows), notes for other phones, the setup action itself, and Back, which only closes the card (the system Back too), so the helper returns to the screen it came from. The screens keep one short line per task; the full steps only on demand. The same in every Senior app. Used for choosing the home app (Settings, only while this is not the home app) and notification access (Widgets, while missing; with App info for "Allow restricted settings" on Android 13+). Not on the home-screen card itself: a card of one row has no room for a second button. |
 | `SettingsBackup` | Saves and restores the launcher's settings, and every Senior app's through its `BackupProvider`; builds the result texts. Off the main thread. |
 | `LauncherBackup` | Pure: the launcher's settings to and from the backup's map, and the restore plan (apps that are here, widgets reused by provider or listed to add again, ids to free). Unit tested. |
 | `Backup` | Pure: the backup file's envelope (format, version, one entry per app), typed reads that make a wrong type a malformed file, the providers' method and error names, the caller check. The same class in every Senior app. Unit tested. |
@@ -242,7 +243,7 @@ notifications.
 - **Access.** `NotificationListener` needs "Notification access", granted
   once by the helper. The card (and its entry on the Widgets screen) says so
   in words with one button: on Android 11+ straight to this app's switch
-  (`ACTION_NOTIFICATION_LISTENER_DETAIL_SETTINGS`), else the list of all.
+  (`ACTION_NOTIFICATION_LISTENER_DETAIL_SETTINGS`), else the list of all. The Widgets screen adds "How? Show the steps" under it (`Steps`).
   Granted but not yet bound (just granted, after an update) the card asks for
   a rebind (`requestRebind`) when attached, and the home screen again on every
   resume. Until the listener is connected nothing is known, so the card claims

@@ -363,6 +363,18 @@ public class WidgetsActivity extends HelperActivity {
                 if (!closedByLock()) NotificationHub.openAccessSettings(this);
             });
             box.addView(allow, Ui.fullWidth(this, 12));
+            Steps.Action open = new Steps.Action(R.string.notes_allow, () -> {
+                if (!closedByLock()) NotificationHub.openAccessSettings(this);
+            });
+            box.addView(Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+                    ? Steps.button(this, R.string.steps_notes_title, R.array.steps_notes,
+                            R.array.steps_notes_notes_restricted, open,
+                            new Steps.Action(R.string.steps_app_info, () -> {
+                                if (!closedByLock()) NotificationHub.openAppInfo(this);
+                            }))
+                    : Steps.button(this, R.string.steps_notes_title, R.array.steps_notes,
+                            R.array.steps_notes_notes, open),
+                    Ui.fullWidth(this, 12));
         }
         Button choose = Ui.button(this, getString(R.string.notes_choose_apps), R.color.blue);
         choose.setOnClickListener(v -> {

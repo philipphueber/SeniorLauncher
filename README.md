@@ -51,6 +51,8 @@ English and German. The app follows the phone's language.
 2. Open it. Android asks whether to allow installing from this source; allow it
    once.
 3. Open **Home**, tap **Settings**, then **Choose home app**, and pick **Home**.
+   Until it is the home app, **How? Show the steps** below that button shows
+   the way, also for other phones (Samsung: Apps, Choose default apps).
 
 Needs Android 8.0 or newer.
 
@@ -84,10 +86,12 @@ Needs Android 8.0 or newer.
   no, it does not ask again; **Widgets** can still add the button.
 - **Messages card**: in **Widgets**, tap **Messages** at the top of "Add a
   widget". Then, once:
-  1. On the card, tap **Allow notification access** and switch it on for
-     **Home**. (Android 13 and newer, for an APK from the Releases page: if
-     the switch is greyed out, open *Settings → Apps → Home*, tap ⋮ and
-     **Allow restricted settings**, then try again.)
+  1. On the card, tap **Allow notification access**, turn on **Allow
+     notification access** and tap **Allow**. (Android 13 and newer, for an
+     APK from the Releases page: if the switch is greyed out, open *Settings →
+     Apps → Home*, tap ⋮ and **Allow restricted settings**, then try again.)
+     In **Widgets**, **How? Show the steps** under that button shows these
+     steps on the phone, with a button to App info.
   2. Check **Choose apps** (in **Widgets**, on the Messages card): Phone,
      SMS, WhatsApp, Signal and Telegram are picked already if installed. Tap
      **Show** / **Shown ✓** to change it. Nothing else appears on the card.
@@ -188,7 +192,10 @@ während das Telefon lädt, steht dort deutlich **Lädt**.
 2. Öffnen Sie sie. Android fragt, ob aus dieser Quelle installiert werden darf;
    erlauben Sie es einmal.
 3. Öffnen Sie **Startseite**, tippen Sie auf **Einstellungen**, dann auf
-   **Startbildschirm wählen**, und wählen Sie **Startseite**.
+   **Startbildschirm wählen**, und wählen Sie **Startseite**. Solange sie
+   noch nicht der Startbildschirm ist, zeigt **Wie? Schritte zeigen** unter
+   dieser Taste den Weg, auch für andere Telefone (Samsung: Apps,
+   Standard-Apps auswählen).
 
 Benötigt Android 8.0 oder neuer.
 
@@ -221,11 +228,13 @@ Benötigt Android 8.0 oder neuer.
   hinzufügen.
 - **Nachrichten-Karte**: unter **Widgets** oben bei „Widget hinzufügen“ auf
   **Nachrichten** tippen. Dann einmalig:
-  1. Auf der Karte **Benachrichtigungszugriff erlauben** tippen und ihn für
-     **Startseite** einschalten. (Ab Android 13, bei einer APK von der
-     Releases-Seite: Ist der Schalter grau, unter *Einstellungen → Apps →
-     Startseite* auf ⋮ und **Eingeschränkte Einstellungen zulassen** tippen
-     und es erneut versuchen.)
+  1. Auf der Karte **Benachrichtigungszugriff erlauben** tippen,
+     **Benachrichtigungszugriff erlauben** einschalten und **Zulassen**
+     tippen. (Ab Android 13, bei einer APK von der Releases-Seite: Ist der
+     Schalter grau, unter *Einstellungen → Apps → Startseite* auf ⋮ und
+     **Eingeschränkte Einstellungen zulassen** tippen und es erneut
+     versuchen.) Unter **Widgets** zeigt **Wie? Schritte zeigen** unter
+     dieser Taste die Schritte auf dem Telefon, mit einer Taste zur App-Info.
   2. **Apps wählen** prüfen (unter **Widgets**, auf der Nachrichten-Karte):
      Telefon, SMS, WhatsApp, Signal und Telegram sind schon gewählt, falls
      installiert. **Zeigen** / **Gezeigt ✓** ändert das. Andere Apps
