@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The full steps, shown only when the helper taps "How? Show the steps" (Steps).
+         Each step names what to tap in the words Android shows. -->
+    <string name="steps_button">How? Show the steps</string>
+    <string name="steps_app_info">Open App info</string>
+
+    <string name="steps_home_title">Make “Home” the home app</string>
+    <string-array name="steps_home">
+        <item>Tap “Choose home app” below.</item>
+        <item>Tap “Home”.</item>
+        <item>Press the phone’s Home button: these big tiles appear.</item>
+    </string-array>
+    <string-array name="steps_home_notes">
+        <item>Only the Settings list opened? Tap “Apps”, then “Default apps”, then “Home app”.</item>
+        <item>Samsung: under “Apps”, “Choose default apps”.</item>
+    </string-array>
+
+    <string name="steps_notes_title">Allow notification access</string>
+    <string-array name="steps_notes">
+        <item>Tap “Allow notification access” below.</item>
+        <item>Turn on “Allow notification access”.</item>
+        <item>Tap “Allow”.</item>
+        <item>Come back with Back: the Messages card shows the messages.</item>
+    </string-array>
+    <string-array name="steps_notes_notes">
+        <item>The list of all apps opened? Tap “Home” first.</item>
+    </string-array>
+    <string-array name="steps_notes_notes_restricted">
+        <item>The switch is greyed out, or Android says “Restricted setting”? Tap “Open App info” below, tap ⋮ at the top right, tap “Allow restricted settings”, then start again at step 1. Needed when the app was not installed from Google Play.</item>
+        <item>The list of all apps opened? Tap “Home” first.</item>
+    </string-array>
+</resources>

@@ -192,6 +192,13 @@ public final class Ui {
      * still steps back one screen.
      */
     public static View backButton(Activity a) {
+        View b = back(a, v -> goHome(a));
+        NavBar.hideWhileOn(b); // SeniorNav's bar already has Back and Home
+        return b;
+    }
+
+    /** The "← Back" look: outlined, arrow before the word; tap does what is given. */
+    public static View back(Context a, View.OnClickListener tap) {
         int fg = color(a, R.color.text_black);
         LinearLayout b = new LinearLayout(a);
         b.setGravity(Gravity.CENTER);
@@ -202,7 +209,7 @@ public final class Ui {
         b.setClickable(true);
         b.setFocusable(true);
         b.setContentDescription(a.getString(R.string.back));
-        b.setOnClickListener(v -> goHome(a));
+        b.setOnClickListener(tap);
 
         TextView label = bold(a, a.getString(R.string.back), TEXT_BUTTON);
         label.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
@@ -215,7 +222,6 @@ public final class Ui {
         alp.setMarginEnd(dp(a, 10));
         b.addView(arrow, alp);
         b.addView(label);
-        NavBar.hideWhileOn(b); // SeniorNav's bar already has Back and Home
         return b;
     }
 

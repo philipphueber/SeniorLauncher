@@ -252,6 +252,20 @@ final class NotificationHub {
         store.setNotificationApps(NoteList.defaults(dialer, sms, installed));
     }
 
+    /** This app's App info, where ⋮ "Allow restricted settings" unlocks the switch (Android 13+). */
+    static void openAppInfo(Activity a) {
+        try {
+            a.startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                    android.net.Uri.fromParts("package", a.getPackageName(), null)));
+        } catch (RuntimeException e) {
+            try {
+                a.startActivity(new Intent(Settings.ACTION_SETTINGS));
+            } catch (RuntimeException ignored) {
+                // Nothing left to open.
+            }
+        }
+    }
+
     /**
      * The system screen to grant access: straight to this app's switch on
      * Android 11+, else the list of all apps with access, else Settings.
