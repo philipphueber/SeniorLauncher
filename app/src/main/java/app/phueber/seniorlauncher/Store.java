@@ -13,8 +13,8 @@ import java.util.function.Predicate;
 /**
  * All persistent state: the ordered list of home items, the lock flag and its
  * PIN hash (kept after unlocking, see unlock), the colour theme, the icon style, whether the first-run default tiles were added,
- * and which apps' notifications the notifications card shows (package names
- * only: notification content is never stored). Every change is written at
+ * which apps' notifications the notifications card shows (package names
+ * only: notification content is never stored) and what a tap on one does. Every change is written at
  * once (commit), so a killed process never loses a tile.
  */
 public final class Store {
@@ -31,6 +31,8 @@ public final class Store {
     private static final String K_SIZED = "sized_widgets";
     /** Packages whose notifications the card shows, comma-separated; absent until first set. */
     private static final String K_NOTE_APPS = "notification_apps";
+    /** What a tap on a messages-card entry does (NoteTap.Choice); absent means Open. */
+    private static final String K_NOTE_TAP = "note_tap";
     /** The helper said no to turning the Flashlight tile into its button: do not ask again. */
     private static final String K_LIGHT_DECLINED = "light_declined";
 
@@ -163,13 +165,14 @@ public final class Store {
     }
 
     /**
-     * Replaces the home screen, the colours, the icon style and the notification card's apps
+     * Replaces the home screen, the colours, the icon style, the notification card's apps and tap
      * at once with a restored backup (null apps: never chosen). The lock and
      * its PIN stay as they are. Marks the first run as done, so the default
      * tiles are not added on top.
      */
     public synchronized void restore(List<HomeItem> items, Set<Integer> sizedByHand, Palette.Theme theme,
-                                     IconShape.Style icons, Set<String> notificationApps) {
+                                     IconShape.Style icons, Set<String> notificationApps,
+                                     NoteTap.Choice noteTap) {
         StringBuilder sizedIds = new StringBuilder();
         for (int id : new TreeSet<>(sizedByHand)) {
             if (sizedIds.length() > 0) sizedIds.append(',');
@@ -180,6 +183,7 @@ public final class Store {
                 .putString(K_SIZED, sizedIds.toString())
                 .putString(K_THEME, theme.name())
                 .putString(K_ICONS, icons.name())
+                .putString(K_NOTE_TAP, noteTap.name())
                 .putBoolean(K_SEEDED, true);
         if (notificationApps == null) e.remove(K_NOTE_APPS);
         else e.putString(K_NOTE_APPS, joinPackages(notificationApps));
@@ -252,6 +256,14 @@ public final class Store {
         Set<String> out = new TreeSet<>();
         for (String p : s.split(",")) if (!p.trim().isEmpty()) out.add(p.trim());
         return out;
+    }
+
+    public synchronized NoteTap.Choice noteTap() {
+        return NoteTap.parse(prefs.getString(K_NOTE_TAP, null));
+    }
+
+    public synchronized void setNoteTap(NoteTap.Choice choice) {
+        prefs.edit().putString(K_NOTE_TAP, choice.name()).commit();
     }
 
     /** Package names cannot contain ',', so a plain join is safe. */

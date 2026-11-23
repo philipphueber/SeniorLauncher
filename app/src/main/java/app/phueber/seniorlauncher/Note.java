@@ -20,6 +20,8 @@ final class Note {
     static final int FOREGROUND_SERVICE = 4;
     /** Music or video controls. */
     static final int MEDIA = 8;
+    /** The user cannot swipe it away (FLAG_NO_CLEAR, or not clearable): never removed by a tap. */
+    static final int NO_CLEAR = 16;
 
     /** The platform's notification key, unique among the current ones. */
     final String key;
@@ -31,8 +33,15 @@ final class Note {
     /** Post time, ms since the epoch. */
     final long when;
     final int flags;
+    /** The app's notification group, or null; only to tidy a group up when removing (NoteTap). */
+    final String group;
 
     Note(String key, String pkg, String title, String text, long when, int flags) {
+        this(key, pkg, title, text, when, flags, null);
+    }
+
+    Note(String key, String pkg, String title, String text, long when, int flags, String group) {
+        this.group = group;
         this.key = key;
         this.pkg = pkg;
         this.title = title == null ? "" : title.trim();
@@ -41,7 +50,7 @@ final class Note {
         this.flags = flags;
     }
 
-    /** Equal when everything the card shows of it is equal (so it need not redraw). */
+    /** Equal when everything the card shows of it is equal (so it need not redraw); the group is not shown. */
     @Override public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Note)) return false;

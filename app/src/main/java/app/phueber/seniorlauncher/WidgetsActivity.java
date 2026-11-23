@@ -334,7 +334,8 @@ public class WidgetsActivity extends HelperActivity {
     /**
      * The placed notifications card: its name, whether notification access is
      * granted and whose notifications it shows, in words; then the buttons to
-     * grant access (only while missing), choose apps, size it and remove it.
+     * grant access (only while missing), choose apps, size it, choose what a
+     * tap on a message does, and remove it.
      */
     private void showNotesRow() {
         LinearLayout box = notesBox;
@@ -392,6 +393,7 @@ public class WidgetsActivity extends HelperActivity {
             }
             box.addView(b, Ui.fullWidth(this, 8));
         }
+        showNoteTap(box);
 
         Button remove = Ui.button(this, getString(R.string.remove), R.color.red);
         remove.setContentDescription(getString(R.string.widgets_remove_named, name));
@@ -406,6 +408,38 @@ public class WidgetsActivity extends HelperActivity {
                     });
         });
         box.addView(remove, Ui.fullWidth(this, 12));
+    }
+
+    /**
+     * "When a message is tapped": Open it / Open it and remove it / Remove it
+     * only, the stored one green with "✓ … (chosen)" like the sizes.
+     */
+    private void showNoteTap(LinearLayout box) {
+        TextView heading = Ui.text(this, getString(R.string.notes_tap_heading), Ui.TEXT_BODY);
+        heading.setTextColor(Ui.color(this, R.color.text_muted));
+        box.addView(heading, Ui.fullWidth(this, 16));
+        String title = getString(R.string.notes_tap_heading);
+        NoteTap.Choice current = store.noteTap();
+        for (NoteTap.Choice choice : NoteTap.Choice.values()) {
+            String label = getString(choice == NoteTap.Choice.OPEN ? R.string.notes_tap_open
+                    : choice == NoteTap.Choice.OPEN_REMOVE ? R.string.notes_tap_open_remove
+                    : R.string.notes_tap_remove);
+            boolean chosen = choice == current;
+            Button b = chosen
+                    ? Ui.button(this, getString(R.string.widgets_size_chosen, label), R.color.green)
+                    : Ui.outlined(this, label);
+            b.setContentDescription(getString(R.string.widgets_size_named, title,
+                    chosen ? getString(R.string.widgets_size_chosen, label) : label));
+            if (!chosen) {
+                b.setOnClickListener(v -> {
+                    if (closedByLock()) return;
+                    store.setNoteTap(choice);
+                    showNotesRow();
+                    box.announceForAccessibility(getString(R.string.widgets_size_named, title, label));
+                });
+            }
+            box.addView(b, Ui.fullWidth(this, 8));
+        }
     }
 
     /** "[speech bubble] Messages" over one line saying what it is. */
