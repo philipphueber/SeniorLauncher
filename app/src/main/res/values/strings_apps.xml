@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="apps_title">Apps</string>
-    <string name="apps_intro">Tap an app to open it. Tap “Add” to put it on the home screen.</string>
+    <string name="apps_intro">Tap an app to open it.</string>
     <string name="apps_search_hint">Search app</string>
     <string name="apps_loading">Loading apps …</string>
     <string name="apps_none">No app found.</string>

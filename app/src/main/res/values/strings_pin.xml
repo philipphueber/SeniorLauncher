@@ -2,7 +2,7 @@
 <resources>
     <!-- The lock's PIN prompts (PinDialog), worded like SeniorAlert's. -->
     <string name="pin_lock_title">Lock</string>
-    <string name="pin_lock_message">Choose a PIN (4 to 8 digits). You need it to unlock, on the home screen or in the Phone and Alarm apps.</string>
+    <string name="pin_lock_message">Choose a PIN, 4 to 8 digits.</string>
     <string name="pin_lock">Lock</string>
     <string name="pin_unlock_title">Unlock</string>
     <string name="pin_unlock_message">Enter the PIN.</string>

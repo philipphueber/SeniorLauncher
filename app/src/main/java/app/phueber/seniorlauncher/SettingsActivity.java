@@ -19,8 +19,9 @@ import java.util.List;
  * The helper's settings: lock the launcher, pick the colours, arrange the home
  * screen, choose the home app, open the phone's own settings, and save or load
  * the settings (this app's, or every Senior app's at once; see SettingsBackup).
- * Each button has one sentence under it that says what it is for (Bleta's pattern). Everything else (volume, Wi-Fi, text size) is
- * already in the phone's settings and is not duplicated here.
+ * A button that does not say it all has one short line under it; one that
+ * does (the colours, Arrange) has none. Everything else (volume, Wi-Fi, text
+ * size) is already in the phone's settings and is not duplicated here.
  */
 public final class SettingsActivity extends HelperActivity {
     private static final int REQ_SAVE = 1;
@@ -78,7 +79,6 @@ public final class SettingsActivity extends HelperActivity {
             });
             content.addView(b, Ui.fullWidth(this, 8));
         }
-        content.addView(explanation(getString(R.string.settings_colours_explain)), Ui.fullWidth(this, 8));
 
         // The order of the home screen; also reachable by holding a tile.
         Button arrange = Ui.button(this, getString(R.string.settings_arrange), R.color.blue);
@@ -86,7 +86,6 @@ public final class SettingsActivity extends HelperActivity {
             if (!closedByLock()) startActivity(ArrangeActivity.intent(this, null));
         });
         content.addView(arrange, Ui.fullWidth(this, 36));
-        content.addView(explanation(getString(R.string.settings_arrange_explain)), Ui.fullWidth(this, 8));
 
         Button home = Ui.button(this, getString(R.string.settings_home_app), R.color.blue);
         home.setOnClickListener(v -> open(new Intent(Settings.ACTION_HOME_SETTINGS),

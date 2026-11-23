@@ -2,18 +2,16 @@
 <resources>
     <string name="settings_title">Einstellungen</string>
     <string name="settings_lock">Sperren</string>
-    <string name="settings_lock_explain">Wenn gesperrt, bleibt nur die Startseite: Die Tasten Apps, Widgets und Einstellungen verschwinden, und Kacheln können weder verschoben noch entfernt werden. Die Telefon- und die Wecker-App werden mitgesperrt: keine neuen Kontakte, keine Änderung an Favoriten oder Weckern. Zum Entsperren halten Sie das Schloss gedrückt und geben die PIN ein: auf der Startseite oder direkt in der Telefon- oder Wecker-App.</string>
+    <string name="settings_lock_explain">Danach bleiben nur die Kacheln. Telefon und Wecker werden mitgesperrt.</string>
     <string name="settings_colours">Farben</string>
     <string name="settings_colour_light">Hell</string>
     <string name="settings_colour_dark">Dunkel</string>
     <string name="settings_colour_high_contrast">Hoher Kontrast</string>
     <string name="settings_colour_colourful">Bunt</string>
     <string name="settings_colour_chosen">%1$s ✓</string>
-    <string name="settings_colours_explain">Wählen Sie, was am besten zu lesen ist: Hell, Dunkel, Hoher Kontrast (weiß auf schwarz) oder Bunt (jede Kachel in der Farbe ihrer App).</string>
     <string name="settings_arrange">Startseite ordnen</string>
-    <string name="settings_arrange_explain">Ändert die Reihenfolge der Kacheln und Widgets auf der Startseite. Neue kommen immer ans Ende.</string>
     <string name="settings_home_app">Startbildschirm wählen</string>
-    <string name="settings_home_app_explain">Wählen Sie, welchen Startbildschirm das Telefon zeigt, wenn Sie die Home-Taste drücken. Wählen Sie „%1$s“, um diesen zu behalten.</string>
+    <string name="settings_home_app_explain">Wählen Sie „%1$s“, um diese zu behalten.</string>
     <string name="settings_phone">Telefon-Einstellungen</string>
-    <string name="settings_phone_explain">Öffnet die Einstellungen des Telefons, zum Beispiel für WLAN, Ton, Helligkeit und Schriftgröße.</string>
+    <string name="settings_phone_explain">WLAN, Ton, Helligkeit, Schriftgröße.</string>
 </resources>
