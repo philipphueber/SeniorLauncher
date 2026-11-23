@@ -113,16 +113,6 @@ final class Palette {
                 ? green : color(theme, Role.TEXT);
     }
 
-    /**
-     * A disc drawn behind app icons, or 0 for none. Only Light needs one: most
-     * icons have a white round backing, which vanishes on its white tiles but
-     * shows as a circle on every darker card. A soft blue-grey disc gives the
-     * icons the same round shape in every theme.
-     */
-    static int iconDisc(Theme theme) {
-        return theme == Theme.LIGHT ? 0xFFE1E8F2 : 0;
-    }
-
     /** Light status- and navigation-bar backgrounds need dark icons. */
     static boolean isLight(Theme theme) {
         return theme == Theme.LIGHT;

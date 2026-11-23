@@ -248,11 +248,7 @@ card). Outlined controls (helper bar, Back, outlined buttons, search fields)
 draw their edge in `OUTLINE`, at least 3:1 on card and page: white in Dark
 and High contrast, a soft mid navy in Light rather than a heavy black line.
 
-App icons mostly have a white round backing, which shows as a circle on
-every darker card but vanishes on Light's white tiles. So in Light every app
-icon (home tiles and the helper lists, `Ui.appIcon`) sits on a soft
-blue-grey disc (`Palette.iconDisc`), and icons have the same round shape in
-every theme.
+App icons are drawn as they are in every theme, with no backing of our own.
 
 In Colourful, an app tile takes the main colour of its icon (`IconColor`):
 the most common clearly coloured hue of a 48x48 rendering, ignoring white,

@@ -98,19 +98,6 @@ public class PaletteTest {
         }
     }
 
-    @Test public void onlyLightPutsIconsOnADiscThatShowsOnItsTiles() {
-        for (Theme t : Theme.values()) {
-            int disc = Palette.iconDisc(t);
-            if (t != Theme.LIGHT) {
-                assertEquals(t + " needs no disc", 0, disc);
-                continue;
-            }
-            assertEquals(0xFF, disc >>> 24);
-            // Visible against the white tile and the white backing of most icons.
-            atLeast(1.15, Palette.contrast(disc, Palette.color(t, Role.CARD)), "light disc/card");
-        }
-    }
-
     @Test public void everyRoleIsDefinedAndOpaqueExceptRipples() {
         for (Theme t : Theme.values()) {
             for (Role r : Role.values()) {

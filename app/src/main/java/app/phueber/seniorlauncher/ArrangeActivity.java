@@ -236,8 +236,8 @@ public final class ArrangeActivity extends HelperActivity {
         if (item.isApp()) {
             name = AppInfo.label(this, item.component);
             Drawable d = AppInfo.icon(this, item.component);
-            icon.setImageDrawable(Ui.appIcon(this,
-                    d != null ? d : getDrawable(android.R.drawable.sym_def_app_icon)));
+            icon.setImageDrawable(
+                    d != null ? d : getDrawable(android.R.drawable.sym_def_app_icon));
         } else if (item.isNotifications()) {
             name = getString(R.string.notes_title);
             kind = getString(R.string.notes_arrange_kind);

@@ -151,7 +151,7 @@ public final class NotificationAppsActivity extends HelperActivity {
         info.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS);
 
         ImageView icon = new ImageView(this);
-        icon.setImageDrawable(Ui.appIcon(this, a.icon));
+        icon.setImageDrawable(a.icon);
         int size = Ui.dp(this, ICON_DP);
         info.addView(icon, new LinearLayout.LayoutParams(size, size));
         LinearLayout texts = new LinearLayout(this);
