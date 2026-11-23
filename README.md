@@ -25,6 +25,9 @@ English and German. The app follows the phone's language.
   - red box, "Battery low – Please charge": 20 % or less
   - blue box with a lightning bolt, "Charging": plugged in and charging
   - green box with a lightning bolt, "Full": plugged in and full
+
+  <img src="docs/screenshots/battery.png" width="60%" alt="The four battery boxes: 85 % on battery in a green-bordered box, 12 % Battery low – Please charge in red, 60 % Charging in blue with a lightning bolt, 100 % Full in green with a lightning bolt">
+
 - **Tiles**, two side by side, three rows per page. A tap opens the app.
 - **Widgets** from other apps (a clock, the weather…) can sit between the
   tiles: small ones in a tile like an app, bigger ones across the full width.
