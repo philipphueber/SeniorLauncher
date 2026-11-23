@@ -32,6 +32,10 @@ English and German. The app follows the phone's language.
 - **Tiles**, two side by side, three rows per page. A tap opens the app.
 - **Widgets** from other apps (a clock, the weather…) can sit between the
   tiles: small ones in a tile like an app, bigger ones across the full width.
+- **Flashlight** (SeniorLight) appears as its live button: yellow when the
+  light is on, grey when it is off; a tap switches it. Its app icon changes
+  picture to show the same, which home screens do not always redraw in time,
+  so the launcher uses the app's own button instead.
 - **Messages** (if the helper adds it): a wide card with the newest
   messages from the apps the helper chose, each with the app, the sender, the
   text and when it came ("5 min ago"). A tap opens the message. If not all
@@ -70,6 +74,11 @@ Needs Android 8.0 or newer.
   only the sizes the widget supports; bigger means bigger text), and removed.
   A widget whose app turned it off or was uninstalled is hidden on the home
   screen and marked "no longer available" here.
+- **Flashlight**: adding SeniorLight on **Apps** places its live button, not a
+  plain tile. An older Flashlight tile is turned into the button in the same
+  place: without a question if you once ticked Android's "Always allow",
+  otherwise the home screen asks you once (never while locked). If you say
+  no, it does not ask again; **Widgets** can still add the button.
 - **Messages card**: in **Widgets**, tap **Messages** at the top of "Add a
   widget". Then, once:
   1. On the card, tap **Allow notification access** and switch it on for
@@ -105,7 +114,8 @@ Needs Android 8.0 or newer.
   file (SeniorLight has no settings). Loading asks first and then replaces
   the current settings; it says what it could not restore: apps that are not
   installed are skipped and named, and widgets have to be added again by
-  hand (Android asks for each), the list says which. The lock and its PIN
+  hand (Android asks for each), the list says which; the Flashlight button
+  comes back by itself, as described above. The lock and its PIN
   are never saved; a load leaves this phone's lock as it is. Each Senior app
   can also save and load just its own settings; either kind of file loads
   either way.
@@ -154,6 +164,10 @@ während das Telefon lädt, steht dort deutlich **Lädt**.
   App.
 - **Widgets** anderer Apps (eine Uhr, das Wetter …) können zwischen den Kacheln
   stehen: kleine in einer Kachel wie eine App, größere über die ganze Breite.
+- **Taschenlampe** (SeniorLight) erscheint als ihr Schalter: gelb, wenn das
+  Licht an ist, grau, wenn es aus ist; ein Tipp schaltet. Ihr App-Symbol zeigt
+  dasselbe mit wechselndem Bild, das Startseiten nicht immer rechtzeitig neu
+  zeichnen; deshalb nimmt die Startseite den Schalter der App selbst.
 - **Nachrichten** (wenn der Helfer sie hinzufügt): eine breite Karte mit den
   neuesten Nachrichten der Apps, die der Helfer gewählt hat, jeweils mit App,
   Absender, Text und wann sie kam („vor 5 Min.“). Ein Tipp öffnet die
@@ -187,6 +201,13 @@ Benötigt Android 8.0 oder neuer.
   heißt größere Schrift) und entfernen. Ein Widget, das seine App abgeschaltet
   hat oder dessen App deinstalliert wurde, ist auf der Startseite ausgeblendet
   und hier als „nicht mehr verfügbar“ markiert.
+- **Taschenlampe**: Unter **Apps** hinzugefügt, kommt SeniorLight als
+  Schalter auf die Startseite, nicht als einfache Kachel. Eine ältere
+  Taschenlampen-Kachel wird am selben Platz zum Schalter: ohne Rückfrage, wenn
+  Sie bei Android einmal „Immer erlauben“ angehakt haben, sonst fragt die
+  Startseite Sie einmal (nie, solange sie gesperrt ist). Sagen Sie nein, fragt
+  sie nicht wieder; unter **Widgets** lässt sich der Schalter trotzdem
+  hinzufügen.
 - **Nachrichten-Karte**: unter **Widgets** oben bei „Widget hinzufügen“ auf
   **Nachrichten** tippen. Dann einmalig:
   1. Auf der Karte **Benachrichtigungszugriff erlauben** tippen und ihn für
@@ -232,7 +253,8 @@ Benötigt Android 8.0 oder neuer.
   Einstellungen; es sagt, was es nicht wiederherstellen konnte: Nicht
   installierte Apps werden übersprungen und genannt, und Widgets müssen von
   Hand wieder hinzugefügt werden (Android fragt bei jedem), die Liste sagt,
-  welche. Die Sperre und ihre PIN werden nie gespeichert; Laden lässt die
+  welche; der Taschenlampen-Schalter kommt wie oben beschrieben von selbst
+  zurück. Die Sperre und ihre PIN werden nie gespeichert; Laden lässt die
   Sperre dieses Telefons, wie sie ist. Jede Senior-App kann auch nur ihre
   eigenen Einstellungen speichern und laden; beide Arten von Datei lassen
   sich auf beiden Wegen laden.

@@ -44,13 +44,14 @@ separate app, not part of this one.
 | `ArrangeActivity` | The home items in order, with "Page 1", "Page 2" headings from `Pages.layout`; ▲ Earlier / ▼ Later on each. From Settings, or from the long press on a tile (that tile marked). Never while locked: closes itself when locked. |
 | `Widgets` | The one `AppWidgetHost`: creates, sizes and deletes widget views; turns a provider's declaration into a `WidgetRows.Spec` (dp). |
 | `AppInfo` | Label, icon, launchability and launch of an app tile, via `LauncherApps`. A tile whose launcher activity was disabled follows the app's only remaining one (SeniorLight swaps icon aliases to show the light's state). |
+| `Flashlight` | Pure: SeniorLight's package, widget provider and launcher alias; finds its tile, replaces it in place with the widget, tells whether it is on home as tile or widget. Unit tested. See "Flashlight". |
 | `DefaultApps` | On first run, adds tiles for the default phone, messages, camera, photos, contacts and browser apps. |
 | `Order` | Pure: moves one item earlier or later in a list, stepping over hidden items; clamps at the ends. Unit tested. |
 | `LockProvider` | Tells SeniorPhone, SeniorAlert and SeniorNav whether the home screen is locked and whether a PIN is set, lifts the lock for them when given the PIN, and locks/unlocks without the PIN for SeniorNav's volume-button pattern. |
 | `NavLock` | Pure: only SeniorNav may lock and unlock without the PIN, and locking needs a stored PIN. Unit tested. |
 | `AutomationReceiver` | Commands from automation apps (lock, unlock, theme) by broadcast; goes through `Store` like Settings. |
 | `Automation` | Pure: the automation action and extra names, and the lenient parsing of their string extras. Unit tested. |
-| `Store` | The ordered home items (with the widgets sized by hand), the lock flag with its PIN salt/hash (kept after unlocking), the first-run flag and the notification card's app list (package names only), in SharedPreferences. |
+| `Store` | The ordered home items (with the widgets sized by hand), whether the helper declined the Flashlight replacement, the lock flag with its PIN salt/hash (kept after unlocking), the first-run flag and the notification card's app list (package names only), in SharedPreferences. |
 | `Pin` | PIN validation (4-8 digits), salted SHA-256 hash, constant-time compare, and the fixed reset PIN. Same as SeniorAlert's and SeniorPhone's. Pure. |
 | `PinDialog` | Choose a PIN (twice) when locking; enter it when unlocking. The unlock prompt closes after 10 s without typing. |
 | `Ui` | Shared buttons, helper-screen frame and dialogs (`confirm`, and `choose` for more than one action; every dialog, the PIN prompt too, on `dialogCard`, outlined like the tiles so it has an edge on the dimmed screen), so every screen looks alike. Resolves every colour through the chosen theme (`Ui.color`, `Ui.applyTheme`). |
@@ -166,11 +167,47 @@ the home screen?", Remove in red.
   recreates by hand only when that does not (no light/dark change, or before
   Android 12), so it is built once, not twice.
   Before Android 12 widgets follow the system's dark mode.
+- Flashlight: see the next section.
 - Known limit: the Pixel Battery widget (Settings Services,
   `com.google.android.settings.intelligence`) stays on "Loading…" on the
   emulator. It fills itself from Bluetooth device battery data behind
   server-side feature flags; the host side (listening from `onStart`, sizes
   and options after layout) is the same as for every widget that works.
+
+## Flashlight
+
+SeniorLight (`app.phueber.seniorlight`) shows whether the light is on by
+enabling one of two launcher aliases, `IconOff` and `IconOn`. As an app tile
+that was flaky: the tile's component keeps changing (`AppInfo.current` has
+to follow it) and the picture can be stale. SeniorLight's widget,
+`LightWidget` (one round button, yellow on, grey off, a tap toggles), is
+redrawn through `AppWidgetManager` and always right. So the launcher shows
+SeniorLight only as that widget, small (one cell), dressed like any small
+widget: card and its label ("Flashlight" / "Taschenlampe") below, which reads
+in all four themes (the disc is opaque; in Colourful the card takes the cycle
+colour).
+
+- **Replace.** On every resume and when the lock opens, `HomeActivity` looks
+  for a SeniorLight tile (any of its components, `Flashlight.tile`). It binds
+  a new id with `bindAppWidgetIdIfAllowed` (silent once the helper ticked
+  "Always allow"; also while locked, since nothing is shown) and puts it
+  where the tile was (`Store.replaceLightTile`; further SeniorLight tiles are
+  dropped). Not allowed: only while unlocked, one `Ui.confirm` ("works better
+  as its live button … Replace the tile?"), then the system's bind prompt.
+  A no to either is remembered (`Store.lightDeclined`) and not asked again;
+  the silent bind is still tried, and the Widgets screen can add the button
+  (by hand it also goes where the tile was). Locked: no dialog at all, the
+  tile stays until the next unlock or resume. A SeniorLight without the
+  provider (older than the widget) keeps its tile.
+- **Apps screen.** Adding SeniorLight binds its widget the same way (the
+  helper's tap is the question, so only the system prompt) and appends it.
+  Refusing the prompt adds the plain tile and sets the declined flag. Its row
+  shows "On home ✓" while the tile or the widget is there; taking it off
+  removes both.
+- **Backup.** A saved SeniorLight tile or widget restores as one item: the
+  widget if one is placed on this phone (reused like any widget), else the
+  tile (`Flashlight.LAUNCHER`, followed to the enabled alias), which the
+  replace above turns into the widget. Nothing new is written to the file.
 
 ## Notifications card
 

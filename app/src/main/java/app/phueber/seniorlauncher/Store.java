@@ -29,6 +29,8 @@ public final class Store {
     private static final String K_SIZED = "sized_widgets";
     /** Packages whose notifications the card shows, comma-separated; absent until first set. */
     private static final String K_NOTE_APPS = "notification_apps";
+    /** The helper said no to turning the Flashlight tile into its button: do not ask again. */
+    private static final String K_LIGHT_DECLINED = "light_declined";
 
     private final SharedPreferences prefs;
     private final Context app;
@@ -77,6 +79,31 @@ public final class Store {
         List<HomeItem> list = items();
         list.add(HomeItem.smallWidget(widgetId));
         setItems(list);
+    }
+
+    /**
+     * Puts the small widget {@code widgetId} where the SeniorLight tile
+     * {@code tile} is (see Flashlight.replace). False, and nothing changes,
+     * when the tile is gone meanwhile; the caller then frees the id.
+     */
+    public synchronized boolean replaceLightTile(HomeItem tile, int widgetId) {
+        List<HomeItem> list = Flashlight.replace(items(), tile, widgetId);
+        if (list == null) return false;
+        setItems(list);
+        return true;
+    }
+
+    /** Takes SeniorLight's tiles off; its widgets go through Widgets.delete. */
+    public synchronized void removeLightTiles() {
+        setItems(Flashlight.withoutTiles(items()));
+    }
+
+    public synchronized boolean lightDeclined() {
+        return prefs.getBoolean(K_LIGHT_DECLINED, false);
+    }
+
+    public synchronized void setLightDeclined() {
+        prefs.edit().putBoolean(K_LIGHT_DECLINED, true).commit();
     }
 
     /** Only forgets the item; the caller frees the id with AppWidgetHost.deleteAppWidgetId. */

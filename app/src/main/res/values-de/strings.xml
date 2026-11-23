@@ -5,4 +5,6 @@
     <string name="cancel">Abbrechen</string>
     <string name="remove">Entfernen</string>
     <string name="remove_from_home_question">„%1$s“ von der Startseite entfernen?</string>
+    <string name="light_replace_question">„%1$s“ funktioniert besser als Schalter, der immer zeigt, ob das Licht an ist. Möchten Sie die Kachel ersetzen?</string>
+    <string name="light_replace">Ersetzen</string>
 </resources>

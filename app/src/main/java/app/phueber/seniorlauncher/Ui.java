@@ -336,6 +336,17 @@ public final class Ui {
     }
 
     /**
+     * Like {@link #confirm}; onNo runs when the user says no (Cancel, Back or a
+     * tap outside), not when the caller dismisses the dialog itself.
+     */
+    public static Dialog confirm(Activity a, CharSequence question, CharSequence yesLabel,
+                                 int yesColorRes, Runnable onYes, Runnable onNo) {
+        Dialog d = choose(a, question, new Choice(yesLabel, yesColorRes, onYes));
+        d.setOnCancelListener(x -> onNo.run());
+        return d;
+    }
+
+    /**
      * Like {@link #confirm}, with more than one action: the choices stacked in
      * the order given, Cancel (blue) always last. Each choice's action runs
      * after the dialog closes.
@@ -360,7 +371,7 @@ public final class Ui {
             gap = 12;
         }
         Button no = button(a, a.getString(R.string.cancel), R.color.blue);
-        no.setOnClickListener(v -> d.dismiss());
+        no.setOnClickListener(v -> d.cancel()); // a "no", unlike the caller's dismiss()
         box.addView(no, fullWidth(a, 12));
 
         d.setContentView(box);

@@ -136,4 +136,36 @@ public class LauncherBackupTest {
             }
         }
     }
+
+    private static final String LIGHT_ON = "app.phueber.seniorlight/app.phueber.seniorlight.IconOn";
+
+    @Test public void flashlightComesBackAsItsPlacedWidget() throws Exception {
+        LauncherBackup.Settings s = LauncherBackup.read(settings("[{\"app\":\"" + LIGHT_ON
+                + "\",\"label\":\"Flashlight\"},{\"app\":\"" + PHONE + "\"}]"));
+        // Placed here in the short spelling, plus a second one that is freed.
+        List<HomeItem> now = Arrays.asList(HomeItem.smallWidget(30), HomeItem.smallWidget(31));
+        LauncherBackup.Plan p = LauncherBackup.plan(s, now, c -> c, id -> "app.phueber.seniorlight/.LightWidget");
+        assertEquals(Arrays.asList(HomeItem.smallWidget(30), HomeItem.app(PHONE)), p.items);
+        assertEquals(Collections.singletonList(31), p.widgetsToDelete);
+        assertTrue(p.widgetsToAdd.isEmpty());
+    }
+
+    @Test public void flashlightWidgetWithoutAPlacedOneComesBackAsItsTile() throws Exception {
+        LauncherBackup.Settings s = LauncherBackup.read(settings("[{\"widget\":\"" + Flashlight.PROVIDER
+                + "\",\"label\":\"Flashlight\",\"small\":true},{\"app\":\"" + LIGHT_ON + "\"}]"));
+        // The enabled alias is IconOn now; the restore follows it like any renamed activity.
+        LauncherBackup.Plan p = LauncherBackup.plan(s, Collections.emptyList(),
+                c -> c.startsWith("app.phueber.seniorlight/") ? LIGHT_ON : c, id -> null);
+        assertEquals(Collections.singletonList(HomeItem.app(LIGHT_ON)), p.items); // once, not twice
+        assertTrue(p.widgetsToAdd.isEmpty());
+        assertTrue(p.missingApps.isEmpty());
+    }
+
+    @Test public void flashlightNotInstalledIsNamedAsMissing() throws Exception {
+        LauncherBackup.Settings s = LauncherBackup.read(settings("[{\"widget\":\"" + Flashlight.PROVIDER
+                + "\",\"label\":\"Flashlight\",\"small\":true}]"));
+        LauncherBackup.Plan p = LauncherBackup.plan(s, Collections.emptyList(), c -> null, id -> null);
+        assertTrue(p.items.isEmpty());
+        assertEquals(Collections.singletonList("Flashlight"), p.missingApps);
+    }
 }

@@ -6,11 +6,13 @@ import android.appwidget.AppWidgetHostView;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProviderInfo;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Process;
 import android.util.SizeF;
 import android.view.View;
 
@@ -168,6 +170,56 @@ public final class Widgets {
         for (HomeItem i : new Store(c).items()) if (i.isWidget()) used.add(i.widgetId);
         AppWidgetHost h = host(c);
         for (int id : h.getAppWidgetIds()) if (!used.contains(id)) h.deleteAppWidgetId(id);
+    }
+
+    /**
+     * SeniorLight's widget provider, or null when SeniorLight is not installed
+     * or too old to have one (then its tile stays a tile).
+     */
+    static AppWidgetProviderInfo lightProvider(Context c) {
+        try {
+            for (AppWidgetProviderInfo i : AppWidgetManager.getInstance(c)
+                    .getInstalledProvidersForPackage(Flashlight.PACKAGE, Process.myUserHandle())) {
+                if (i.provider != null && Flashlight.isWidget(i.provider.flattenToString())) return i;
+            }
+        } catch (RuntimeException e) {
+            // The widget service is unavailable: try again next time.
+        }
+        return null;
+    }
+
+    /**
+     * Binds a fresh id to this provider without asking, which Android allows
+     * only once the user ticked "Always allow" in its prompt. Returns the id,
+     * or INVALID_APPWIDGET_ID (nothing held) when not allowed.
+     */
+    static int bindSilently(Context c, AppWidgetProviderInfo info) {
+        AppWidgetHost h = host(c);
+        int id = h.allocateAppWidgetId();
+        try {
+            if (AppWidgetManager.getInstance(c).bindAppWidgetIdIfAllowed(
+                    id, info.getProfile(), info.provider, null)) return id;
+        } catch (RuntimeException e) {
+            // the provider vanished: same as not allowed
+        }
+        h.deleteAppWidgetId(id);
+        return AppWidgetManager.INVALID_APPWIDGET_ID;
+    }
+
+    /** The system's "Allow … to create widgets?" prompt for this id and provider. */
+    static Intent bindIntent(int widgetId, AppWidgetProviderInfo info) {
+        Intent bind = new Intent(AppWidgetManager.ACTION_APPWIDGET_BIND)
+                .putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
+                .putExtra(AppWidgetManager.EXTRA_APPWIDGET_PROVIDER, info.provider);
+        if (info.getProfile() != null) {
+            bind.putExtra(AppWidgetManager.EXTRA_APPWIDGET_PROVIDER_PROFILE, info.getProfile());
+        }
+        return bind;
+    }
+
+    /** Whether the list holds SeniorLight's widget. */
+    static boolean hasLight(Context c, List<HomeItem> items) {
+        return Flashlight.hasWidget(items, id -> provider(c, id));
     }
 
     /** Whether this provider's widgets are 1x1 and go into one tile like an app. */

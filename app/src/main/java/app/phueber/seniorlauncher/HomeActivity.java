@@ -2,6 +2,9 @@ package app.phueber.seniorlauncher;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.appwidget.AppWidgetManager;
+import android.appwidget.AppWidgetProviderInfo;
+import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -70,6 +73,9 @@ public class HomeActivity extends Activity {
     private static final String K_CELL_HEIGHT_DP = "cell_height_dp";
     private static final int GAP_DP = Widgets.GAP_DP;
     private static final String S_PAGE = "page";
+    private static final String S_LIGHT_ID = "light_id";
+    private static final String S_LIGHT_TILE = "light_tile";
+    private static final int REQ_BIND_LIGHT = 1;
 
     /**
      * Handed over by ArrangeActivity (the item moved last) and WidgetsActivity
@@ -117,6 +123,9 @@ public class HomeActivity extends Activity {
     private NotificationCard notesCard;
     /** Whether the card could work at the last rebuild; while locked it is hidden when not. */
     private boolean notesReady;
+    /** The id offered in the system's bind prompt for SeniorLight's widget, and the tile it replaces. */
+    private int lightId = AppWidgetManager.INVALID_APPWIDGET_ID;
+    private HomeItem lightTile;
 
     // Notification access granted or withdrawn while the home screen shows:
     // while locked the card appears or disappears (see rebuild).
@@ -161,6 +170,7 @@ public class HomeActivity extends Activity {
         if (store.locked() != locked) {
             dismissDialog(); // an unlock prompt or tile menu no longer fits
             rebuild(false);
+            replaceLightTile(); // unlocked: now the helper may be asked
         }
     };
 
@@ -169,7 +179,12 @@ public class HomeActivity extends Activity {
         super.onCreate(savedInstanceState);
         // A recreate (new colours, night mode from Widgets.followTheme, any other
         // configuration change) keeps the page; showPage clamps it if pages shrank.
-        if (savedInstanceState != null) page = savedInstanceState.getInt(S_PAGE, 0);
+        if (savedInstanceState != null) {
+            page = savedInstanceState.getInt(S_PAGE, 0);
+            lightId = savedInstanceState.getInt(S_LIGHT_ID, AppWidgetManager.INVALID_APPWIDGET_ID);
+            String tile = savedInstanceState.getString(S_LIGHT_TILE);
+            lightTile = tile != null ? HomeItem.app(tile) : null;
+        }
         shownTheme = Ui.applyTheme(this);
         Widgets.followTheme(this, shownTheme);
         store = new Store(this);
@@ -266,9 +281,10 @@ public class HomeActivity extends Activity {
             iconColors.clear();
             if (notesCard != null) notesCard.forgetApps();
             rebuild(true);
-            return;
+        } else {
+            rebuild(false);
         }
-        rebuild(false);
+        replaceLightTile();
     }
 
     @Override
@@ -305,7 +321,81 @@ public class HomeActivity extends Activity {
         // Only across a recreate: started again after the process died (Home
         // pressed), the home screen opens on page 1 like any Home press.
         if (isChangingConfigurations()) out.putInt(S_PAGE, page);
+        // Always: the bind prompt's answer comes back to whichever activity is
+        // made after the process died meanwhile.
+        out.putInt(S_LIGHT_ID, lightId);
+        if (lightTile != null) out.putString(S_LIGHT_TILE, lightTile.component);
     }
+
+    // ---------------------------------------------------------------- flashlight
+
+    /**
+     * SeniorLight's app tile becomes its widget, in the same place: the tile
+     * swaps between two launcher aliases to show whether the light is on, which
+     * a home screen redraws late or not at all; the widget is redrawn through
+     * AppWidgetManager and always shows the real state (see Flashlight). Bound
+     * silently when the helper once ticked "Always allow"; else the helper is
+     * asked once, with our own question and then the system's prompt, but
+     * only while unlocked: the senior never gets a system dialog. A no is
+     * remembered (Store.lightDeclined); the Widgets screen can still add it.
+     * An old SeniorLight without the widget keeps its tile.
+     */
+    private void replaceLightTile() {
+        if (lightId != AppWidgetManager.INVALID_APPWIDGET_ID) return; // the prompt is up
+        if (dialog != null && dialog.isShowing()) return;
+        HomeItem tile = Flashlight.tile(store.items());
+        if (tile == null) return;
+        AppWidgetProviderInfo info = Widgets.lightProvider(this);
+        if (info == null) return;
+        int id = Widgets.bindSilently(this, info);
+        if (id != AppWidgetManager.INVALID_APPWIDGET_ID) {
+            placeLight(tile, id);
+            return;
+        }
+        if (store.locked() || store.lightDeclined()) return;
+        String current = AppInfo.current(this, tile.component);
+        CharSequence name = AppInfo.label(this, current != null ? current : tile.component);
+        dialog = Ui.confirm(this, getString(R.string.light_replace_question, name),
+                getString(R.string.light_replace), R.color.green,
+                () -> askBindLight(tile, info), store::setLightDeclined);
+    }
+
+    private void askBindLight(HomeItem tile, AppWidgetProviderInfo info) {
+        if (store.locked()) return;
+        lightId = Widgets.host(this).allocateAppWidgetId();
+        lightTile = tile;
+        try {
+            startActivityForResult(Widgets.bindIntent(lightId, info), REQ_BIND_LIGHT);
+        } catch (ActivityNotFoundException | SecurityException e) {
+            Widgets.host(this).deleteAppWidgetId(lightId);
+            lightId = AppWidgetManager.INVALID_APPWIDGET_ID;
+            lightTile = null;
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode != REQ_BIND_LIGHT || lightId == AppWidgetManager.INVALID_APPWIDGET_ID) return;
+        int id = lightId;
+        HomeItem tile = lightTile;
+        lightId = AppWidgetManager.INVALID_APPWIDGET_ID;
+        lightTile = null;
+        if (resultCode == RESULT_OK && tile != null && Flashlight.isWidget(Widgets.provider(this, id))) {
+            placeLight(tile, id);
+            return;
+        }
+        Widgets.host(this).deleteAppWidgetId(id);
+        if (resultCode != RESULT_OK) store.setLightDeclined(); // the helper said no: do not ask again
+    }
+
+    /** The widget where the tile was; if the tile is gone meanwhile, the id is freed. */
+    private void placeLight(HomeItem tile, int id) {
+        if (!store.replaceLightTile(tile, id)) {
+            Widgets.host(this).deleteAppWidgetId(id);
+            return;
+        }
+        rebuild(false);    }
 
     /**
      * Pressing Home while the home screen is showing goes back to page 1. The
