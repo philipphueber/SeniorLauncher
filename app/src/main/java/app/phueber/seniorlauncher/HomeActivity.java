@@ -886,7 +886,8 @@ public class HomeActivity extends Activity {
         int p = Ui.dp(this, 10);
         t.setPadding(p, p, p, Ui.dp(this, 8));
         boolean coloured = Palette.colouredTiles(shownTheme);
-        t.setBackground(widgetCard(coloured ? Palette.tileColor(widgetId) : 0));
+        int fill = coloured ? Palette.tileColor(widgetId) : 0;
+        t.setBackground(widgetCard(fill));
         t.addView(hostView, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));
 
         String name = Widgets.label(this, widgetId);
@@ -904,7 +905,62 @@ public class HomeActivity extends Activity {
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         tlp.topMargin = Ui.dp(this, 4);
         t.addView(text, tlp);
+
+        // A widget with one button (SeniorLight's) gets the whole tile as its
+        // button. Checked after every layout of the widget: an update may
+        // re-inflate its views. The listener lives on the reused host view,
+        // so the one of the tile shown before is replaced.
+        CharSequence label = name;
+        View.OnLayoutChangeListener check = (v, l, tp, r, b, ol, ot, or, ob) ->
+                handler.post(() -> forwardTaps(t, (ViewGroup) hostView, fill, label));
+        Object old = hostView.getTag(R.id.widget_tap_check);
+        if (old instanceof View.OnLayoutChangeListener) {
+            hostView.removeOnLayoutChangeListener((View.OnLayoutChangeListener) old);
+        }
+        hostView.setTag(R.id.widget_tap_check, check);
+        hostView.addOnLayoutChangeListener(check);
+        forwardTaps(t, (ViewGroup) hostView, fill, label);
         return t;
+    }
+
+    /**
+     * A small widget tile whose widget has exactly one clickable view takes
+     * taps anywhere on it (its name, the card's padding) and passes them to
+     * that view: the senior aims at the tile, not at the widget's own smaller
+     * button. With the press ripple of an app tile, and for TalkBack one
+     * button named like the widget. A widget with several clickable views (or
+     * none) keeps today's tile: only the widget's own views react, since a tap
+     * beside them could not say which was meant. A swipe on the tile turns
+     * the page instead (SwipePager cancels the tile's touch).
+     */
+    private void forwardTaps(LinearLayout tile, ViewGroup host, int fill, CharSequence label) {
+        if (isDestroyed()) return;
+        boolean on = Widgets.singleClickable(host) != null;
+        if (Boolean.valueOf(on).equals(tile.getTag(R.id.widget_tap_on))) return;
+        tile.setTag(R.id.widget_tap_on, on);
+        if (on) {
+            boolean coloured = fill != 0;
+            tile.setBackground(coloured
+                    ? Ui.ripple(this, R.color.press_light, fill, 0, 24)
+                    : Ui.ripple(this, R.color.press_dark, Ui.color(this, R.color.card),
+                            Ui.color(this, R.color.card_border), 24));
+            // Looked up again at the tap: the widget may have been re-inflated.
+            tile.setOnClickListener(v -> {
+                View target = Widgets.singleClickable(host);
+                if (target != null) target.performClick();
+            });
+            tile.setContentDescription(label);
+            asButton(tile, null);
+            host.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS);
+        } else {
+            tile.setOnClickListener(null);
+            tile.setClickable(false);
+            tile.setFocusable(false);
+            tile.setAccessibilityDelegate(null);
+            tile.setContentDescription(null);
+            tile.setBackground(widgetCard(fill));
+            host.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_AUTO);
+        }
     }
 
     /**

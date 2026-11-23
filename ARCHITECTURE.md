@@ -186,8 +186,17 @@ the home screen?", Remove in red.
 - Small or wide: a widget made for one launcher cell (1x1: its target cells
   on Android 12+, else a minimum size of at most 57dp, the platform's one-cell
   size) goes into one tile, dressed like an app: the same card, its name below.
-  Taps go to the widget. Stored as `s:<id>`; older `w:<id>:<rows>` entries
-  stay wide.
+  Taps go to the widget. A widget with exactly one clickable view (one with
+  a click action, such as SeniorLight's button) gets the whole tile as that
+  button: a tap on its name or the card's edge is passed on with
+  `performClick` (which sends the widget's own `PendingIntent`), with the
+  app tile's ripple, and TalkBack reads the tile as one button named like
+  the widget (`HomeActivity.forwardTaps`, `Widgets.singleClickable`). Checked
+  after every layout of the widget and again at the tap, since an update may
+  re-inflate its views. With several clickable views (or none) only the
+  widget's own views react, as a tap beside them could not say which was
+  meant. A swipe on the tile is a swipe, never a tap (see "Turning pages").
+  Stored as `s:<id>`; older `w:<id>:<rows>` entries stay wide.
 - Rows (wide widgets): the widget's minimum height (and, on Android 12+, its target cell
   height) against the home grid's measured cell height, at most a full page.
   When the measured cell height changes (font or display size), `HomeActivity`

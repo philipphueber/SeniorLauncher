@@ -33,7 +33,7 @@ English and German. The app follows the phone's language.
 - **Widgets** from other apps (a clock, the weather…) can sit between the
   tiles: small ones in a tile like an app, bigger ones across the full width.
 - **Flashlight** (SeniorLight) appears as its live button: yellow when the
-  light is on, grey when it is off; a tap switches it. Its app icon changes
+  light is on, grey when it is off; a tap anywhere on its tile switches it. Its app icon changes
   picture to show the same, which home screens do not always redraw in time,
   so the launcher uses the app's own button instead.
 - **Messages** (if the helper adds it): a wide card with the newest
@@ -182,7 +182,8 @@ während das Telefon lädt, steht dort deutlich **Lädt**.
 - **Widgets** anderer Apps (eine Uhr, das Wetter …) können zwischen den Kacheln
   stehen: kleine in einer Kachel wie eine App, größere über die ganze Breite.
 - **Taschenlampe** (SeniorLight) erscheint als ihr Schalter: gelb, wenn das
-  Licht an ist, grau, wenn es aus ist; ein Tipp schaltet. Ihr App-Symbol zeigt
+  Licht an ist, grau, wenn es aus ist; ein Tipp irgendwo auf die Kachel
+  schaltet. Ihr App-Symbol zeigt
   dasselbe mit wechselndem Bild, das Startseiten nicht immer rechtzeitig neu
   zeichnen; deshalb nimmt die Startseite den Schalter der App selbst.
 - **Nachrichten** (wenn der Helfer sie hinzufügt): eine breite Karte mit den
