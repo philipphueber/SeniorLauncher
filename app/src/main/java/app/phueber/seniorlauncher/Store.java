@@ -12,7 +12,7 @@ import java.util.function.Predicate;
 
 /**
  * All persistent state: the ordered list of home items, the lock flag and its
- * PIN hash, the colour theme, whether the first-run default tiles were added,
+ * PIN hash (kept after unlocking, see unlock), the colour theme, whether the first-run default tiles were added,
  * and which apps' notifications the notifications card shows (package names
  * only: notification content is never stored). Every change is written at
  * once (commit), so a killed process never loses a tile.
@@ -234,14 +234,40 @@ public final class Store {
     /**
      * Unlocks if the PIN is right; returns whether it was. A lock from before
      * PINs existed has no hash; any PIN lifts it, so nobody is locked out.
+     * The PIN stays stored, so SeniorNav's volume-button pattern can lock
+     * again with it (see LockProvider); locking in Settings sets a new one.
      */
     public synchronized boolean unlock(String pin) {
         if (!prefs.getBoolean(K_LOCKED, false)) return true;
         String hash = prefs.getString(K_HASH, null);
         if (hash != null && !Pin.matches(prefs.getString(K_SALT, null), hash, pin)) return false;
-        prefs.edit().putBoolean(K_LOCKED, false).remove(K_SALT).remove(K_HASH).commit();
+        prefs.edit().putBoolean(K_LOCKED, false).commit();
         LockProvider.notifyChanged(app);
         return true;
+    }
+
+    /** Whether a PIN is stored: the lock is in use (locked now, or unlocked since). */
+    public synchronized boolean hasPin() {
+        return prefs.getString(K_HASH, null) != null;
+    }
+
+    /**
+     * Locks again with the stored PIN (SeniorNav's pattern); false, and
+     * nothing changes, when no PIN was ever set.
+     */
+    public synchronized boolean relock() {
+        if (!hasPin()) return false;
+        if (prefs.getBoolean(K_LOCKED, false)) return true;
+        prefs.edit().putBoolean(K_LOCKED, true).commit();
+        LockProvider.notifyChanged(app);
+        return true;
+    }
+
+    /** Unlocks without the PIN (SeniorNav's pattern, which stands in for it). The PIN stays. */
+    public synchronized void unlockWithoutPin() {
+        if (!prefs.getBoolean(K_LOCKED, false)) return;
+        prefs.edit().putBoolean(K_LOCKED, false).commit();
+        LockProvider.notifyChanged(app);
     }
 
     public synchronized Palette.Theme theme() {

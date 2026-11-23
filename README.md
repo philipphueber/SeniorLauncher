@@ -77,7 +77,9 @@ Needs Android 8.0 or newer.
   tiles are left, so nothing can be changed by accident. To unlock, press and
   hold the padlock at the top and enter the PIN; the Phone and Alarm apps
   unlock with the same PIN. Forgotten PIN: the reset PIN **506614** opens
-  every Senior app's lock.
+  every Senior app's lock. With the Back & Home bar app (SeniorNav) the
+  helper can also record a pattern of volume-button presses that locks and
+  unlocks; it locks with the last PIN, so a PIN has to be chosen here once.
 - To move a tile or take it off, press and hold it (only when unlocked) and
   choose **Move** or **Remove**.
 
@@ -176,7 +178,10 @@ Benötigt Android 8.0 oder neuer.
   nur noch die Kacheln da, sodass nichts aus Versehen geändert wird. Zum
   Entsperren das Schloss oben gedrückt halten und die PIN eingeben; die
   Telefon- und die Wecker-App entsperren mit derselben PIN. PIN vergessen:
-  die Reset-PIN **506614** öffnet die Sperre jeder Senior-App.
+  die Reset-PIN **506614** öffnet die Sperre jeder Senior-App. Mit der App
+  für die Zurück-/Start-Leiste (SeniorNav) lässt sich zusätzlich ein Muster
+  aus Lautstärketasten-Drücken aufnehmen, das sperrt und entsperrt; es sperrt
+  mit der letzten PIN, deshalb muss hier einmal eine PIN gewählt worden sein.
 - Um eine Kachel zu verschieben oder herunterzunehmen, halten Sie sie gedrückt
   (nur entsperrt) und wählen **Verschieben** oder **Entfernen**.
 

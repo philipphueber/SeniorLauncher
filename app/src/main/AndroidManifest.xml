@@ -89,7 +89,8 @@
                 <action android:name="app.phueber.seniorlauncher.action.SET_THEME" />
             </intent-filter>
         </receiver>
-        <!-- The lock state for the other Senior apps; read-only, see LockProvider. -->
+        <!-- The lock state for the other Senior apps; unlock with the PIN, and lock/unlock
+             for SeniorNav's volume-button pattern only, see LockProvider. -->
         <provider
             android:name=".LockProvider"
             android:authorities="app.phueber.seniorlauncher.lock"
