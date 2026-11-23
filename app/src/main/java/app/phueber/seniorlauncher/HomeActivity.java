@@ -88,6 +88,8 @@ public class HomeActivity extends Activity {
     private TextView date;
     private BatteryView battery;
     private LinearLayout helperBar;
+    /** Next to the clock: holds the padlock while locked. */
+    private FrameLayout lockSlot;
     private PageLayout grid;
     private LinearLayout pager;
     private LinearLayout prevButton;
@@ -365,11 +367,22 @@ public class HomeActivity extends Activity {
         left.setOrientation(LinearLayout.VERTICAL);
         clock = Ui.bold(this, "", 44);
         clock.setMaxLines(1);
-        left.addView(clock);
+        // Locked, the padlock sits right after the time instead of taking a
+        // row of its own above the tiles (see renderHelperBar).
+        LinearLayout clockRow = new LinearLayout(this);
+        clockRow.setOrientation(LinearLayout.HORIZONTAL);
+        clockRow.setGravity(Gravity.CENTER_VERTICAL);
+        clockRow.addView(clock);
+        lockSlot = new FrameLayout(this);
+        LinearLayout.LayoutParams slp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        slp.setMarginStart(Ui.dp(this, 4));
+        clockRow.addView(lockSlot, slp);
+        left.addView(clockRow);
         date = Ui.text(this, "", 22);
-        // One line: the battery box grows when low ("Battery low / Please charge")
-        // and would push the date onto two. It shrinks a little instead, never
-        // below a still large 16sp, and only then is the month cut off.
+        // One line: a long weekday and month next to the battery box would push
+        // the date onto two. It shrinks a little instead, never below a still
+        // large 16sp, and only then is the month cut off.
         date.setMaxLines(1);
         date.setEllipsize(TextUtils.TruncateAt.END);
         date.setAutoSizeTextTypeUniformWithConfiguration(16, 22, 1, TypedValue.COMPLEX_UNIT_SP);
@@ -409,8 +422,12 @@ public class HomeActivity extends Activity {
 
     private void renderHelperBar() {
         helperBar.removeAllViews();
+        lockSlot.removeAllViews();
+        // Locked, the helper row is gone altogether and its height goes to the
+        // tiles; the padlock moves up next to the clock.
+        helperBar.setVisibility(locked ? View.GONE : View.VISIBLE);
         if (locked) {
-            helperBar.addView(padlock());
+            lockSlot.addView(padlock());
             return;
         }
         addHelper(R.drawable.ic_home_apps, R.string.home_apps, AppsActivity.class, 0);
@@ -425,7 +442,9 @@ public class HomeActivity extends Activity {
         b.setOrientation(LinearLayout.VERTICAL);
         b.setGravity(Gravity.CENTER);
         b.setMinimumHeight(Ui.dp(this, Ui.BUTTON_HEIGHT));
-        b.setPadding(Ui.dp(this, 4), Ui.dp(this, 6), Ui.dp(this, 4), Ui.dp(this, 6));
+        // 10dp at the sides: the label shrinks before it touches the outline
+        // ("Einstellungen" did).
+        b.setPadding(Ui.dp(this, 10), Ui.dp(this, 6), Ui.dp(this, 10), Ui.dp(this, 6));
         b.setBackground(Ui.ripple(this, R.color.press_dark, Ui.color(this, R.color.card),
                 Ui.color(this, R.color.outline), 20));
         String label = getString(labelRes);
@@ -484,11 +503,11 @@ public class HomeActivity extends Activity {
                         getString(R.string.home_unlock)));
             }
         });
-        // Only the helper needs it, so it takes a small row (40dp, a 24dp icon)
-        // instead of the 64dp the three helper buttons need: the rows it frees
-        // go to the senior's tiles.
+        // Only the helper needs it: a 40dp target with a 24dp icon, next to the
+        // clock, so locked the helper row disappears and its height goes to
+        // the senior's tiles.
         int size = Ui.dp(this, PADLOCK_DP);
-        lock.setLayoutParams(new LinearLayout.LayoutParams(size, size));
+        lock.setLayoutParams(new FrameLayout.LayoutParams(size, size));
         return lock;
     }
 

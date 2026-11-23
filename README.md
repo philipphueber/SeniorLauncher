@@ -22,11 +22,12 @@ English and German. The app follows the phone's language.
 - **Battery** with the percent, in words:
   - green-bordered box that fills with light green as far as the charge goes,
     "Battery": on battery
-  - red box, "Battery low – Please charge": 20 % or less
+  - red box, "Please charge": 20 % or less (the same size as the other boxes,
+    so nothing else on the screen moves)
   - blue box with a lightning bolt, "Charging": plugged in and charging
   - green box with a lightning bolt, "Full": plugged in and full
 
-  <img src="docs/screenshots/battery.png" width="60%" alt="The four battery boxes: 85 % on battery in a green-bordered box, 12 % Battery low – Please charge in red, 60 % Charging in blue with a lightning bolt, 100 % Full in green with a lightning bolt">
+  <img src="docs/screenshots/battery.png" width="60%" alt="The four battery boxes: 85 % on battery in a green-bordered box, 12 % Please charge in red, 60 % Charging in blue with a lightning bolt, 100 % Full in green with a lightning bolt">
 
 - **Tiles**, two side by side, three rows per page. A tap opens the app.
 - **Widgets** from other apps (a clock, the weather…) can sit between the
@@ -145,7 +146,8 @@ während das Telefon lädt, steht dort deutlich **Lädt**.
 - **Akku** mit Prozent, in Worten:
   - grün umrandetes Feld, das sich so weit hellgrün füllt, wie der Akku
     geladen ist, „Akku“: läuft mit Akku
-  - rotes Feld, „Akku schwach – Bitte aufladen“: 20 % oder weniger
+  - rotes Feld, „Bitte aufladen“: 20 % oder weniger (so groß wie die anderen
+    Felder, damit sich sonst nichts auf dem Bildschirm verschiebt)
   - blaues Feld mit Blitz, „Lädt“: am Ladegerät, lädt
   - grünes Feld mit Blitz, „Voll“: am Ladegerät, voll
 - **Kacheln**, zwei nebeneinander, drei Reihen pro Seite. Ein Tipp öffnet die

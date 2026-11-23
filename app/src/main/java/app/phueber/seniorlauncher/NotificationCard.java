@@ -183,6 +183,7 @@ final class NotificationCard extends FrameLayout implements NotificationHub.Obse
         }
         Column column = new Column(getContext());
         int built = Math.min(entries.size(), NoteList.MAX_BUILT);
+        single = entries.size() == 1;
         for (int i = 0; i < built; i++) column.addView(entry(entries.get(i)));
         column.addView(column.more);
         column.total = built;
@@ -230,6 +231,9 @@ final class NotificationCard extends FrameLayout implements NotificationHub.Obse
     }
 
     /** Icon, then "App · 5 min ago", the sender in bold and the text below. One button. */
+    /** Whether the card is showing exactly one message (see entry). */
+    private boolean single;
+
     private View entry(NoteList.Entry e) {
         Context c = getContext();
         Note n = e.note;
@@ -264,7 +268,10 @@ final class NotificationCard extends FrameLayout implements NotificationHub.Obse
         texts.addView(sender);
         if (!n.text.isEmpty()) {
             TextView body = Ui.text(c, n.text, Ui.TEXT_BUTTON);
-            body.setMaxLines(rows <= 1 ? 1 : 2);
+            // A lone message may use two lines even in a one-row card, which
+            // has the room: a German "4 verpasste Anrufe · zuletzt um 16:49"
+            // was cut off on one.
+            body.setMaxLines(rows <= 1 && !single ? 1 : 2);
             body.setEllipsize(TextUtils.TruncateAt.END);
             texts.addView(body);
         }
