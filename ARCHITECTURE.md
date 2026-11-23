@@ -233,7 +233,10 @@ every app tile filled with its own colour and a bold white label). There is
 no free colour picker: `PaletteTest` checks every theme against WCAG contrast
 (7:1 for text, 4.5:1 for white text on the green, blue and red buttons and
 on every tile colour), and a picker would let an unreadable combination
-through.
+through. Red text ("Wrong PIN.") has its own role, `RED_TEXT`: the button red
+is a fill for white text and reads at only about 2.5:1 as text on the Dark
+and High contrast cards, so each theme has a red made for text (7:1 on the
+card).
 
 In Colourful, an app tile takes the main colour of its icon (`IconColor`):
 the most common clearly coloured hue of a 48x48 rendering, ignoring white,

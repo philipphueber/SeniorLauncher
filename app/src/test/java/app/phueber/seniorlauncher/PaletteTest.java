@@ -34,6 +34,14 @@ public class PaletteTest {
         }
     }
 
+    @Test public void warningTextIsReadableOnTheDialogCard() {
+        // "Wrong PIN." in the PIN prompt, a card on the page.
+        for (Theme t : Theme.values()) {
+            atLeast(AAA, c(t, Role.RED_TEXT, Role.CARD), t + " red text/card");
+            atLeast(AAA, c(t, Role.RED_TEXT, Role.PAGE), t + " red text/page");
+        }
+    }
+
     @Test public void whiteButtonTextIsReadableOnEveryActionColour() {
         for (Theme t : Theme.values()) {
             for (Role r : new Role[] {Role.GREEN, Role.BLUE, Role.RED}) {

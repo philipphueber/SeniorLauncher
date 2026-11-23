@@ -138,7 +138,9 @@ final class PinDialog {
 
     private static TextView error(Activity a) {
         TextView e = Ui.bold(a, "", 18);
-        e.setTextColor(Ui.color(a, R.color.red));
+        // A red made for text: the button red is too dark on Dark and High
+        // contrast cards (2.3:1 and 2.6:1).
+        e.setTextColor(Ui.color(a, R.color.red_text));
         e.setGravity(Gravity.CENTER);
         return e;
     }

@@ -37,6 +37,7 @@
     <!-- Remove, and "battery low". -->
     <color name="red">#C62828</color>
     <color name="red_light">#FBE1E0</color>
+    <color name="red_text">#9E1515</color>
     <color name="disabled_bg">#E6E3DC</color>
     <color name="disabled_text">#9A958C</color>
     <color name="press_dark">#33000000</color>

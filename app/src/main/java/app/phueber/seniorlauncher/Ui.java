@@ -76,6 +76,7 @@ public final class Ui {
         if (res == R.color.blue) return Palette.Role.BLUE;
         if (res == R.color.red) return Palette.Role.RED;
         if (res == R.color.red_light) return Palette.Role.RED_LIGHT;
+        if (res == R.color.red_text) return Palette.Role.RED_TEXT;
         if (res == R.color.disabled_bg) return Palette.Role.DISABLED_BG;
         if (res == R.color.disabled_text) return Palette.Role.DISABLED_TEXT;
         if (res == R.color.press_dark) return Palette.Role.PRESS_ON_CARD;
