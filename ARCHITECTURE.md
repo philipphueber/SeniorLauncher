@@ -40,10 +40,11 @@ separate app, not part of this one.
 | `AppInfo` | Label, icon, launchability and launch of an app tile, via `LauncherApps`. A tile whose launcher activity was disabled follows the app's only remaining one (SeniorLight swaps icon aliases to show the light's state). |
 | `DefaultApps` | On first run, adds tiles for the default phone, messages, camera, photos, contacts and browser apps. |
 | `Order` | Pure: moves one item earlier or later in a list, stepping over hidden items; clamps at the ends. Unit tested. |
-| `LockProvider` | Tells SeniorPhone and SeniorAlert whether the home screen is locked, and lifts the lock for them when given the PIN. |
+| `LockProvider` | Tells SeniorPhone, SeniorAlert and SeniorNav whether the home screen is locked and whether a PIN is set, lifts the lock for them when given the PIN, and locks/unlocks without the PIN for SeniorNav's volume-button pattern. |
+| `NavLock` | Pure: only SeniorNav may lock and unlock without the PIN, and locking needs a stored PIN. Unit tested. |
 | `AutomationReceiver` | Commands from automation apps (lock, unlock, theme) by broadcast; goes through `Store` like Settings. |
 | `Automation` | Pure: the automation action and extra names, and the lenient parsing of their string extras. Unit tested. |
-| `Store` | The ordered home items (with the widgets sized by hand), the lock flag with its PIN salt/hash, the first-run flag and the notification card's app list (package names only), in SharedPreferences. |
+| `Store` | The ordered home items (with the widgets sized by hand), the lock flag with its PIN salt/hash (kept after unlocking), the first-run flag and the notification card's app list (package names only), in SharedPreferences. |
 | `Pin` | PIN validation (4-8 digits), salted SHA-256 hash, constant-time compare, and the fixed reset PIN. Same as SeniorAlert's and SeniorPhone's. Pure. |
 | `PinDialog` | Choose a PIN (twice) when locking; enter it when unlocking. The unlock prompt closes after 10 s without typing. |
 | `Ui` | Shared buttons, helper-screen frame and dialogs (`confirm`, and `choose` for more than one action), so every screen looks alike. Resolves every colour through the chosen theme (`Ui.color`, `Ui.applyTheme`). |
@@ -268,7 +269,25 @@ and every change notifies that uri. SeniorPhone and SeniorAlert lock with the
 home screen (no new contacts, no changes to favourites or alarms) and can
 unlock it in place with the PIN, through `call(STATE, "unlock", pin)`, which
 answers `unlocked` true/false; the helper never has to go back to the home
-screen. Nothing else can be written: no app can lock, or unlock without the
+screen. A second column, `has_pin` 0/1, says whether a PIN is stored, i.e.
+whether the lock is in use at all (SeniorNav hides its bar while the lock is
+in use but open, and only then).
+
+**SeniorNav's volume-button pattern.** The helper can record a pattern of
+volume presses in SeniorNav; pressing it locks or unlocks. SeniorNav calls
+`call(STATE, "nav_lock")` / `"nav_unlock"` without a PIN; the answer has
+`locked` (the state afterwards) and, when refused, `error`: `not_allowed`
+(another caller) or `no_pin`. The pattern stands in for the PIN, so the PIN
+is no longer forgotten on unlock: unlocking keeps the salt and hash, and
+`nav_lock` locks again with them; it is refused with `no_pin` until a PIN was
+set once (locking in Settings or by automation, which always set a new one).
+Only the calling package `app.phueber.seniornav` (`getCallingPackage()`,
+`NavLock`) is answered: a sanity check, not security, like the PIN itself; a
+package name can be claimed by a sideloaded app. Before this, unlocking
+dropped the PIN, so a phone unlocked with an older version has `has_pin` 0
+until it is locked once more.
+
+Nothing else can be written: no other app can lock, or unlock without the
 PIN. No permission guards the provider: the state is visible on screen anyway,
 and the apps have separate signing keys, which rules out a signature
 permission. Installed without the launcher, each app keeps its own lock.
