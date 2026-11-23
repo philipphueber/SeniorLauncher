@@ -1,8 +1,7 @@
 package app.phueber.seniorlauncher;
 
-import android.app.Activity;
+import android.app.Dialog;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.content.pm.LauncherActivityInfo;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
@@ -38,7 +37,7 @@ import java.util.Set;
  * place to put apps on the home screen (as in Bleta): a tap on the app opens
  * it, the button on the right adds it to the home screen or takes it off.
  */
-public final class AppsActivity extends Activity {
+public final class AppsActivity extends HelperActivity {
     private static final int ICON_DP = 56;
     private static final int TOGGLE_DP = 128;
 
@@ -73,17 +72,15 @@ public final class AppsActivity extends Activity {
     }
 
     private final List<Row> rows = new ArrayList<>();
-    private Store store;
     private EditText search;
     private TextView status;
     private LinearLayout list;
     private boolean loaded;
+    private Dialog dialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        Ui.applyTheme(this);
-        store = new Store(this);
+        super.onCreate(savedInstanceState); // theme and store
         // The keyboard only when the search field is tapped, and the list shrinks
         // above it instead of being covered.
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN
@@ -110,32 +107,24 @@ public final class AppsActivity extends Activity {
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        if (closedByLock()) return;
-        store.watch(lockWatch);
+    protected void onFront() {
         // The home screen may have removed a tile (long-press) while we were away.
         Set<String> onHome = onHome();
         for (Row r : rows) styleToggle(r, onHome.contains(r.component));
     }
 
     @Override
-    protected void onPause() {
-        store.unwatch(lockWatch);
-        super.onPause();
+    protected void onStop() {
+        super.onStop();
+        dismissDialog(); // a question does not wait for the next visit
     }
 
-    /**
-     * A helper screen: locked meanwhile (an automation app can lock at any
-     * time), it closes, and every action checks again before it changes anything.
-     */
-    private boolean closedByLock() {
-        if (!store.locked()) return false;
-        finish();
-        return true;
+    private void dismissDialog() {
+        if (dialog != null) {
+            dialog.dismiss();
+            dialog = null;
+        }
     }
-
-    private final SharedPreferences.OnSharedPreferenceChangeListener lockWatch = (p, key) -> closedByLock();
 
     /** Labels and icons come from the package manager, which is slow with many apps. */
     private void load() {
@@ -230,10 +219,19 @@ public final class AppsActivity extends Activity {
             // Read back from the store rather than trusting the button, so a
             // double tap cannot add the same app twice.
             if (closedByLock()) return;
-            boolean add = !store.containsApp(r.component);
-            if (add) store.addApp(r.component);
-            else store.removeApp(r.component);
-            styleToggle(r, add);
+            if (!store.containsApp(r.component)) {
+                store.addApp(r.component);
+                styleToggle(r, true);
+                return;
+            }
+            // Taking it off asks first, like every removal from the home screen.
+            dismissDialog();
+            dialog = Ui.confirm(this, getString(R.string.remove_from_home_question, r.label),
+                    getString(R.string.remove), R.color.red, () -> {
+                        if (closedByLock()) return;
+                        store.removeApp(r.component);
+                        styleToggle(r, false);
+                    });
         });
         return r;
     }

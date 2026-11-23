@@ -55,7 +55,7 @@ Needs Android 8.0 or newer.
 </p>
 
 - **Apps** lists every app. **Add** puts it on the home screen, **On home ✓**
-  takes it off again. New tiles go to the end.
+  takes it off again (after asking). New tiles go to the end.
 - **Settings → Arrange home screen** puts the tiles in the order you want:
   **▲ Earlier** and **▼ Later** move a tile one place; headings show where each
   page begins.
@@ -89,7 +89,10 @@ Needs Android 8.0 or newer.
   helper can also record a pattern of volume-button presses that locks and
   unlocks; it locks with the last PIN, so a PIN has to be chosen here once.
 - To move a tile or take it off, press and hold it (only when unlocked) and
-  choose **Move** or **Remove**.
+  choose **Move** or **Remove**. Removing anything from the home screen (a
+  tile, a widget, the messages card) always asks first.
+- **Back** at the bottom of every helper screen goes straight back to the
+  home screen in one tap, to the page it showed.
 
 ## Automation (Trigly, Tasker, …)
 
@@ -151,7 +154,7 @@ Benötigt Android 8.0 oder neuer.
 ### Einrichten (für Helfer)
 
 - **Apps** zeigt alle Apps. **Hinzufügen** legt sie auf die Startseite,
-  **Auf Start ✓** nimmt sie wieder herunter. Neue Kacheln kommen ans Ende.
+  **Auf Start ✓** nimmt sie (nach einer Rückfrage) wieder herunter. Neue Kacheln kommen ans Ende.
 - **Einstellungen → Startseite ordnen** bringt die Kacheln in die gewünschte
   Reihenfolge: **▲ Nach vorne** und **▼ Nach hinten** verschieben eine Kachel
   um einen Platz; Überschriften zeigen, wo jede Seite beginnt.
@@ -192,7 +195,11 @@ Benötigt Android 8.0 oder neuer.
   aus Lautstärketasten-Drücken aufnehmen, das sperrt und entsperrt; es sperrt
   mit der letzten PIN, deshalb muss hier einmal eine PIN gewählt worden sein.
 - Um eine Kachel zu verschieben oder herunterzunehmen, halten Sie sie gedrückt
-  (nur entsperrt) und wählen **Verschieben** oder **Entfernen**.
+  (nur entsperrt) und wählen **Verschieben** oder **Entfernen**. Bevor etwas
+  von der Startseite entfernt wird (Kachel, Widget, Nachrichten-Karte), kommt
+  immer eine Rückfrage.
+- **Zurück** unten auf jeder Seite für Helfer führt mit einem Tipp direkt
+  zur Startseite, auf die Seite, die sie zeigte.
 
 ### Automatisierung (Trigly, Tasker, …)
 

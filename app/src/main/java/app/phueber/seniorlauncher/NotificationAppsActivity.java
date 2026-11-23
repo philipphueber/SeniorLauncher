@@ -1,6 +1,5 @@
 package app.phueber.seniorlauncher;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.pm.LauncherActivityInfo;
 import android.content.pm.PackageManager;
@@ -32,9 +31,9 @@ import java.util.TreeSet;
  * Nothing is shown for an app until it is picked here. The apps already shown
  * come first; besides the launchable apps, the list also has apps that have a
  * notification right now, so a background app that only notifies can be
- * picked too. Closes itself while locked, like Arrange.
+ * picked too. Closes itself when locked, like every helper screen.
  */
-public final class NotificationAppsActivity extends Activity {
+public final class NotificationAppsActivity extends HelperActivity {
     private static final int ICON_DP = 56;
     private static final int TOGGLE_DP = 128;
 
@@ -50,15 +49,12 @@ public final class NotificationAppsActivity extends Activity {
         }
     }
 
-    private Store store;
     private LinearLayout list;
     private TextView status;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        Ui.applyTheme(this);
-        store = new Store(this);
+        super.onCreate(savedInstanceState); // theme and store
         LinearLayout content = Ui.screen(this, getString(R.string.notes_apps_title));
         TextView intro = Ui.text(this, getString(R.string.notes_apps_intro), Ui.TEXT_BODY);
         intro.setTextColor(Ui.color(this, R.color.text_muted));
@@ -73,12 +69,6 @@ public final class NotificationAppsActivity extends Activity {
         list.setOrientation(LinearLayout.VERTICAL);
         content.addView(list, Ui.fullWidth(this, 4));
         load();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (store.locked()) finish(); // the helper's screen; never while locked
     }
 
     /** Labels and icons come from the package manager, which is slow with many apps. */
@@ -193,7 +183,7 @@ public final class NotificationAppsActivity extends Activity {
         row.addView(toggle, tlp);
         style(toggle, a.label, on);
         toggle.setOnClickListener(v -> {
-            if (store.locked()) return;
+            if (closedByLock()) return;
             // Read back from the store rather than trusting the button.
             Set<String> s = chosen();
             boolean show = !s.contains(a.pkg);

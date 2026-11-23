@@ -1,8 +1,6 @@
 package app.phueber.seniorlauncher;
 
-import android.app.Activity;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -17,15 +15,12 @@ import android.widget.TextView;
  * it is for (Bleta's pattern). Everything else (volume, Wi-Fi, text size) is
  * already in the phone's settings and is not duplicated here.
  */
-public final class SettingsActivity extends Activity {
-    private Store store;
+public final class SettingsActivity extends HelperActivity {
     private android.app.Dialog dialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        Ui.applyTheme(this);
-        store = new Store(this);
+        super.onCreate(savedInstanceState); // theme and store
         LinearLayout content = Ui.screen(this, getString(R.string.settings_title));
 
         // Lock: asks for a new PIN (twice), like SeniorAlert. Typing a PIN is
@@ -59,9 +54,9 @@ public final class SettingsActivity extends Activity {
                     : Ui.outlined(this, name);
             b.setSelected(t == current);
             b.setOnClickListener(v -> {
-                if (closedByLock() || t == store.theme()) return;
-                store.setTheme(t);
-                recreate(); // redraw this screen in the new colours at once
+                if (closedByLock()) return;
+                if (t != store.theme()) store.setTheme(t);
+                followStore(); // redraw this screen in the new colours at once
             });
             content.addView(b, Ui.fullWidth(this, 8));
         }
@@ -118,31 +113,6 @@ public final class SettingsActivity extends Activity {
             }
         }
     }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (closedByLock()) return;
-        store.watch(lockWatch);
-    }
-
-    @Override
-    protected void onPause() {
-        store.unwatch(lockWatch);
-        super.onPause();
-    }
-
-    /**
-     * A helper screen: locked meanwhile (an automation app can lock at any
-     * time), it closes, and every action checks again before it changes anything.
-     */
-    private boolean closedByLock() {
-        if (!store.locked()) return false;
-        finish();
-        return true;
-    }
-
-    private final SharedPreferences.OnSharedPreferenceChangeListener lockWatch = (p, key) -> closedByLock();
 
     @Override
     protected void onStop() {

@@ -25,17 +25,18 @@ separate app, not part of this one.
 | `HomeActivity` | The home screen: header (time, date, `BatteryView`), helper bar or padlock, one page of the grid, pager bar. Rebuilds only when what is visible changed. |
 | `PageLayout` | A fixed `Pages.ROWS` x `Pages.COLUMNS` grid that always fills its space; places children by row, column and span. Reports the cell size after layout. |
 | `BatteryView` | The battery box: percent plus a word. On battery a light green gauge fills it up to the charge; low is solid red; charging is solid blue and full solid green, both with a lightning bolt (charging and full differ by colour, not only by word). |
-| `AppsActivity` | Every launchable app with an "Add" / "On home ✓" toggle. The only way to put an app on the home screen. Closes itself when locked. |
+| `HelperActivity` | Base of the five helper screens: applies the theme, closes the screen when locked and rebuilds it in a new theme, on resume and at once while in front (it watches the store). |
+| `AppsActivity` | Every launchable app with an "Add" / "On home ✓" toggle. The only way to put an app on the home screen; taking one off asks first. Closes itself when locked. |
 | `WidgetsActivity` | Places widgets (bind, optional configure, store), resizes them (size buttons on each placed card) and removes them. Lists them grouped by app with previews, a size badge (small/wide) and a search over widget and app names. Offers the notifications card ("Messages") first, and manages it once placed (access, apps, size, remove). |
 | `NotificationCard` | The notifications card on home: entries newest first (icon, app · time in words, sender, text), "and N more messages" when they do not fit, or a setup line with one button for the helper. Live while attached. |
 | `NotificationListener` | The `NotificationListenerService`: hands the current notifications to `NotificationHub`. Bound by the system once the helper grants notification access. |
 | `NotificationHub` | In-memory, in-process store of the current notifications plus observers; whether access is granted, the screen to grant it, opening a notification like the shade, the first-time default apps. |
-| `NotificationAppsActivity` | The helper picks whose notifications the card shows ("Show" / "Shown ✓"). Closes itself while locked. |
+| `NotificationAppsActivity` | The helper picks whose notifications the card shows ("Show" / "Shown ✓"). Closes itself when locked. |
 | `Note`, `NoteList` | Pure: a notification as the card needs it; which ones are shown, in what order, merged per chat, how many fit, the default apps. Unit tested. |
 | `TimeWords` | Pure: "just now", "5 min ago", today, yesterday or earlier. Unit tested. |
 | `IconColor` | Pure: an icon's main colour for Colourful tiles, made readable under white text. Unit tested. |
 | `SettingsActivity` | Lock (choose a PIN), colours, arrange home screen, choose home app, phone settings. Closes itself when locked. |
-| `ArrangeActivity` | The home items in order, with "Page 1", "Page 2" headings from `Pages.layout`; ▲ Earlier / ▼ Later on each. From Settings, or from the long press on a tile (that tile marked). Never while locked. |
+| `ArrangeActivity` | The home items in order, with "Page 1", "Page 2" headings from `Pages.layout`; ▲ Earlier / ▼ Later on each. From Settings, or from the long press on a tile (that tile marked). Never while locked: closes itself when locked. |
 | `Widgets` | The one `AppWidgetHost`: creates, sizes and deletes widget views; turns a provider's declaration into a `WidgetRows.Spec` (dp). |
 | `AppInfo` | Label, icon, launchability and launch of an app tile, via `LauncherApps`. A tile whose launcher activity was disabled follows the app's only remaining one (SeniorLight swaps icon aliases to show the light's state). |
 | `DefaultApps` | On first run, adds tiles for the default phone, messages, camera, photos, contacts and browser apps. |
@@ -47,7 +48,7 @@ separate app, not part of this one.
 | `Store` | The ordered home items (with the widgets sized by hand), the lock flag with its PIN salt/hash (kept after unlocking), the first-run flag and the notification card's app list (package names only), in SharedPreferences. |
 | `Pin` | PIN validation (4-8 digits), salted SHA-256 hash, constant-time compare, and the fixed reset PIN. Same as SeniorAlert's and SeniorPhone's. Pure. |
 | `PinDialog` | Choose a PIN (twice) when locking; enter it when unlocking. The unlock prompt closes after 10 s without typing. |
-| `Ui` | Shared buttons, helper-screen frame and dialogs (`confirm`, and `choose` for more than one action), so every screen looks alike. Resolves every colour through the chosen theme (`Ui.color`, `Ui.applyTheme`). |
+| `Ui` | Shared buttons, helper-screen frame and dialogs (`confirm`, and `choose` for more than one action; every dialog, the PIN prompt too, on `dialogCard`, outlined like the tiles so it has an edge on the dimmed screen), so every screen looks alike. Resolves every colour through the chosen theme (`Ui.color`, `Ui.applyTheme`). |
 | `NavBar` | Whether SeniorNav's Back & Home bar is on screen: SeniorNav's `content://app.phueber.seniornav.bar/state` (`visible`: running, attached, not paused), else (older SeniorNav) whether the enabled accessibility services list it. While it is, the pinned Back button is hidden, since the bar already has Back and Home; shown while the bar is paused or not running. Re-checked whenever a screen gets focus and on every change of that uri while attached. Pure part unit tested. |
 | `Palette` | Pure: the four colour themes (Light, Dark, High contrast, Colourful) as roles, the Colourful tile colours, and the WCAG contrast check. Unit tested for readability. |
 | `HomeItem` | Pure: an app tile, a widget (id and rows) or the notifications card (rows). |
@@ -66,14 +67,21 @@ spans the full width and starts on a new row; if its rows do not fit on the
 current page, it starts the next one. Tiles never move
 on their own: a page only changes when an item is added, removed or resized
 (or an automatic widget re-fits after a font or display size change). Home always
-goes back to page 1. A recreate (new colours, or any configuration change) keeps
+goes back to page 1. The pinned Back of every helper screen is one tap to the
+home screen, however deep the helper went (Settings → Arrange, Widgets →
+Choose apps): `Ui.goHome` starts `HomeActivity` (singleTask, the task's root),
+which clears every helper screen above it, with `EXTRA_BACK`, so it keeps the
+page it showed instead of going to page 1 (Back is a return, not Home). The
+system Back still steps back one screen. A recreate (new colours, or any configuration change) keeps
 the page shown: `HomeActivity` saves it only while `isChangingConfigurations()`,
 so a start after the process died still opens on page 1.
 
 ## Order
 
 New items go to the end. The helper changes the order on the Arrange screen
-(Settings, or hold a tile and choose Move): every item the home screen shows,
+(Settings, or hold a tile and choose Move, which marks that tile with a
+thick outline, green or in High contrast white, `Palette.markBorder`, so it
+is the most visible row in every theme): every item the home screen shows,
 with page headings computed by `Pages.layout`, so a wide widget that pushes
 things to the next page is visible there too. Each tile has two buttons,
 ▲ Earlier and ▼ Later, greyed out at the ends; there is no drag and drop,
@@ -91,6 +99,11 @@ buttons as everywhere else.
   helper sees the result at once instead of the page the item left. Home
   still always goes to page 1 (it drops that hand-over). The hand-over is one
   static slot, `HomeActivity.showNext`, which adding a widget uses too.
+
+Removing is one rule everywhere: anything that leaves the home screen (a tile
+from its long-press menu or the Apps screen, a widget, the messages card)
+is asked about first with the same `Ui.confirm` question, "Remove “Name” from
+the home screen?", Remove in red.
 
 ## Widgets
 
@@ -227,7 +240,10 @@ every app tile filled with its own colour and a bold white label). There is
 no free colour picker: `PaletteTest` checks every theme against WCAG contrast
 (7:1 for text, 4.5:1 for white text on the green, blue and red buttons and
 on every tile colour), and a picker would let an unreadable combination
-through.
+through. Red text ("Wrong PIN.") has its own role, `RED_TEXT`: the button red
+is a fill for white text and reads at only about 2.5:1 as text on the Dark
+and High contrast cards, so each theme has a red made for text (7:1 on the
+card).
 
 In Colourful, an app tile takes the main colour of its icon (`IconColor`):
 the most common clearly coloured hue of a 48x48 rendering, ignoring white,
@@ -242,7 +258,9 @@ Code names colours by role (`R.color.green`, `R.color.text_black`, ...);
 resource values are the Light theme, used for the window before the first
 frame. `Ui.applyTheme` runs first in every `onCreate` and colours the window
 and system bars. `HomeActivity` recreates itself on resume when the theme
-changed.
+changed; so does every helper screen (`HelperActivity`), and at once while it
+is in front, so a theme set by automation never leaves Settings showing the
+old one ticked.
 
 ## Lock
 
@@ -252,9 +270,10 @@ by a small padlock (a 40dp row instead of the 64dp buttons, so the tiles get
 the space) and long-press on tiles does nothing (no Move, no Remove; the
 Arrange screen closes itself if it is ever opened locked), so the senior can
 only open things. A lock that arrives while a helper screen is open (from an
-automation app) closes it too: Apps, Widgets and Settings watch the store
-while in front, close on resume when locked, and check the lock again in
-every action (an add in progress on the Widgets screen is dropped). Each
+automation app) closes it too: every helper screen (Apps, Widgets, Settings,
+Arrange, Notification apps; `HelperActivity`) watches the store while in
+front, closes on resume when locked, and checks the lock again in every
+action (an add in progress on the Widgets screen is dropped). Each
 opens single-top, so a double tap opens it once. Holding the padlock asks for the PIN. The prompt never stays
 up: it closes after 10 s without typing and when the screen is left, so the
 senior is not left facing a code request. The PIN keeps a curious senior out,

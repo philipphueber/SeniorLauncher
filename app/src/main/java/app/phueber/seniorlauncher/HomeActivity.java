@@ -77,6 +77,8 @@ public class HomeActivity extends Activity {
      * Main thread only; lost with the process, which then means page 1.
      */
     private static HomeItem showNext;
+    /** Set by a helper screen's pinned Back (Ui.goHome): not Home, so keep the page. */
+    static final String EXTRA_BACK = "back";
 
     private final Handler handler = new Handler(Looper.getMainLooper());
     private Store store;
@@ -303,12 +305,17 @@ public class HomeActivity extends Activity {
         if (isChangingConfigurations()) out.putInt(S_PAGE, page);
     }
 
-    /** Pressing Home while the home screen is showing goes back to page 1. */
+    /**
+     * Pressing Home while the home screen is showing goes back to page 1. The
+     * pinned Back of a helper screen (Ui.goHome) comes here too, marked with
+     * EXTRA_BACK: it keeps the page, and onResume turns to showNext if set.
+     */
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        setIntent(intent);
         dismissDialog();
+        if (intent.getBooleanExtra(EXTRA_BACK, false)) return;
+        setIntent(intent);
         takeShowNext(); // Home means page 1, even after arranging or adding
         page = 0;
         if (shownKey != null) showPage();
@@ -813,8 +820,9 @@ public class HomeActivity extends Activity {
             t.setLongClickable(false); // the senior can only open things
         } else {
             // For the helper: move the tile (on the Arrange screen, with this tile
-            // marked) or take it off. Remove needs no second question: it is
-            // already the second step after the long press, as before.
+            // marked) or take it off. Removing anything from the home screen
+            // always asks first, with the same question everywhere (Apps,
+            // Widgets, the messages card).
             t.setOnLongClickListener(v -> {
                 if (store.locked()) return true;
                 dismissDialog();
@@ -824,10 +832,14 @@ public class HomeActivity extends Activity {
                                 startActivity(ArrangeActivity.intent(this, HomeItem.app(component)));
                             }
                         }),
-                        new Ui.Choice(getString(R.string.remove), R.color.red, () -> {
-                            store.removeApp(component);
-                            rebuild(false);
-                        }));
+                        new Ui.Choice(getString(R.string.remove), R.color.red, () ->
+                                dialog = Ui.confirm(this,
+                                        getString(R.string.remove_from_home_question, name),
+                                        getString(R.string.remove), R.color.red, () -> {
+                                            if (store.locked()) return;
+                                            store.removeApp(component);
+                                            rebuild(false);
+                                        })));
                 return true;
             });
         }

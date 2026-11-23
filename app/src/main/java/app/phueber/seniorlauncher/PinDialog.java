@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.GradientDrawable;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.Editable;
@@ -110,10 +109,7 @@ final class PinDialog {
         box.setOrientation(LinearLayout.VERTICAL);
         int p = Ui.dp(a, 24);
         box.setPadding(p, p, p, p);
-        GradientDrawable bg = new GradientDrawable();
-        bg.setColor(Ui.color(a, R.color.card));
-        bg.setCornerRadius(Ui.dp(a, 24));
-        box.setBackground(bg);
+        box.setBackground(Ui.dialogCard(a));
         TextView t = Ui.bold(a, title, 24);
         t.setGravity(Gravity.CENTER);
         box.addView(t);
@@ -138,7 +134,9 @@ final class PinDialog {
 
     private static TextView error(Activity a) {
         TextView e = Ui.bold(a, "", 18);
-        e.setTextColor(Ui.color(a, R.color.red));
+        // A red made for text: the button red is too dark on Dark and High
+        // contrast cards (2.3:1 and 2.6:1).
+        e.setTextColor(Ui.color(a, R.color.red_text));
         e.setGravity(Gravity.CENTER);
         return e;
     }

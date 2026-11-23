@@ -28,7 +28,8 @@ final class Palette {
         DISABLED_BG,    // greyed-out button
         DISABLED_TEXT,  // its text
         PRESS_ON_CARD,  // ripple over CARD
-        PRESS_ON_COLOR  // ripple over GREEN/BLUE/RED
+        PRESS_ON_COLOR, // ripple over GREEN/BLUE/RED
+        RED_TEXT        // warning text ("Wrong PIN.") on CARD; RED is for fills
     }
 
     /** Text on GREEN, BLUE and RED buttons in every theme. */
@@ -38,18 +39,21 @@ final class Palette {
             0xFFF4F2ED, 0xFFFFFFFF, 0xFFD9D5CC, 0xFF1C1B19, 0xFF5F5B54,
             0xFF2E7D32, 0xFFDCEFD9, 0xFFA5D6A7, 0xFF1F5F8B, 0xFFC62828,
             0xFFFBE1E0, 0xFFE6E3DC, 0xFF6F6A62, 0x33000000, 0x55FFFFFF,
+            0xFF9E1515,
     };
     // Dark navy, like the reference launcher, with white text.
     private static final int[] DARK = {
             0xFF12233A, 0xFF1E3350, 0xFF3A5578, 0xFFFFFFFF, 0xFFC5D0DD,
             0xFF2E7D32, 0xFF1F4A2A, 0xFF2B6136, 0xFF1F6FA8, 0xFFC62828,
             0xFF5A1F1F, 0xFF2A3B52, 0xFFA3B0C0, 0x33FFFFFF, 0x55FFFFFF,
+            0xFFFFB4AB,
     };
     // Black and white, thick white outlines, deep action colours.
     private static final int[] HIGH_CONTRAST = {
             0xFF000000, 0xFF000000, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFE6E6E6,
             0xFF1B5E20, 0xFF0B2E10, 0xFF1B5E20, 0xFF0D47A1, 0xFF9E1515,
             0xFF3B0A0A, 0xFF2E2E2E, 0xFFC8C8C8, 0x55FFFFFF, 0x55FFFFFF,
+            0xFFFF8A80,
     };
 
     /**
@@ -90,6 +94,20 @@ final class Palette {
 
     static int tileColorCount() {
         return TILES.length;
+    }
+
+    /**
+     * The outline of the marked row on the Arrange screen: green, unless green
+     * stands out less from the page than the ordinary card outline (High
+     * contrast: dark green on black next to white outlines), then the text
+     * colour. Drawn thicker than the card outline, so the marked row is always
+     * the most visible one.
+     */
+    static int markBorder(Theme theme) {
+        int page = color(theme, Role.PAGE);
+        int green = color(theme, Role.GREEN);
+        return contrast(green, page) >= contrast(color(theme, Role.CARD_BORDER), page)
+                ? green : color(theme, Role.TEXT);
     }
 
     /** Light status- and navigation-bar backgrounds need dark icons. */

@@ -3,6 +3,7 @@ package app.phueber.seniorlauncher;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -30,7 +31,7 @@ import android.widget.TextView;
  * - Green = the main / positive action, blue = neutral (Cancel, paging),
  *   red = remove. White text on all three.
  * - Every helper screen has a big Back button pinned at the bottom.
- * - Dialogs are a card with a question and stacked full-width buttons,
+ * - Dialogs are an outlined card with a question and stacked full-width buttons,
  *   positive on top, Cancel last.
  */
 public final class Ui {
@@ -75,6 +76,7 @@ public final class Ui {
         if (res == R.color.blue) return Palette.Role.BLUE;
         if (res == R.color.red) return Palette.Role.RED;
         if (res == R.color.red_light) return Palette.Role.RED_LIGHT;
+        if (res == R.color.red_text) return Palette.Role.RED_TEXT;
         if (res == R.color.disabled_bg) return Palette.Role.DISABLED_BG;
         if (res == R.color.disabled_text) return Palette.Role.DISABLED_TEXT;
         if (res == R.color.press_dark) return Palette.Role.PRESS_ON_CARD;
@@ -181,7 +183,12 @@ public final class Ui {
         return lp;
     }
 
-    /** The pinned "← Back" button of every helper screen: closes the activity. */
+    /**
+     * The pinned "← Back" button of every helper screen: one tap to the home
+     * screen, however deep the helper went (Settings → Arrange, Widgets →
+     * Choose apps), closing every helper screen on the way. The system Back
+     * still steps back one screen.
+     */
     public static View backButton(Activity a) {
         int fg = color(a, R.color.text_black);
         LinearLayout b = new LinearLayout(a);
@@ -192,7 +199,7 @@ public final class Ui {
         b.setClickable(true);
         b.setFocusable(true);
         b.setContentDescription(a.getString(R.string.back));
-        b.setOnClickListener(v -> a.finish());
+        b.setOnClickListener(v -> goHome(a));
 
         TextView label = bold(a, a.getString(R.string.back), TEXT_BUTTON);
         label.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
@@ -207,6 +214,19 @@ public final class Ui {
         b.addView(label);
         NavBar.hideWhileOn(b); // SeniorNav's bar already has Back and Home
         return b;
+    }
+
+    /**
+     * Back to the home screen from a helper screen. HomeActivity is singleTask
+     * at the root of this task, so starting it clears every screen above it;
+     * the extra tells it this is Back, not Home, so it keeps its page (and
+     * turns to the item moved or added last) instead of going to page 1.
+     */
+    public static void goHome(Activity a) {
+        a.startActivity(new Intent(a, HomeActivity.class)
+                .putExtra(HomeActivity.EXTRA_BACK, true)
+                .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP));
+        a.finish();
     }
 
     /**
@@ -240,6 +260,19 @@ public final class Ui {
         page.addView(backButton(a), blp);
         a.setContentView(page);
         return content;
+    }
+
+    /**
+     * The card every dialog sits on: the theme's card colour with the same
+     * outline as the tiles, so it has a visible edge on the dimmed screen
+     * (in High contrast a black card on dimmed black would have none).
+     */
+    public static GradientDrawable dialogCard(Context c) {
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(color(c, R.color.card));
+        bg.setCornerRadius(dp(c, 24));
+        bg.setStroke(dp(c, 2), color(c, R.color.card_border));
+        return bg;
     }
 
     /** One button of a {@link #choose} dialog. */
@@ -278,10 +311,7 @@ public final class Ui {
         box.setOrientation(LinearLayout.VERTICAL);
         int p = dp(a, 24);
         box.setPadding(p, p, p, p);
-        GradientDrawable bg = new GradientDrawable();
-        bg.setColor(color(a, R.color.card));
-        bg.setCornerRadius(dp(a, 24));
-        box.setBackground(bg);
+        box.setBackground(dialogCard(a));
 
         TextView q = bold(a, question, 24);
         q.setGravity(Gravity.CENTER);
