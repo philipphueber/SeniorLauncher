@@ -22,7 +22,8 @@ English and German. The app follows the phone's language.
   - green-bordered box that fills with light green as far as the charge goes,
     "Battery": on battery
   - red box, "Battery low – Please charge": 20 % or less
-  - green box with a lightning bolt, "Charging" or "Full": plugged in
+  - blue box with a lightning bolt, "Charging": plugged in and charging
+  - green box with a lightning bolt, "Full": plugged in and full
 - **Tiles**, two side by side, three rows per page. A tap opens the app.
 - **Widgets** from other apps (a clock, the weather…) can sit between the
   tiles: small ones in a tile like an app, bigger ones across the full width.
@@ -114,7 +115,8 @@ während das Telefon lädt, steht dort deutlich **Lädt**.
   - grün umrandetes Feld, das sich so weit hellgrün füllt, wie der Akku
     geladen ist, „Akku“: läuft mit Akku
   - rotes Feld, „Akku schwach – Bitte aufladen“: 20 % oder weniger
-  - grünes Feld mit Blitz, „Lädt“ oder „Voll“: am Ladegerät
+  - blaues Feld mit Blitz, „Lädt“: am Ladegerät, lädt
+  - grünes Feld mit Blitz, „Voll“: am Ladegerät, voll
 - **Kacheln**, zwei nebeneinander, drei Reihen pro Seite. Ein Tipp öffnet die
   App.
 - **Widgets** anderer Apps (eine Uhr, das Wetter …) können zwischen den Kacheln
