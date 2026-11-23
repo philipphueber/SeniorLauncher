@@ -31,7 +31,7 @@ import android.widget.TextView;
  * - Green = the main / positive action, blue = neutral (Cancel, paging),
  *   red = remove. White text on all three.
  * - Every helper screen has a big Back button pinned at the bottom.
- * - Dialogs are a card with a question and stacked full-width buttons,
+ * - Dialogs are an outlined card with a question and stacked full-width buttons,
  *   positive on top, Cancel last.
  */
 public final class Ui {
@@ -262,6 +262,19 @@ public final class Ui {
         return content;
     }
 
+    /**
+     * The card every dialog sits on: the theme's card colour with the same
+     * outline as the tiles, so it has a visible edge on the dimmed screen
+     * (in High contrast a black card on dimmed black would have none).
+     */
+    public static GradientDrawable dialogCard(Context c) {
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(color(c, R.color.card));
+        bg.setCornerRadius(dp(c, 24));
+        bg.setStroke(dp(c, 2), color(c, R.color.card_border));
+        return bg;
+    }
+
     /** One button of a {@link #choose} dialog. */
     public static final class Choice {
         final CharSequence label;
@@ -298,10 +311,7 @@ public final class Ui {
         box.setOrientation(LinearLayout.VERTICAL);
         int p = dp(a, 24);
         box.setPadding(p, p, p, p);
-        GradientDrawable bg = new GradientDrawable();
-        bg.setColor(color(a, R.color.card));
-        bg.setCornerRadius(dp(a, 24));
-        box.setBackground(bg);
+        box.setBackground(dialogCard(a));
 
         TextView q = bold(a, question, 24);
         q.setGravity(Gravity.CENTER);
